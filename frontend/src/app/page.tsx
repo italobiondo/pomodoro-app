@@ -1,4 +1,5 @@
 import { TimerPanel } from "@/components/Timer/TimerPanel";
+import { RightColumnFree } from "@/components/FreeLayout/RightColumnFree";
 
 export default function HomePage() {
 	return (
@@ -10,9 +11,7 @@ export default function HomePage() {
 						<h1 className="text-lg font-semibold tracking-tight">
 							Pomodoro Focus
 						</h1>
-						<p className="text-xs text-slate-400">
-							• Plano Free
-						</p>
+						<p className="text-xs text-slate-400">• Plano Free</p>
 					</div>
 
 					<button
@@ -25,14 +24,12 @@ export default function HomePage() {
 			</header>
 
 			{/* Conteúdo principal */}
-			<div className="flex-1 flex flex-col items-center px-4 py-6">
-				<div className="w-full max-w-4xl grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-					<div className="flex items-center justify-center">
-						<TimerPanel />
-					</div>
-
-					<aside className="space-y-4">{/* ... resto do conteúdo ... */}</aside>
+			<div className="w-full max-w-4xl mx-auto grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+				<div className="flex justify-center">
+					<TimerPanel />
 				</div>
+
+				<RightColumnFree />
 			</div>
 		</main>
 	);
