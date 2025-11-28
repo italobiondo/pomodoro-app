@@ -151,7 +151,7 @@ export const TimerPanel: React.FC = () => {
 					<button
 						type="button"
 						onClick={resetCurrent}
-						className="underline underline-offset-4 hover:text-slate-200"
+						className="hover:text-slate-200"
 					>
 						Resetar ciclo
 					</button>
