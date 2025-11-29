@@ -2,16 +2,12 @@
 
 import React from "react";
 import { TodoListCard } from "@/components/TodoList/TodoListCard";
-import { YoutubePlayer } from "@/components/YoutubePlayer/YoutubePlayer";
 
 export const RightColumnFree: React.FC = () => {
 	return (
-		<aside className="space-y-4 pb-8">
+		<aside className="space-y-4 pb-4">
 			{/* To-do List (Sprint 3) */}
 			<TodoListCard />
-
-			{/* Player de YouTube (stub) */}
-			<YoutubePlayer />
 
 			{/* Anúncio leve (Free) */}
 			<section className="rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-3 text-xs text-slate-400">

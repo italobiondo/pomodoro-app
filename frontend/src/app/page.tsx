@@ -1,5 +1,6 @@
 import { TimerPanel } from "@/components/Timer/TimerPanel";
 import { RightColumnFree } from "@/components/FreeLayout/RightColumnFree";
+import { YoutubePlayer } from "@/components/YoutubePlayer/YoutubePlayer";
 
 export default function HomePage() {
 	return (
@@ -25,9 +26,13 @@ export default function HomePage() {
 
 			{/* Conteúdo principal */}
 			<div className="w-full max-w-4xl mx-auto grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-start pt-4">
-				<div className="flex justify-center items-start">
+				<div className="flex flex-col items-center gap-4 pb-4">
 					<div className="w-full max-w-md">
 						<TimerPanel />
+					</div>
+
+					<div className="w-full max-w-md">
+						<YoutubePlayer />
 					</div>
 				</div>
 
