@@ -61,7 +61,9 @@ export function TodoListCard() {
 	}
 
 	return (
-		<section className="rounded-2xl bg-slate-900/70 border border-slate-700 p-4 flex flex-col gap-4">
+		<section className="max-h-[854px] rounded-2xl bg-slate-900/70 border border-slate-700 p-4 flex flex-col gap-4">
+
+
 			<header className="flex items-start justify-between gap-2">
 				<div>
 					<h2 className="text-sm font-semibold text-slate-100">
@@ -114,7 +116,7 @@ export function TodoListCard() {
 			</div>
 
 			{/* Lista de tarefas */}
-			<div className="max-h-64 overflow-y-auto custom-scroll">
+			<div className="flex-1 min-h-0 overflow-y-auto custom-scroll">
 				{items.length === 0 ? (
 					<p className="text-xs text-slate-500 italic">
 						Nenhuma tarefa ainda. Crie a primeira para começar seu foco ✨

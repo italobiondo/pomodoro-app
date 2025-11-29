@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { TimerMode, useTimer } from "@/hooks/useTimer";
+import { TimerSettingsModal } from "./TimerSettingsModal";
 
 function formatTime(totalSeconds: number): string {
 	const minutes = Math.floor(totalSeconds / 60);
@@ -41,6 +42,19 @@ export const TimerPanel: React.FC = () => {
 
 	const [soundEnabled, setSoundEnabled] = useState(true);
 	const lastFinishedRef = useRef<number | null>(null);
+
+	const [settingsOpen, setSettingsOpen] = useState(false);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+
+		const handler = () => setSettingsOpen(true);
+
+		window.addEventListener("pomodoro:openSettings", handler);
+		return () => {
+			window.removeEventListener("pomodoro:openSettings", handler);
+		};
+	}, []);
 
 	// Toca som simples quando um ciclo termina
 	useEffect(() => {
@@ -104,8 +118,10 @@ export const TimerPanel: React.FC = () => {
 						)
 					)}
 				</div>
+
 				<span className="text-xs text-slate-400">
-					Pomodoros concluídos: <strong>{completedPomodoros}</strong>
+					Pomodoros concluídos:{" "}
+					<strong suppressHydrationWarning>{completedPomodoros}</strong>
 				</span>
 			</header>
 
@@ -166,84 +182,14 @@ export const TimerPanel: React.FC = () => {
 				</div>
 			</div>
 
-			{/* Configurações rápidas */}
-			<div className="space-y-4 border-t border-slate-800 pt-4 text-sm">
-				<div className="flex flex-wrap gap-3">
-					<div className="flex flex-col w-24">
-						<label className="text-xs text-slate-400 mb-1">
-							Pomodoro (min)
-						</label>
-						<input
-							type="number"
-							min={1}
-							max={120}
-							value={settings.pomodoroMinutes}
-							onChange={(e) =>
-								updateSettings({
-									pomodoroMinutes: Number(e.target.value) || 1,
-								})
-							}
-							className="rounded-md bg-slate-800 border border-slate-700 px-2 py-1 text-slate-50 text-sm"
-						/>
-					</div>
-					<div className="flex flex-col w-24">
-						<label className="text-xs text-slate-400 mb-1">Pausa curta</label>
-						<input
-							type="number"
-							min={1}
-							max={60}
-							value={settings.shortBreakMinutes}
-							onChange={(e) =>
-								updateSettings({
-									shortBreakMinutes: Number(e.target.value) || 1,
-								})
-							}
-							className="rounded-md bg-slate-800 border border-slate-700 px-2 py-1 text-slate-50 text-sm"
-						/>
-					</div>
-					<div className="flex flex-col w-24">
-						<label className="text-xs text-slate-400 mb-1">Pausa longa</label>
-						<input
-							type="number"
-							min={1}
-							max={60}
-							value={settings.longBreakMinutes}
-							onChange={(e) =>
-								updateSettings({
-									longBreakMinutes: Number(e.target.value) || 1,
-								})
-							}
-							className="rounded-md bg-slate-800 border border-slate-700 px-2 py-1 text-slate-50 text-sm"
-						/>
-					</div>
-				</div>
-
-				<div className="flex items-center justify-between gap-3">
-					<label className="flex items-center gap-2 text-xs text-slate-300">
-						<input
-							type="checkbox"
-							checked={settings.autoStartNext}
-							onChange={(e) =>
-								updateSettings({
-									autoStartNext: e.target.checked,
-								})
-							}
-							className="rounded border-slate-600 bg-slate-900"
-						/>
-						Auto-start próximo ciclo
-					</label>
-
-					<label className="flex items-center gap-2 text-xs text-slate-300">
-						<input
-							type="checkbox"
-							checked={soundEnabled}
-							onChange={(e) => setSoundEnabled(e.target.checked)}
-							className="rounded border-slate-600 bg-slate-900"
-						/>
-						Som ao finalizar
-					</label>
-				</div>
-			</div>
+			<TimerSettingsModal
+				open={settingsOpen}
+				onClose={() => setSettingsOpen(false)}
+				settings={settings}
+				onChangeSettings={updateSettings}
+				soundEnabled={soundEnabled}
+				onChangeSoundEnabled={setSoundEnabled}
+			/>
 		</section>
 	);
 };
