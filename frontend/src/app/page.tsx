@@ -24,9 +24,11 @@ export default function HomePage() {
 			</header>
 
 			{/* Conteúdo principal */}
-			<div className="w-full max-w-4xl mx-auto grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] pt-4">
-				<div className="flex justify-center">
-					<TimerPanel />
+			<div className="w-full max-w-4xl mx-auto grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-start pt-4">
+				<div className="flex justify-center items-start">
+					<div className="w-full max-w-md">
+						<TimerPanel />
+					</div>
 				</div>
 
 				<RightColumnFree />

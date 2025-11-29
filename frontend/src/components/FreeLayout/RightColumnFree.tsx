@@ -5,7 +5,7 @@ import { TodoListCard } from "@/components/TodoList/TodoListCard";
 
 export const RightColumnFree: React.FC = () => {
 	return (
-		<aside className="space-y-4">
+		<aside className="space-y-4 pb-8">
 			{/* To-do List (Sprint 3) */}
 			<TodoListCard />
 
