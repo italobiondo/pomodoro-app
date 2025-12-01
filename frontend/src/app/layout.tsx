@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { AuthProvider } from "../hooks/useAuth";
 
 export const metadata: Metadata = {
 	title: "Pomodoro Focus",
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="pt-BR">
-			<body>{children}</body>
+			<body className="...">
+				<AuthProvider>{children}</AuthProvider>
+			</body>
 		</html>
 	);
 }

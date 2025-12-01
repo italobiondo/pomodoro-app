@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { SocialLoginButtons } from "@/components/Auth/SocialLoginButtons";
 
 export const MainHeader: React.FC = () => {
 	function openSettings() {
@@ -28,12 +29,8 @@ export const MainHeader: React.FC = () => {
 						Configurações
 					</button>
 
-					<button
-						type="button"
-						className="text-xs px-3 py-1.5 rounded-full border border-emerald-500 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-400 transition-colors"
-					>
-						Criar Conta Pro
-					</button>
+					{/* Botão de login / conta Pro via login social */}
+					<SocialLoginButtons compact />
 				</div>
 			</div>
 		</header>

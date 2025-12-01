@@ -1,0 +1,37 @@
+export const API_BASE_URL =
+	process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
+
+export async function apiGet<T>(path: string): Promise<T> {
+	const res = await fetch(`${API_BASE_URL}${path}`, {
+		method: "GET",
+		credentials: "include",
+	});
+
+	if (!res.ok) {
+		throw new Error(`GET ${path} failed with status ${res.status}`);
+	}
+
+	return res.json() as Promise<T>;
+}
+
+export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
+	const res = await fetch(`${API_BASE_URL}${path}`, {
+		method: "POST",
+		credentials: "include",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: body ? JSON.stringify(body) : undefined,
+	});
+
+	if (!res.ok) {
+		throw new Error(`POST ${path} failed with status ${res.status}`);
+	}
+
+	if (res.status === 204) {
+		// @ts-expect-error - quando T for void
+		return undefined;
+	}
+
+	return res.json() as Promise<T>;
+}

@@ -20,6 +20,8 @@ services:
       context: ..          # contexto é a pasta infra
       dockerfile: infra/backend/Dockerfile
     container_name: pomodoro-backend
+    env_file:
+      - ../backend/.env
     ports:
       - "4000:4000"       # em produção pode tirar; aqui é ótimo pra testar
     environment:

@@ -1,25 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Prefixo global da API
-  app.setGlobalPrefix('api');
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-    }),
-  );
+  // Se o ESLint reclamar, deixe o comentário abaixo:
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  app.use(cookieParser());
 
   app.enableCors({
-    origin: [/localhost:3000$/],
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   });
 
-  await app.listen(4000);
+  app.setGlobalPrefix('api');
+
+  await app.listen(process.env.PORT ? Number(process.env.PORT) : 4000);
 }
-bootstrap();
+
+void bootstrap();
