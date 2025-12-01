@@ -4,6 +4,7 @@ import { HealthModule } from './modules/health/health.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TodosModule } from './modules/todos/todos.module';
+import { TimerModule } from './modules/timer/timer.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { TodosModule } from './modules/todos/todos.module';
     UsersModule,
     AuthModule,
     TodosModule,
+    TimerModule,
   ],
 })
 export class AppModule {}

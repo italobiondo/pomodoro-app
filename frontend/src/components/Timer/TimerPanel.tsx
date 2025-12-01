@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { TimerMode, useTimer } from "@/hooks/useTimer";
 import { TimerSettingsModal } from "./TimerSettingsModal";
+import { useTimerSettings } from "@/hooks/useTimerSettings";
 
 function formatTime(totalSeconds: number): string {
 	const minutes = Math.floor(totalSeconds / 60);
