@@ -33,7 +33,7 @@ services:
     networks:
       - pomodoro-net
 
-  postgres:
+  ppostgres:
     image: postgres:16
     container_name: pomodoro-postgres
     restart: unless-stopped
@@ -43,6 +43,8 @@ services:
       - POSTGRES_DB=pomodorodb
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"      # em produção pode tirar; aqui é ótimo pra testar
     networks:
       - pomodoro-net
 
