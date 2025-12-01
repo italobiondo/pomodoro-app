@@ -19,11 +19,19 @@ const MAX_FREE_TASKS = 10;
 const MAX_PRO_TASKS = 100;
 
 export function useTodoList() {
-	const { isPro, user } = useAuth();
+	const { isPro, user, logoutSignal } = useAuth();
 
 	const maxTasks = isPro ? MAX_PRO_TASKS : MAX_FREE_TASKS;
 
 	const [items, setItems] = useLocalStorage<TodoItem[]>(STORAGE_KEY, []);
+
+	// Limpa tasks quando o usuário desloga
+	useEffect(() => {
+		if (!isPro) {
+			// Deslogado ou Free → zera apenas a UI
+			setItems([]);
+		}
+	}, [logoutSignal, isPro, setItems]);
 
 	// Quando usuário Pro loga, busca tasks no backend
 	useEffect(() => {

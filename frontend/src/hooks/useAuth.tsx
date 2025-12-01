@@ -27,6 +27,7 @@ interface AuthContextValue {
 	loginWithGoogle: () => void;
 	logout: () => Promise<void>;
 	refreshMe: () => Promise<void>;
+	logoutSignal: number;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -34,6 +35,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<AuthUser | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [logoutSignal, setLogoutSignal] = useState(0);
 
 	const fetchMe = useCallback(async () => {
 		setLoading(true);
@@ -56,8 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	};
 
 	const logout = async () => {
-		await apiPost<void>("/auth/logout");
-		setUser(null);
+		try {
+			await apiPost("/auth/logout");
+			setUser(null);
+
+			// 👇 notifica todos os hooks ligados ao auth
+			setLogoutSignal((n) => n + 1);
+		} catch {}
 	};
 
 	const value: AuthContextValue = {
@@ -67,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		loginWithGoogle,
 		logout,
 		refreshMe: fetchMe,
+		logoutSignal,
 	};
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
