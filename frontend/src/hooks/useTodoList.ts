@@ -1,6 +1,9 @@
+"use client";
+
 import { useCallback, useMemo } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { v4 as uuid } from "uuid";
+import { useAuth } from "@/hooks/useAuth";
 
 export type TodoItem = {
 	id: string;
@@ -12,16 +15,21 @@ export type TodoItem = {
 
 const STORAGE_KEY = "pomodoro:tasks:v1";
 const MAX_FREE_TASKS = 10;
+const MAX_PRO_TASKS = 100;
 
 export function useTodoList() {
+	const { isPro } = useAuth();
+
+	const maxTasks = isPro ? MAX_PRO_TASKS : MAX_FREE_TASKS;
+
 	const [items, setItems] = useLocalStorage<TodoItem[]>(STORAGE_KEY, []);
 
 	const remainingSlots = useMemo(
-		() => Math.max(0, MAX_FREE_TASKS - items.length),
-		[items.length]
+		() => Math.max(0, maxTasks - items.length),
+		[items.length, maxTasks]
 	);
 
-	const canAddMore = items.length < MAX_FREE_TASKS;
+	const canAddMore = items.length < maxTasks;
 
 	const addItem = useCallback(
 		(title: string) => {
@@ -97,7 +105,7 @@ export function useTodoList() {
 		toggleDone,
 		removeItem,
 		clearAll,
-		maxTasks: MAX_FREE_TASKS,
+		maxTasks,
 		remainingSlots,
 		canAddMore,
 	};

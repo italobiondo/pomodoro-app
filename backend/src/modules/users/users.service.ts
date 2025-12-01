@@ -36,21 +36,27 @@ export class UsersService {
     );
 
     if (existing) {
-      // Atualiza dados básicos se necessário
       existing.email = params.email;
       existing.name = params.name ?? existing.name ?? null;
+
+      // 👇 se for o Italo, marca como PRO sempre
+      if (params.email === 'italo.a.biondo@gmail.com') {
+        existing.plan = 'pro';
+      }
+
       existing.updatedAt = new Date();
       return existing;
     }
 
     const now = new Date();
+    const isItalo = params.email === 'italo.a.biondo@gmail.com';
     const user: User = {
       id: randomUUID(),
       email: params.email,
       name: params.name ?? null,
       provider: params.provider,
       providerId: params.providerId,
-      plan: 'free', // pagamento vem em outra sprint
+      plan: isItalo ? 'pro' : 'free',
       planExpiresAt: null,
       createdAt: now,
       updatedAt: now,

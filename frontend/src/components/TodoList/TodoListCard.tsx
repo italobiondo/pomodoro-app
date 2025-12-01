@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useTodoList } from "../../hooks/useTodoList";
 import confetti from "canvas-confetti";
+import { useAuth } from "@/hooks/useAuth";
 
 export function TodoListCard() {
 	const {
@@ -20,6 +21,7 @@ export function TodoListCard() {
 	const [newTitle, setNewTitle] = useState("");
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editingTitle, setEditingTitle] = useState("");
+	const { isPro } = useAuth();
 
 	function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -62,21 +64,27 @@ export function TodoListCard() {
 
 	return (
 		<section className="max-h-[854px] rounded-2xl bg-slate-900/70 border border-slate-700 p-4 flex flex-col gap-4">
-
-
 			<header className="flex items-start justify-between gap-2">
 				<div>
 					<h2 className="text-sm font-semibold text-slate-100">
 						Sua lista de tarefas
 					</h2>
 					<p className="text-xs text-slate-400 mt-1">
-						Organize até {maxTasks} tarefas no plano Free. Tudo salvo apenas no
-						seu navegador.
+						{isPro
+							? "Organize até 100 tarefas no plano Pro (em breve)."
+							: "Organize até 10 tarefas no plano Free."}
 					</p>
 				</div>
 
-				<span className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
-					Free
+				<span
+					className={
+						"text-[10px] px-2 py-0.5 rounded-full border font-semibold " +
+						(isPro
+							? "border-amber-400 bg-amber-400/10 text-amber-200"
+							: "border-emerald-500 bg-emerald-500/10 text-emerald-300")
+					}
+				>
+					{isPro ? "PRO" : "FREE"}
 				</span>
 			</header>
 
