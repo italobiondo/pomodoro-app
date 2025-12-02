@@ -20,7 +20,7 @@ https://pastebin.com/skt1QRtv
 ====================================================================
 📂 ÁRVORE DO PROJETO (referência atual)
 ```
-pomodoro-app - Copia
+pomodoro-app
  ┣ backend
  ┃ ┣ prisma
  ┃ ┣ src
