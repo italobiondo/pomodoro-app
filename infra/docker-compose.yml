@@ -33,7 +33,7 @@ services:
     networks:
       - pomodoro-net
 
-  ppostgres:
+  postgres:
     image: postgres:16
     container_name: pomodoro-postgres
     restart: unless-stopped
