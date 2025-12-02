@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client"
+  // o client vai ser gerado em: backend/src/generated/prisma/client
+  output   = "../src/generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =========================
+// ENUMS
+// =========================
+
+enum AuthProvider {
+  GOOGLE
+  GITHUB
+  APPLE
+}
+
+enum PlanType {
+  FREE
+  PRO
+}
+
+enum PlanStatus {
+  ACTIVE
+  CANCELED
+  TRIAL
+  EXPIRED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  FAILED
+}
+
+// =========================
+// MODELOS PRINCIPAIS
+// Baseado na seção "Modelo de Dados" da Arquitetura
+// (com a alteração: SEM TimerSettings persistido)
+// =========================
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  name           String?
+  authProvider   AuthProvider
+  authProviderId String
+
+  plan          PlanType     @default(FREE)
+  planStatus    PlanStatus   @default(ACTIVE)
+  planExpiresAt DateTime?
+
+  // Relacionamentos
+  subscriptions   Subscription[]
+  payments        Payment[]
+  tasks           Task[]
+  statsSummary    StatsSummary?
+  themePreference ThemePreference?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id                     String              @id @default(uuid())
+  userId                 String
+  user                   User                @relation(fields: [userId], references: [id])
+
+  provider               String              // stripe, mercado_pago, pagarme, etc.
+  providerCustomerId     String
+  providerSubscriptionId String
+
+  status             SubscriptionStatus
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id                 String         @id @default(uuid())
+  userId             String
+  user               User           @relation(fields: [userId], references: [id])
+
+  subscriptionId     String?
+  subscription       Subscription?  @relation(fields: [subscriptionId], references: [id])
+
+  providerPaymentId  String
+  amount             Int            // em centavos
+  currency           String
+  status             PaymentStatus
+
+  createdAt DateTime @default(now())
+}
+
+// Tasks que vão ser sincronizadas para usuário Pro
+model Task {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  title       String
+  isCompleted Boolean  @default(false)
+
+  // Para estatísticas e histórico básico
+  completedAt DateTime?
+
+  // Para sincronização com o cliente (Pro)
+  clientId   String?   // id local do front
+  lastSyncAt DateTime?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// Resumo de estatísticas agregadas (sem dados brutos de foco minuto a minuto)
+model StatsSummary {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id])
+
+  totalPomodorosCompleted Int   @default(0)
+  totalFocusMinutes       Int   @default(0)
+  totalBreakMinutes       Int   @default(0)
+  lastUpdatedAt           DateTime @default(now())
+}
+
+// Preferência de tema por usuário (inclui temas Pro)
+model ThemePreference {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+
+  themeKey  String   // "light", "dark", "neon", etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
