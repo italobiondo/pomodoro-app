@@ -25,7 +25,7 @@ services:
     ports:
       - "4000:4000"       # em produção pode tirar; aqui é ótimo pra testar
     environment:
-      - DATABASE_URL=postgres://pomodoro:pomodoro@postgres:5432/pomodorodb
+      # - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379
     depends_on:
       - postgres
@@ -43,6 +43,7 @@ services:
       - POSTGRES_DB=pomodorodb
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"      # em produção pode tirar; aqui é ótimo pra testar
     networks:

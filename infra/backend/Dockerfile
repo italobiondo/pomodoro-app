@@ -5,11 +5,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Copia apenas os manifests primeiro (cache melhor)
 COPY backend/package.json backend/package-lock.json* ./
-
 RUN npm install
 
-COPY backend .
+# Agora copia TODO o código do backend para /app
+COPY backend/. .
 
 # Build do Nest (gera dist/)
 RUN npm run build
@@ -29,4 +30,4 @@ COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 4000
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]

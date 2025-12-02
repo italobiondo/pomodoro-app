@@ -13,7 +13,6 @@ interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly usersService: UsersService) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const jwtFromRequest = ExtractJwt.fromExtractors([
       (req: Request | null): string | null => {
         if (!req || !req.cookies) {
@@ -27,7 +26,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     ]) as (req: Request) => string | null;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       jwtFromRequest,
       ignoreExpiration: false,
