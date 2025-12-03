@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { v4 as uuid } from "uuid";
 import { useAuth } from "@/hooks/useAuth";
-import { apiGet, apiPost, apiPatch, apiDelete } from "@/lib/apiClient";
+import { apiGet, apiPost } from "@/lib/apiClient";
 import {
 	TodoItem,
 	TaskApiModel,
@@ -53,8 +53,9 @@ export function useTodoList() {
 
 	// Limpa tasks quando o usuário desloga ou quando não é Pro (mantém comportamento atual)
 	useEffect(() => {
-		if (!isPro) {
-			// Deslogado ou Free → zera apenas a UI/localStorage
+		// Só limpa tasks quando houver um evento explícito de logout,
+		// para não apagar as tarefas de usuários Free ao recarregar a página.
+		if (!isPro && logoutSignal > 0) {
 			setItems([]);
 			setPendingSyncTasks([]);
 		}
@@ -62,7 +63,8 @@ export function useTodoList() {
 
 	/**
 	 * Enfileira um "task change" para ser enviado depois via /tasks/sync.
-	 * Usado apenas quando o usuário Pro está OFFLINE.
+	 * Usado apenas quando o usuário Pro está OFFLINE ou quando estamos usando
+	 * o modelo de sync mesmo ONLINE.
 	 */
 	const queuePendingSyncTask = useCallback(
 		(task: PendingTaskForSync) => {
@@ -71,8 +73,13 @@ export function useTodoList() {
 		[setPendingSyncTasks]
 	);
 
+	/**
+	 * Busca o snapshot atual das tasks ativas no backend (GET /tasks).
+	 * Usado ao logar, desde que não haja pendências de sync locais.
+	 */
 	const reloadFromBackend = useCallback(async () => {
 		if (!isPro || !user) return;
+		if (pendingSyncTasks.length > 0) return; // não sobrescreve alterações locais pendentes
 
 		try {
 			const remoteItems = await apiGet<TaskApiModel[]>("/tasks");
@@ -80,7 +87,7 @@ export function useTodoList() {
 		} catch {
 			// por enquanto, silencioso — se der erro, fica só com localStorage
 		}
-	}, [isPro, user, setItems]);
+	}, [isPro, user, pendingSyncTasks.length, setItems]);
 
 	/**
 	 * Sincroniza tasks pendentes (fila offline) com o backend usando /tasks/sync.
@@ -125,7 +132,7 @@ export function useTodoList() {
 		}
 	}, [isPro, user, pendingSyncTasks, setItems, setPendingSyncTasks]);
 
-	// Quando usuário Pro loga ou tasks mudam, tenta sincronizar pendências
+	// Quando usuário Pro loga ou as pendências mudam, tenta sincronizar
 	useEffect(() => {
 		// eslint-disable-next-line react-hooks/set-state-in-effect
 		void syncPendingWithServer();
@@ -143,7 +150,7 @@ export function useTodoList() {
 		return () => window.removeEventListener("online", handleOnline);
 	}, [syncPendingWithServer]);
 
-	// Quando usuário Pro loga, busca tasks no backend (GET /tasks)
+	// Quando usuário Pro loga, busca tasks no backend (se não tiver pendências)
 	useEffect(() => {
 		void reloadFromBackend();
 	}, [reloadFromBackend]);
@@ -181,64 +188,43 @@ export function useTodoList() {
 				return;
 			}
 
-			// Pro: se offline → apenas enfileira para sync futuro
-			if (!isOnline()) {
-				const clientId = uuid();
+			// Pro (online ou offline): sempre cria local + fila, e tenta sync se online
+			const clientId = uuid();
 
-				const newItem: TodoItem = {
-					id: clientId,
-					clientId,
-					title: trimmed,
-					done: false,
-					createdAt: now,
-					updatedAt: now,
-					deletedAt: null,
-				};
+			const newItem: TodoItem = {
+				id: clientId,
+				clientId,
+				title: trimmed,
+				done: false,
+				createdAt: now,
+				updatedAt: now,
+				deletedAt: null,
+			};
 
-				setItems((prev) => [...prev, newItem]);
+			setItems((prev) => [...prev, newItem]);
 
-				queuePendingSyncTask({
-					clientId,
-					title: trimmed,
-					done: false,
-					updatedAt: now,
-					deletedAt: null,
-				});
+			queuePendingSyncTask({
+				clientId,
+				title: trimmed,
+				done: false,
+				updatedAt: now,
+				deletedAt: null,
+			});
 
-				return;
-			}
-
-			// Pro + online: cria no backend (POST /tasks) e atualiza local
-			try {
-				const created = await apiPost<TaskApiModel>("/tasks", {
-					title: trimmed,
-				});
-				const normalized = normalizeTaskFromApi(created);
-				setItems((prev) => [...prev, normalized]);
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			} catch (err: unknown) {
-				setError("Não foi possível criar a tarefa. Tente novamente.");
-
-				// tenta ressincronizar com o backend para refletir o estado real
-				try {
-					await reloadFromBackend();
-				} catch {
-					// silencioso por enquanto
-				}
+			if (isOnline()) {
+				void syncPendingWithServer();
 			}
 		},
-		[canAddMore, isPro, setItems, queuePendingSyncTask, reloadFromBackend]
+		[canAddMore, isPro, setItems, queuePendingSyncTask, syncPendingWithServer]
 	);
 
 	const updateItemTitle = useCallback(
 		async (id: string, title: string) => {
 			const trimmed = title.trim();
+			const now = new Date().toISOString();
 
 			setError(null);
 
-			const now = new Date().toISOString();
-
-			// Atualiza localmente sempre
 			let target: TodoItem | undefined;
 			setItems((prev) =>
 				prev.map((item) => {
@@ -255,39 +241,24 @@ export function useTodoList() {
 			);
 
 			// Free: nada a fazer no backend
-			if (!isPro) {
-				return;
-			}
+			if (!isPro) return;
 
-			// Pro + offline → enfileira alteração
-			if (!isOnline()) {
-				if (target) {
-					queuePendingSyncTask({
-						id: target.id,
-						clientId: target.clientId ?? undefined,
-						title: target.title,
-						done: target.done,
-						updatedAt: target.updatedAt,
-						deletedAt: target.deletedAt ?? null,
-					});
-				}
-				return;
-			}
-
-			// Pro + online → atualiza no backend (PATCH /tasks/:id)
-			try {
-				const updated = await apiPatch<TaskApiModel>(`/tasks/${id}`, {
-					title: trimmed,
+			if (target) {
+				queuePendingSyncTask({
+					id: target.id,
+					clientId: target.clientId ?? undefined,
+					title: target.title,
+					done: target.done,
+					updatedAt: target.updatedAt,
+					deletedAt: target.deletedAt ?? null,
 				});
-				const normalized = normalizeTaskFromApi(updated);
-				setItems((prev) =>
-					prev.map((item) => (item.id === id ? normalized : item))
-				);
-			} catch {
-				setError("Não foi possível atualizar a tarefa. Tente novamente.");
+			}
+
+			if (isOnline()) {
+				void syncPendingWithServer();
 			}
 		},
-		[isPro, setItems, queuePendingSyncTask]
+		[isPro, setItems, queuePendingSyncTask, syncPendingWithServer]
 	);
 
 	const toggleDone = useCallback(
@@ -312,51 +283,37 @@ export function useTodoList() {
 				return;
 			}
 
-			const current = items.find((item) => item.id === id);
-			if (!current) return;
+			let target: TodoItem | undefined;
+			setItems((prev) =>
+				prev.map((item) => {
+					if (item.id === id) {
+						target = {
+							...item,
+							done: !item.done,
+							updatedAt: now,
+						};
+						return target;
+					}
+					return item;
+				})
+			);
 
-			const desiredDone = !current.done;
-
-			// Pro + offline → atualiza local + enfileira
-			if (!isOnline()) {
-				const updated: TodoItem = {
-					...current,
-					done: desiredDone,
-					updatedAt: now,
-				};
-
-				setItems((prev) =>
-					prev.map((item) => (item.id === id ? updated : item))
-				);
-
+			if (target) {
 				queuePendingSyncTask({
-					id: updated.id,
-					clientId: updated.clientId ?? undefined,
-					title: updated.title,
-					done: updated.done,
-					updatedAt: updated.updatedAt,
-					deletedAt: updated.deletedAt ?? null,
+					id: target.id,
+					clientId: target.clientId ?? undefined,
+					title: target.title,
+					done: target.done,
+					updatedAt: target.updatedAt,
+					deletedAt: target.deletedAt ?? null,
 				});
-
-				return;
 			}
 
-			// Pro + online → backend é fonte da verdade
-			try {
-				const updated = await apiPatch<TaskApiModel>(`/tasks/${id}`, {
-					done: desiredDone,
-				});
-
-				const normalized = normalizeTaskFromApi(updated);
-
-				setItems((prev) =>
-					prev.map((item) => (item.id === id ? normalized : item))
-				);
-			} catch {
-				setError("Não foi possível atualizar o status da tarefa.");
+			if (isOnline()) {
+				void syncPendingWithServer();
 			}
 		},
-		[isPro, items, setItems, queuePendingSyncTask]
+		[isPro, setItems, queuePendingSyncTask, syncPendingWithServer]
 	);
 
 	const removeItem = useCallback(
@@ -371,33 +328,24 @@ export function useTodoList() {
 			setItems((prev) => prev.filter((item) => item.id !== id));
 
 			// Free: só local
-			if (!isPro) {
-				return;
+			if (!isPro) return;
+
+			if (current) {
+				queuePendingSyncTask({
+					id: current.id,
+					clientId: current.clientId ?? undefined,
+					title: current.title,
+					done: current.done,
+					updatedAt: now,
+					deletedAt: now,
+				});
 			}
 
-			// Pro + offline → enfileira "delete"
-			if (!isOnline()) {
-				if (current) {
-					queuePendingSyncTask({
-						id: current.id,
-						clientId: current.clientId ?? undefined,
-						title: current.title,
-						done: current.done,
-						updatedAt: now,
-						deletedAt: now,
-					});
-				}
-				return;
-			}
-
-			// Pro + online → DELETE /tasks/:id
-			try {
-				await apiDelete(`/tasks/${id}`);
-			} catch {
-				setError("Não foi possível excluir a tarefa. Tente novamente.");
+			if (isOnline()) {
+				void syncPendingWithServer();
 			}
 		},
-		[isPro, items, setItems, queuePendingSyncTask]
+		[isPro, items, setItems, queuePendingSyncTask, syncPendingWithServer]
 	);
 
 	const clearAll = useCallback(async () => {
@@ -415,28 +363,21 @@ export function useTodoList() {
 			return;
 		}
 
-		// Pro + offline → cria tombstone para cada task
-		if (!isOnline()) {
-			const tombstones: PendingTaskForSync[] = currentItems.map((item) => ({
-				id: item.id,
-				clientId: item.clientId ?? undefined,
-				title: item.title,
-				done: item.done,
-				updatedAt: now,
-				deletedAt: now,
-			}));
+		const tombstones: PendingTaskForSync[] = currentItems.map((item) => ({
+			id: item.id,
+			clientId: item.clientId ?? undefined,
+			title: item.title,
+			done: item.done,
+			updatedAt: now,
+			deletedAt: now,
+		}));
 
-			setPendingSyncTasks((prev) => [...prev, ...tombstones]);
-			return;
-		}
+		setPendingSyncTasks((prev) => [...prev, ...tombstones]);
 
-		// Pro + online → DELETE /tasks
-		try {
-			await apiDelete("/tasks");
-		} catch {
-			setError("Não foi possível limpar as tarefas.");
+		if (isOnline()) {
+			void syncPendingWithServer();
 		}
-	}, [isPro, items, setItems, setPendingSyncTasks]);
+	}, [isPro, items, setItems, setPendingSyncTasks, syncPendingWithServer]);
 
 	return {
 		items,
