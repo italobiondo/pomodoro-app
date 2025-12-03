@@ -119,6 +119,8 @@ export function TodoListCard() {
 				<span>
 					{remainingSlots > 0
 						? `${remainingSlots} vaga(s) restante(s)`
+						: isPro
+						? "Você atingiu o limite de tarefas do plano Pro."
 						: "Você atingiu o limite de tarefas do plano Free."}
 				</span>
 			</div>

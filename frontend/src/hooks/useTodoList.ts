@@ -121,25 +121,42 @@ export function useTodoList() {
 
 	const toggleDone = useCallback(
 		async (id: string) => {
-			let newDone = false;
+			// Free: apenas localStorage
+			if (!isPro) {
+				setItems((prev) =>
+					prev.map((item) =>
+						item.id === id
+							? {
+									...item,
+									done: !item.done,
+									updatedAt: new Date().toISOString(),
+							  }
+							: item
+					)
+				);
+				return;
+			}
 
-			setItems((prev) =>
-				prev.map((item) => {
-					if (item.id !== id) return item;
-					newDone = !item.done;
-					return {
-						...item,
-						done: newDone,
-						updatedAt: new Date().toISOString(),
-					};
-				})
-			);
+			// Pro: backend é a fonte da verdade
+			const current = items.find((item) => item.id === id);
+			if (!current) return;
 
-			if (isPro) {
-				await apiPatch<TodoItem>(`/tasks/${id}`, { done: newDone });
+			const desiredDone = !current.done;
+
+			try {
+				const updated = await apiPatch<TodoItem>(`/tasks/${id}`, {
+					done: desiredDone,
+				});
+
+				setItems((prev) =>
+					prev.map((item) => (item.id === id ? updated : item))
+				);
+			} catch {
+				// Futuro: podemos mostrar um toast de erro e/ou reverter o estado local
+				// Por enquanto, só deixamos silencioso pra não quebrar UX.
 			}
 		},
-		[isPro, setItems]
+		[isPro, items, setItems]
 	);
 
 	const removeItem = useCallback(
