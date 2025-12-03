@@ -1,3 +1,3 @@
-import type { TodoItem } from "../../hooks/useTodoList";
+import type { TodoItem } from "../../types/tasks";
 
 export type { TodoItem };
