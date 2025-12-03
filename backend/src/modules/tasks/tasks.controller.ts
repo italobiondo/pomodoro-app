@@ -108,38 +108,41 @@ export class TasksController {
   }
 
   /**
-   * Endpoint preparado para sincronização futura.
+   * Endpoint de sincronização de tasks Pro.
    *
-   * Por enquanto:
-   * - Request body é opcional e não é utilizado.
-   * - Continuamos apenas retornando o estado atual das tasks do backend.
+   * Recebe:
+   * - clientId (opcional)
+   * - lastSyncAt (opcional)
+   * - lista de tasks com updatedAt e deletedAt.
    *
-   * O DTO SyncTasksDto já define um contrato inicial para futuros recursos de sync
-   * (clientId, lastSyncAt, lista de tasks com deletedAt, etc.).
+   * Aplica create/update/delete no backend com resolução de conflitos baseada em updatedAt.
+   * Retorna o estado consolidado + serverTime.
    */
   @Post('sync')
   async sync(
     @CurrentUser() user: AuthenticatedUser,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @Body() _body: SyncTasksDto,
+    @Body() body: SyncTasksDto,
   ) {
     this.assertProUser(user);
 
-    const items = await this.tasksService.findAllByUser(user.id);
+    const consolidated = await this.tasksService.syncTasksForUser(
+      user.id,
+      body,
+    );
 
     return {
-      // meta reservada para futuras versões do protocolo de sync
       meta: {
         serverTime: new Date().toISOString(),
       },
-      tasks: items.map((item) => ({
+      tasks: consolidated.map((item) => ({
         id: item.id,
+        clientId: item.clientId,
         title: item.title,
         done: item.isCompleted,
         createdAt: item.createdAt.toISOString(),
         updatedAt: item.updatedAt.toISOString(),
-        // campo reservado para deletar lado-cliente em futuros fluxos de sync
-        deletedAt: null,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        deletedAt: item.deletedAt ? item.deletedAt.toISOString() : null,
       })),
     };
   }

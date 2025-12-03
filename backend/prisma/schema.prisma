@@ -119,10 +119,12 @@ model Task {
 
   // Para sincronização com o cliente (Pro)
   clientId   String?   // id local do front
-  lastSyncAt DateTime?
+  lastSyncAt DateTime? // reservado para futuros fluxos de sync
+  deletedAt  DateTime? // soft delete para suportar sync multi-dispositivo
 
   createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  // NÃO usamos mais @updatedAt aqui para poder controlar esse campo via sync
+  updatedAt  DateTime  @default(now())
 
   @@index([userId])
 }
