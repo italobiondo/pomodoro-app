@@ -111,7 +111,7 @@ model Task {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
 
-  title       String
+  title       String   @db.VarChar(255)
   isCompleted Boolean  @default(false)
 
   // Para estatísticas e histórico básico

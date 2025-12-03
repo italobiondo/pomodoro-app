@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { v4 as uuid } from "uuid";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,7 @@ export function useTodoList() {
 	const maxTasks = isPro ? MAX_PRO_TASKS : MAX_FREE_TASKS;
 
 	const [items, setItems] = useLocalStorage<TodoItem[]>(STORAGE_KEY, []);
+	const [error, setError] = useState<string | null>(null);
 
 	// Limpa tasks quando o usuário desloga ou quando não é Pro (mantém comportamento atual)
 	useEffect(() => {
@@ -33,30 +34,21 @@ export function useTodoList() {
 		}
 	}, [logoutSignal, isPro, setItems]);
 
-	// Quando usuário Pro loga, busca tasks no backend (agora em /tasks)
-	useEffect(() => {
+	const reloadFromBackend = useCallback(async () => {
 		if (!isPro || !user) return;
 
-		let cancelled = false;
-
-		const loadFromBackend = async () => {
-			try {
-				// 🔁 AGORA BUSCANDO EM /tasks
-				const remoteItems = await apiGet<TodoItem[]>("/tasks");
-				if (!cancelled) {
-					setItems(remoteItems);
-				}
-			} catch {
-				// por enquanto, silencioso — se der erro, fica só com localStorage
-			}
-		};
-
-		void loadFromBackend();
-
-		return () => {
-			cancelled = true;
-		};
+		try {
+			const remoteItems = await apiGet<TodoItem[]>("/tasks");
+			setItems(remoteItems);
+		} catch {
+			// por enquanto, silencioso — se der erro, fica só com localStorage
+		}
 	}, [isPro, user, setItems]);
+
+	// Quando usuário Pro loga, busca tasks no backend (agora em /tasks)
+	useEffect(() => {
+		void reloadFromBackend();
+	}, [reloadFromBackend]);
 
 	const remainingSlots = useMemo(
 		() => Math.max(0, maxTasks - items.length),
@@ -69,6 +61,8 @@ export function useTodoList() {
 		async (title: string) => {
 			const trimmed = title.trim();
 			if (!trimmed || !canAddMore) return;
+
+			setError(null);
 
 			const now = new Date().toISOString();
 
@@ -88,15 +82,38 @@ export function useTodoList() {
 			}
 
 			// Pro: cria no backend (AGORA EM /tasks)
-			const created = await apiPost<TodoItem>("/tasks", { title: trimmed });
-			setItems((prev) => [...prev, created]);
+			try {
+				const created = await apiPost<TodoItem>("/tasks", { title: trimmed });
+				setItems((prev) => [...prev, created]);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} catch (err: any) {
+				const status =
+					err?.status ?? err?.response?.status ?? err?.cause?.status;
+
+				if (status === 409) {
+					setError(
+						"Você atingiu o limite de 100 tarefas do plano Pro. Exclua alguma para adicionar novas."
+					);
+				} else {
+					setError("Não foi possível criar a tarefa. Tente novamente.");
+				}
+
+				// tenta ressincronizar com o backend para refletir o estado real
+				try {
+					await reloadFromBackend();
+				} catch {
+					// silencioso por enquanto
+				}
+			}
 		},
-		[canAddMore, isPro, setItems]
+		[canAddMore, isPro, setItems, reloadFromBackend]
 	);
 
 	const updateItemTitle = useCallback(
 		async (id: string, title: string) => {
 			const trimmed = title.trim();
+
+			setError(null);
 
 			// Atualiza localmente sempre
 			setItems((prev) =>
@@ -113,7 +130,12 @@ export function useTodoList() {
 
 			// Pro: também atualiza no backend (AGORA EM /tasks/:id)
 			if (isPro) {
-				await apiPatch<TodoItem>(`/tasks/${id}`, { title: trimmed });
+				try {
+					await apiPatch<TodoItem>(`/tasks/${id}`, { title: trimmed });
+				} catch {
+					// Futuro: podemos reverter o estado e/ou exibir erro
+					setError("Não foi possível atualizar a tarefa. Tente novamente.");
+				}
 			}
 		},
 		[isPro, setItems]
@@ -121,6 +143,8 @@ export function useTodoList() {
 
 	const toggleDone = useCallback(
 		async (id: string) => {
+			setError(null);
+
 			// Free: apenas localStorage
 			if (!isPro) {
 				setItems((prev) =>
@@ -152,8 +176,7 @@ export function useTodoList() {
 					prev.map((item) => (item.id === id ? updated : item))
 				);
 			} catch {
-				// Futuro: podemos mostrar um toast de erro e/ou reverter o estado local
-				// Por enquanto, só deixamos silencioso pra não quebrar UX.
+				setError("Não foi possível atualizar o status da tarefa.");
 			}
 		},
 		[isPro, items, setItems]
@@ -161,20 +184,32 @@ export function useTodoList() {
 
 	const removeItem = useCallback(
 		async (id: string) => {
+			setError(null);
+
 			setItems((prev) => prev.filter((item) => item.id !== id));
 
 			if (isPro) {
-				await apiDelete(`/tasks/${id}`);
+				try {
+					await apiDelete(`/tasks/${id}`);
+				} catch {
+					setError("Não foi possível excluir a tarefa. Tente novamente.");
+				}
 			}
 		},
 		[isPro, setItems]
 	);
 
 	const clearAll = useCallback(async () => {
+		setError(null);
+
 		setItems([]);
 
 		if (isPro) {
-			await apiDelete("/tasks");
+			try {
+				await apiDelete("/tasks");
+			} catch {
+				setError("Não foi possível limpar as tarefas.");
+			}
 		}
 	}, [isPro, setItems]);
 
@@ -188,5 +223,6 @@ export function useTodoList() {
 		maxTasks,
 		remainingSlots,
 		canAddMore,
+		error,
 	};
 }

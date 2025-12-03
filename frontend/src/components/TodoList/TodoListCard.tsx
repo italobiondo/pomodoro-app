@@ -16,6 +16,7 @@ export function TodoListCard() {
 		maxTasks,
 		remainingSlots,
 		canAddMore,
+		error,
 	} = useTodoList();
 
 	const [newTitle, setNewTitle] = useState("");
@@ -27,12 +28,12 @@ export function TodoListCard() {
 		e.preventDefault();
 		if (!newTitle.trim()) return;
 
-		addItem(newTitle);
+		void addItem(newTitle);
 		setNewTitle("");
 	}
 
 	function handleToggleDone(id: string, done: boolean) {
-		toggleDone(id);
+		void toggleDone(id);
 
 		// dispara confete apenas quando marca como concluída
 		if (!done) {
@@ -52,7 +53,7 @@ export function TodoListCard() {
 
 	function saveEditing(id: string) {
 		if (!editingId) return;
-		updateItemTitle(id, editingTitle);
+		void updateItemTitle(id, editingTitle);
 		setEditingId(null);
 		setEditingTitle("");
 	}
@@ -88,10 +89,18 @@ export function TodoListCard() {
 				</span>
 			</header>
 
+			{/* Mensagem de erro da API / limite de tasks */}
+			{error && (
+				<div className="text-[11px] text-red-300 bg-red-500/10 border border-red-500/40 rounded-md px-3 py-2">
+					{error}
+				</div>
+			)}
+
 			{/* Formulário de nova tarefa */}
 			<form onSubmit={handleSubmit} className="flex gap-2">
 				<input
 					type="text"
+					maxLength={255}
 					className="flex-1 rounded-lg bg-slate-800/80 border border-slate-700 px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-emerald-500/60"
 					placeholder={
 						canAddMore
@@ -162,6 +171,7 @@ export function TodoListCard() {
 										{isEditing ? (
 											<input
 												type="text"
+												maxLength={255}
 												className="w-full bg-slate-900/80 border border-slate-600 rounded px-2 py-1 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/60"
 												value={editingTitle}
 												onChange={(e) => setEditingTitle(e.target.value)}
