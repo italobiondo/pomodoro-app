@@ -15,6 +15,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { SyncTasksDto } from './dto/sync-tasks.dto';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -29,7 +30,7 @@ export class TasksController {
     // PlanType: 'free' | 'pro'
     if (user.plan !== 'pro') {
       throw new ForbiddenException(
-        'Sincronização de tarefas está disponível apenas para usuários Pro.',
+        'Funcionalidade disponível apenas para usuários Pro.',
       );
     }
   }
@@ -78,11 +79,6 @@ export class TasksController {
 
     const updated = await this.tasksService.updateForUser(user.id, id, body);
 
-    if (!updated) {
-      // Podemos depois trocar por NotFoundException se quiser.
-      return null;
-    }
-
     return {
       id: updated.id,
       title: updated.title,
@@ -113,21 +109,37 @@ export class TasksController {
 
   /**
    * Endpoint preparado para sincronização futura.
-   * Por enquanto, ele apenas retorna o estado atual das tasks do backend.
+   *
+   * Por enquanto:
+   * - Request body é opcional e não é utilizado.
+   * - Continuamos apenas retornando o estado atual das tasks do backend.
+   *
+   * O DTO SyncTasksDto já define um contrato inicial para futuros recursos de sync
+   * (clientId, lastSyncAt, lista de tasks com deletedAt, etc.).
    */
   @Post('sync')
-  async sync(@CurrentUser() user: AuthenticatedUser) {
+  async sync(
+    @CurrentUser() user: AuthenticatedUser,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Body() _body: SyncTasksDto,
+  ) {
     this.assertProUser(user);
 
     const items = await this.tasksService.findAllByUser(user.id);
 
     return {
+      // meta reservada para futuras versões do protocolo de sync
+      meta: {
+        serverTime: new Date().toISOString(),
+      },
       tasks: items.map((item) => ({
         id: item.id,
         title: item.title,
         done: item.isCompleted,
         createdAt: item.createdAt.toISOString(),
         updatedAt: item.updatedAt.toISOString(),
+        // campo reservado para deletar lado-cliente em futuros fluxos de sync
+        deletedAt: null,
       })),
     };
   }

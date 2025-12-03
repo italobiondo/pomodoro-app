@@ -1,7 +1,13 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../infra/database/prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+
+const MAX_TASKS_PER_USER = 100;
 
 @Injectable()
 export class TasksService {
@@ -26,16 +32,16 @@ export class TasksService {
       where: { userId },
     });
 
-    if (totalTasks >= 100) {
+    if (totalTasks >= MAX_TASKS_PER_USER) {
       throw new ConflictException(
-        'Limite de 100 tarefas atingido para o seu plano Pro.',
+        `Limite de ${MAX_TASKS_PER_USER} tarefas atingido para o seu plano Pro.`,
       );
     }
 
     const task = await this.prisma.task.create({
       data: {
         userId,
-        title: data.title,
+        title: data.title, // já validado no DTO
         // no banco o campo é isCompleted, não done
         isCompleted: false,
       },
@@ -46,7 +52,7 @@ export class TasksService {
 
   /**
    * Atualiza uma task pertencente ao usuário.
-   * Se a task não for do usuário ou não existir, retorna null.
+   * Se a task não for do usuário ou não existir, lança NotFoundException.
    */
   async updateForUser(userId: string, taskId: string, updates: UpdateTaskDto) {
     const existing = await this.prisma.task.findFirst({
@@ -57,15 +63,19 @@ export class TasksService {
     });
 
     if (!existing) {
-      return null;
+      throw new NotFoundException('Task não encontrada para este usuário.');
     }
 
     const updated = await this.prisma.task.update({
       where: { id: existing.id },
       data: {
-        title: updates.title ?? existing.title,
+        title:
+          typeof updates.title !== 'undefined' ? updates.title : existing.title,
         // mapeia o "done" do DTO para isCompleted do banco
-        isCompleted: updates.done ?? existing.isCompleted,
+        isCompleted:
+          typeof updates.done !== 'undefined'
+            ? updates.done
+            : existing.isCompleted,
       },
     });
 
