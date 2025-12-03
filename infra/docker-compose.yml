@@ -38,7 +38,7 @@ services:
     environment:
       - POSTGRES_USER=pomodoro
       - POSTGRES_PASSWORD=pomodoro
-      - POSTGRES_DB=pomodorodb
+      - POSTGRES_DB=pomodoro_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
