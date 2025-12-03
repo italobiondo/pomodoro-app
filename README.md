@@ -20,146 +20,160 @@ https://pastebin.com/skt1QRtv
 ====================================================================
 📂 ÁRVORE DO PROJETO (referência atual)
 ```
-pomodoro-app
- ┣ backend
- ┃ ┣ prisma
- ┃ ┣ src
- ┃ ┃ ┣ common
- ┃ ┃ ┃ ┣ dtos
- ┃ ┃ ┃ ┣ filters
- ┃ ┃ ┃ ┣ guards
- ┃ ┃ ┃ ┗ interceptors
- ┃ ┃ ┣ config
- ┃ ┃ ┃ ┗ config.module.ts
- ┃ ┃ ┣ infra
- ┃ ┃ ┃ ┣ cache
- ┃ ┃ ┃ ┣ database
- ┃ ┃ ┃ ┃ ┗ prisma
- ┃ ┃ ┃ ┗ payments
- ┃ ┃ ┣ modules
- ┃ ┃ ┃ ┣ admin
- ┃ ┃ ┃ ┣ auth
- ┃ ┃ ┃ ┃ ┣ decorators
- ┃ ┃ ┃ ┃ ┃ ┗ current-user.decorator.ts
- ┃ ┃ ┃ ┃ ┣ guards
- ┃ ┃ ┃ ┃ ┃ ┗ jwt-auth.guard.ts
- ┃ ┃ ┃ ┃ ┣ strategies
- ┃ ┃ ┃ ┃ ┃ ┣ google.strategy.ts
- ┃ ┃ ┃ ┃ ┃ ┗ jwt.strategy.ts
- ┃ ┃ ┃ ┃ ┣ auth.controller.ts
- ┃ ┃ ┃ ┃ ┣ auth.module.ts
- ┃ ┃ ┃ ┃ ┣ auth.service.ts
- ┃ ┃ ┃ ┃ ┗ auth.types.ts
- ┃ ┃ ┃ ┣ health
- ┃ ┃ ┃ ┃ ┣ health.controller.ts
- ┃ ┃ ┃ ┃ ┗ health.module.ts
- ┃ ┃ ┃ ┣ stats
- ┃ ┃ ┃ ┣ subscriptions
- ┃ ┃ ┃ ┣ tasks
- ┃ ┃ ┃ ┣ timer
- ┃ ┃ ┃ ┣ todos
- ┃ ┃ ┃ ┃ ┣ todo.entity.ts
- ┃ ┃ ┃ ┃ ┣ todos.controller.ts
- ┃ ┃ ┃ ┃ ┣ todos.module.ts
- ┃ ┃ ┃ ┃ ┗ todos.service.ts
- ┃ ┃ ┃ ┗ users
- ┃ ┃ ┃ ┃ ┣ user.entity.ts
- ┃ ┃ ┃ ┃ ┣ users.module.ts
- ┃ ┃ ┃ ┃ ┗ users.service.ts
- ┃ ┃ ┣ app.controller.spec.ts
- ┃ ┃ ┣ app.controller.ts
- ┃ ┃ ┣ app.module.ts
- ┃ ┃ ┣ app.service.ts
- ┃ ┃ ┗ main.ts
- ┃ ┣ test
- ┃ ┃ ┣ app.e2e-spec.ts
- ┃ ┃ ┗ jest-e2e.json
- ┃ ┣ .env
- ┃ ┣ .gitignore
- ┃ ┣ .prettierrc
- ┃ ┣ eslint.config.mjs
- ┃ ┣ nest-cli.json
- ┃ ┣ package-lock.json
- ┃ ┣ package.json
- ┃ ┣ README.md
- ┃ ┣ tsconfig.build.json
- ┃ ┗ tsconfig.json
- ┣ docs
- ┣ frontend
- ┃ ┣ public
- ┃ ┃ ┣ sounds
- ┃ ┃ ┃ ┗ basic-notification.mp3
- ┃ ┃ ┣ file.svg
- ┃ ┃ ┣ globe.svg
- ┃ ┃ ┣ next.svg
- ┃ ┃ ┣ vercel.svg
- ┃ ┃ ┗ window.svg
- ┃ ┣ src
- ┃ ┃ ┣ app
- ┃ ┃ ┃ ┣ auth
- ┃ ┃ ┃ ┃ ┗ callback
- ┃ ┃ ┃ ┣ pro
- ┃ ┃ ┃ ┃ ┗ page.tsx
- ┃ ┃ ┃ ┣ globals.css
- ┃ ┃ ┃ ┣ layout.tsx
- ┃ ┃ ┃ ┗ page.tsx
- ┃ ┃ ┣ components
- ┃ ┃ ┃ ┣ Ads
- ┃ ┃ ┃ ┣ Auth
- ┃ ┃ ┃ ┃ ┗ SocialLoginButtons.tsx
- ┃ ┃ ┃ ┣ FreeLayout
- ┃ ┃ ┃ ┃ ┣ FreeAdFooter.tsx
- ┃ ┃ ┃ ┃ ┗ RightColumnFree.tsx
- ┃ ┃ ┃ ┣ Layout
- ┃ ┃ ┃ ┃ ┗ MainHeader.tsx
- ┃ ┃ ┃ ┣ ThemeSwitcher
- ┃ ┃ ┃ ┣ Timer
- ┃ ┃ ┃ ┃ ┣ TimerPanel.tsx
- ┃ ┃ ┃ ┃ ┗ TimerSettingsModal.tsx
- ┃ ┃ ┃ ┣ TodoList
- ┃ ┃ ┃ ┃ ┣ TodoListCard.tsx
- ┃ ┃ ┃ ┃ ┗ types.ts
- ┃ ┃ ┃ ┣ ui
- ┃ ┃ ┃ ┗ YoutubePlayer
- ┃ ┃ ┃ ┃ ┗ YoutubePlayer.tsx
- ┃ ┃ ┣ hooks
- ┃ ┃ ┃ ┣ useAuth.tsx
- ┃ ┃ ┃ ┣ useLocalStorage.ts
- ┃ ┃ ┃ ┣ useTheme.ts
- ┃ ┃ ┃ ┣ useTimer.ts
- ┃ ┃ ┃ ┗ useTodoList.ts
- ┃ ┃ ┣ lib
- ┃ ┃ ┃ ┣ apiClient.ts
- ┃ ┃ ┃ ┗ authClient.ts
- ┃ ┃ ┗ types
- ┃ ┃ ┃ ┣ tasks.ts
- ┃ ┃ ┃ ┣ timer.ts
- ┃ ┃ ┃ ┗ user.ts
- ┃ ┣ .gitignore
- ┃ ┣ eslint.config.mjs
- ┃ ┣ next-env.d.ts
- ┃ ┣ next.config.ts
- ┃ ┣ package-lock.json
- ┃ ┣ package.json
- ┃ ┣ postcss.config.cjs
- ┃ ┣ README.md
- ┃ ┣ tailwind.config.cjs
- ┃ ┣ tsconfig.json
- ┃ ┗ tsconfig.tsbuildinfo
- ┣ infra
- ┃ ┣ backend
- ┃ ┃ ┗ Dockerfile
- ┃ ┣ db
- ┃ ┃ ┗ init.sql
- ┃ ┣ frontend
- ┃ ┃ ┗ Dockerfile
- ┃ ┣ .env
- ┃ ┣ .env.example
- ┃ ┗ docker-compose.yml
- ┣ .editorconfig
- ┣ .gitignore
- ┣ package.json
- ┗ README.md
+.
+.editorconfig
+.gitignore
+backend
+backend/.env
+backend/.gitignore
+backend/.prettierrc
+backend/eslint.config.mjs
+backend/nest-cli.json
+backend/package-lock.json
+backend/package.json
+backend/prisma
+backend/prisma/migrations
+backend/prisma/migrations/20251202124830_init_schema
+backend/prisma/migrations/20251202124830_init_schema/migration.sql
+backend/prisma/migrations/migration_lock.toml
+backend/prisma/schema.prisma
+backend/prisma.config.ts
+backend/README.md
+backend/src
+backend/src/app.controller.spec.ts
+backend/src/app.controller.ts
+backend/src/app.module.ts
+backend/src/app.service.ts
+backend/src/config
+backend/src/config/config.module.ts
+backend/src/generated
+backend/src/generated/prisma
+backend/src/generated/prisma/client
+backend/src/generated/prisma/client/browser.ts
+backend/src/generated/prisma/client/client.ts
+backend/src/generated/prisma/client/commonInputTypes.ts
+backend/src/generated/prisma/client/enums.ts
+backend/src/generated/prisma/client/internal
+backend/src/generated/prisma/client/internal/class.ts
+backend/src/generated/prisma/client/internal/prismaNamespace.ts
+backend/src/generated/prisma/client/internal/prismaNamespaceBrowser.ts
+backend/src/generated/prisma/client/models
+backend/src/generated/prisma/client/models/Payment.ts
+backend/src/generated/prisma/client/models/StatsSummary.ts
+backend/src/generated/prisma/client/models/Subscription.ts
+backend/src/generated/prisma/client/models/Task.ts
+backend/src/generated/prisma/client/models/ThemePreference.ts
+backend/src/generated/prisma/client/models/User.ts
+backend/src/generated/prisma/client/models.ts
+backend/src/infra
+backend/src/infra/database
+backend/src/infra/database/prisma
+backend/src/infra/database/prisma/prisma.module.ts
+backend/src/infra/database/prisma/prisma.service.ts
+backend/src/main.ts
+backend/src/modules
+backend/src/modules/auth
+backend/src/modules/auth/auth.controller.ts
+backend/src/modules/auth/auth.module.ts
+backend/src/modules/auth/auth.service.ts
+backend/src/modules/auth/auth.types.ts
+backend/src/modules/auth/decorators
+backend/src/modules/auth/decorators/current-user.decorator.ts
+backend/src/modules/auth/guards
+backend/src/modules/auth/guards/jwt-auth.guard.ts
+backend/src/modules/auth/strategies
+backend/src/modules/auth/strategies/google.strategy.ts
+backend/src/modules/auth/strategies/jwt.strategy.ts
+backend/src/modules/health
+backend/src/modules/health/health.controller.ts
+backend/src/modules/health/health.module.ts
+backend/src/modules/tasks
+backend/src/modules/tasks/dto
+backend/src/modules/tasks/dto/create-task.dto.ts
+backend/src/modules/tasks/dto/sync-tasks.dto.ts
+backend/src/modules/tasks/dto/update-task.dto.ts
+backend/src/modules/tasks/tasks.controller.ts
+backend/src/modules/tasks/tasks.module.ts
+backend/src/modules/tasks/tasks.service.ts
+backend/src/modules/todos
+backend/src/modules/todos/todo.entity.ts
+backend/src/modules/todos/todos.controller.ts
+backend/src/modules/todos/todos.module.ts
+backend/src/modules/todos/todos.service.ts
+backend/src/modules/users
+backend/src/modules/users/user.entity.ts
+backend/src/modules/users/users.module.ts
+backend/src/modules/users/users.service.ts
+backend/test
+backend/test/app.e2e-spec.ts
+backend/test/jest-e2e.json
+backend/tsconfig.build.json
+backend/tsconfig.json
+frontend
+frontend/.gitignore
+frontend/eslint.config.mjs
+frontend/next.config.ts
+frontend/package-lock.json
+frontend/package.json
+frontend/postcss.config.cjs
+frontend/public
+frontend/public/file.svg
+frontend/public/globe.svg
+frontend/public/next.svg
+frontend/public/sounds
+frontend/public/sounds/basic-notification.mp3
+frontend/public/vercel.svg
+frontend/public/window.svg
+frontend/README.md
+frontend/src
+frontend/src/app
+frontend/src/app/globals.css
+frontend/src/app/layout.tsx
+frontend/src/app/page.tsx
+frontend/src/app/pro
+frontend/src/app/pro/page.tsx
+frontend/src/components
+frontend/src/components/Auth
+frontend/src/components/Auth/SocialLoginButtons.tsx
+frontend/src/components/FreeLayout
+frontend/src/components/FreeLayout/FreeAdFooter.tsx
+frontend/src/components/FreeLayout/RightColumnFree.tsx
+frontend/src/components/Layout
+frontend/src/components/Layout/MainHeader.tsx
+frontend/src/components/Timer
+frontend/src/components/Timer/TimerPanel.tsx
+frontend/src/components/Timer/TimerSettingsModal.tsx
+frontend/src/components/TodoList
+frontend/src/components/TodoList/TodoListCard.tsx
+frontend/src/components/TodoList/types.ts
+frontend/src/components/YoutubePlayer
+frontend/src/components/YoutubePlayer/YoutubePlayer.tsx
+frontend/src/hooks
+frontend/src/hooks/useAuth.tsx
+frontend/src/hooks/useLocalStorage.ts
+frontend/src/hooks/useTheme.ts
+frontend/src/hooks/useTimer.ts
+frontend/src/hooks/useTodoList.ts
+frontend/src/lib
+frontend/src/lib/apiClient.ts
+frontend/src/lib/authClient.ts
+frontend/src/types
+frontend/src/types/tasks.ts
+frontend/src/types/timer.ts
+frontend/src/types/user.ts
+frontend/tailwind.config.cjs
+frontend/tsconfig.json
+infra
+infra/.env.example
+infra/backend
+infra/backend/Dockerfile
+infra/db
+infra/db/init.sql
+infra/docker-compose.yml
+infra/frontend
+infra/frontend/Dockerfile
+package.json
+README.md
 ```
 
 ====================================================================
@@ -204,3 +218,5 @@ Antes de continuarmos, faça o seguinte:
 2) Liste os próximos passos ideais para avançar a Sprint 6.  
 
 Depois disso começamos a implementação.
+
+find . \( -name 'node_modules' -o -name '.git' -o -name 'dist' \) -prune -o -print | sed 's/^\.\///'
