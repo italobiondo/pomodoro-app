@@ -45,7 +45,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: user.id,
       email: user.email,
       name: user.name,
-      plan: user.plan,
+      plan: user.plan === 'PRO' ? 'pro' : 'free',
       planExpiresAt: user.planExpiresAt ?? undefined,
     };
   }

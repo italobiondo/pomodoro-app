@@ -71,7 +71,7 @@ export function TodoListCard() {
 					</h2>
 					<p className="text-xs text-slate-400 mt-1">
 						{isPro
-							? "Organize até 100 tarefas no plano Pro (em breve)."
+							? "Organize até 100 tarefas no plano Pro."
 							: "Organize até 10 tarefas no plano Free."}
 					</p>
 				</div>

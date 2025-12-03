@@ -25,15 +25,15 @@ export function useTodoList() {
 
 	const [items, setItems] = useLocalStorage<TodoItem[]>(STORAGE_KEY, []);
 
-	// Limpa tasks quando o usuário desloga
+	// Limpa tasks quando o usuário desloga ou quando não é Pro (mantém comportamento atual)
 	useEffect(() => {
 		if (!isPro) {
-			// Deslogado ou Free → zera apenas a UI
+			// Deslogado ou Free → zera apenas a UI/localStorage
 			setItems([]);
 		}
 	}, [logoutSignal, isPro, setItems]);
 
-	// Quando usuário Pro loga, busca tasks no backend
+	// Quando usuário Pro loga, busca tasks no backend (agora em /tasks)
 	useEffect(() => {
 		if (!isPro || !user) return;
 
@@ -41,7 +41,8 @@ export function useTodoList() {
 
 		const loadFromBackend = async () => {
 			try {
-				const remoteItems = await apiGet<TodoItem[]>("/todos");
+				// 🔁 AGORA BUSCANDO EM /tasks
+				const remoteItems = await apiGet<TodoItem[]>("/tasks");
 				if (!cancelled) {
 					setItems(remoteItems);
 				}
@@ -86,8 +87,8 @@ export function useTodoList() {
 				return;
 			}
 
-			// Pro: cria no backend
-			const created = await apiPost<TodoItem>("/todos", { title: trimmed });
+			// Pro: cria no backend (AGORA EM /tasks)
+			const created = await apiPost<TodoItem>("/tasks", { title: trimmed });
 			setItems((prev) => [...prev, created]);
 		},
 		[canAddMore, isPro, setItems]
@@ -110,9 +111,9 @@ export function useTodoList() {
 				)
 			);
 
-			// Pro: também atualiza no backend
+			// Pro: também atualiza no backend (AGORA EM /tasks/:id)
 			if (isPro) {
-				await apiPatch<TodoItem>(`/todos/${id}`, { title: trimmed });
+				await apiPatch<TodoItem>(`/tasks/${id}`, { title: trimmed });
 			}
 		},
 		[isPro, setItems]
@@ -135,7 +136,7 @@ export function useTodoList() {
 			);
 
 			if (isPro) {
-				await apiPatch<TodoItem>(`/todos/${id}`, { done: newDone });
+				await apiPatch<TodoItem>(`/tasks/${id}`, { done: newDone });
 			}
 		},
 		[isPro, setItems]
@@ -146,7 +147,7 @@ export function useTodoList() {
 			setItems((prev) => prev.filter((item) => item.id !== id));
 
 			if (isPro) {
-				await apiDelete(`/todos/${id}`);
+				await apiDelete(`/tasks/${id}`);
 			}
 		},
 		[isPro, setItems]
@@ -156,7 +157,7 @@ export function useTodoList() {
 		setItems([]);
 
 		if (isPro) {
-			await apiDelete("/todos");
+			await apiDelete("/tasks");
 		}
 	}, [isPro, setItems]);
 

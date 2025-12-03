@@ -7,7 +7,6 @@ import { AuthenticatedUser } from '../auth.types';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private readonly usersService: UsersService) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -25,7 +24,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     try {
       // O objeto `profile` vem de uma lib externa e é tipado de forma frouxa,
       // então fazemos o cast controlado e silenciamos o ESLint aqui.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       const typedProfile = profile as Profile;
 
       // Extraímos o e-mail com bastante cuidado e checagens.
@@ -45,11 +44,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
       // Provider ID e nome também vêm da lib externa, então fazemos acesso via `any`
       // com comentários de ESLint apenas nessas linhas.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const providerIdRaw = (typedProfile as any).id;
       const providerId = String(providerIdRaw);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const nameRaw = (typedProfile as any).displayName;
       const name = typeof nameRaw === 'string' ? nameRaw : undefined;
 
@@ -64,8 +63,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         id: user.id,
         email: user.email,
         name: user.name,
-        plan: user.plan,
-        planExpiresAt: user.planExpiresAt ?? undefined,
+        plan: user.plan === 'PRO' ? 'pro' : 'free',
+        planExpiresAt: user.planExpiresAt,
       };
 
       return done(null, authUser);
