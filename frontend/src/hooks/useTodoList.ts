@@ -132,11 +132,12 @@ export function useTodoList() {
 		}
 	}, [isPro, user, pendingSyncTasks, setItems, setPendingSyncTasks]);
 
-	// Quando usuário Pro loga ou as pendências mudam, tenta sincronizar
+	// Quando as pendências mudam, tenta sincronizar (se estiver online e logado)
 	useEffect(() => {
+		if (pendingSyncTasks.length === 0) return;
 		// eslint-disable-next-line react-hooks/set-state-in-effect
 		void syncPendingWithServer();
-	}, [syncPendingWithServer]);
+	}, [pendingSyncTasks.length, syncPendingWithServer]);
 
 	// Listener para quando a conexão volta (evento 'online')
 	useEffect(() => {

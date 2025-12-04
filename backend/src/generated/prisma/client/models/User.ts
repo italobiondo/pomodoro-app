@@ -227,6 +227,7 @@ export type UserWhereInput = {
   tasks?: Prisma.TaskListRelationFilter
   statsSummary?: Prisma.XOR<Prisma.StatsSummaryNullableScalarRelationFilter, Prisma.StatsSummaryWhereInput> | null
   themePreference?: Prisma.XOR<Prisma.ThemePreferenceNullableScalarRelationFilter, Prisma.ThemePreferenceWhereInput> | null
+  focusSessions?: Prisma.FocusSessionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -245,6 +246,7 @@ export type UserOrderByWithRelationInput = {
   tasks?: Prisma.TaskOrderByRelationAggregateInput
   statsSummary?: Prisma.StatsSummaryOrderByWithRelationInput
   themePreference?: Prisma.ThemePreferenceOrderByWithRelationInput
+  focusSessions?: Prisma.FocusSessionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -266,6 +268,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   tasks?: Prisma.TaskListRelationFilter
   statsSummary?: Prisma.XOR<Prisma.StatsSummaryNullableScalarRelationFilter, Prisma.StatsSummaryWhereInput> | null
   themePreference?: Prisma.XOR<Prisma.ThemePreferenceNullableScalarRelationFilter, Prisma.ThemePreferenceWhereInput> | null
+  focusSessions?: Prisma.FocusSessionListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -316,6 +319,7 @@ export type UserCreateInput = {
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryCreateNestedOneWithoutUserInput
   themePreference?: Prisma.ThemePreferenceCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -334,6 +338,7 @@ export type UserUncheckedCreateInput = {
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryUncheckedCreateNestedOneWithoutUserInput
   themePreference?: Prisma.ThemePreferenceUncheckedCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -352,6 +357,7 @@ export type UserUpdateInput = {
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUpdateOneWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -370,6 +376,7 @@ export type UserUncheckedUpdateInput = {
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUncheckedUpdateOneWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUncheckedUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -553,6 +560,20 @@ export type UserUpdateOneRequiredWithoutThemePreferenceNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutThemePreferenceInput, Prisma.UserUpdateWithoutThemePreferenceInput>, Prisma.UserUncheckedUpdateWithoutThemePreferenceInput>
 }
 
+export type UserCreateNestedOneWithoutFocusSessionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFocusSessionsInput, Prisma.UserUncheckedCreateWithoutFocusSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFocusSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutFocusSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFocusSessionsInput, Prisma.UserUncheckedCreateWithoutFocusSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFocusSessionsInput
+  upsert?: Prisma.UserUpsertWithoutFocusSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFocusSessionsInput, Prisma.UserUpdateWithoutFocusSessionsInput>, Prisma.UserUncheckedUpdateWithoutFocusSessionsInput>
+}
+
 export type UserCreateWithoutSubscriptionsInput = {
   id?: string
   email: string
@@ -568,6 +589,7 @@ export type UserCreateWithoutSubscriptionsInput = {
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryCreateNestedOneWithoutUserInput
   themePreference?: Prisma.ThemePreferenceCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionsInput = {
@@ -585,6 +607,7 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryUncheckedCreateNestedOneWithoutUserInput
   themePreference?: Prisma.ThemePreferenceUncheckedCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionsInput = {
@@ -618,6 +641,7 @@ export type UserUpdateWithoutSubscriptionsInput = {
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUpdateOneWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionsInput = {
@@ -635,6 +659,7 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUncheckedUpdateOneWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUncheckedUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPaymentsInput = {
@@ -652,6 +677,7 @@ export type UserCreateWithoutPaymentsInput = {
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryCreateNestedOneWithoutUserInput
   themePreference?: Prisma.ThemePreferenceCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPaymentsInput = {
@@ -669,6 +695,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryUncheckedCreateNestedOneWithoutUserInput
   themePreference?: Prisma.ThemePreferenceUncheckedCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPaymentsInput = {
@@ -702,6 +729,7 @@ export type UserUpdateWithoutPaymentsInput = {
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUpdateOneWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentsInput = {
@@ -719,6 +747,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUncheckedUpdateOneWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUncheckedUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTasksInput = {
@@ -736,6 +765,7 @@ export type UserCreateWithoutTasksInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryCreateNestedOneWithoutUserInput
   themePreference?: Prisma.ThemePreferenceCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTasksInput = {
@@ -753,6 +783,7 @@ export type UserUncheckedCreateWithoutTasksInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryUncheckedCreateNestedOneWithoutUserInput
   themePreference?: Prisma.ThemePreferenceUncheckedCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTasksInput = {
@@ -786,6 +817,7 @@ export type UserUpdateWithoutTasksInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUpdateOneWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTasksInput = {
@@ -803,6 +835,7 @@ export type UserUncheckedUpdateWithoutTasksInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUncheckedUpdateOneWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUncheckedUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutStatsSummaryInput = {
@@ -820,6 +853,7 @@ export type UserCreateWithoutStatsSummaryInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
   themePreference?: Prisma.ThemePreferenceCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutStatsSummaryInput = {
@@ -837,6 +871,7 @@ export type UserUncheckedCreateWithoutStatsSummaryInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
   themePreference?: Prisma.ThemePreferenceUncheckedCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutStatsSummaryInput = {
@@ -870,6 +905,7 @@ export type UserUpdateWithoutStatsSummaryInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStatsSummaryInput = {
@@ -887,6 +923,7 @@ export type UserUncheckedUpdateWithoutStatsSummaryInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
   themePreference?: Prisma.ThemePreferenceUncheckedUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutThemePreferenceInput = {
@@ -904,6 +941,7 @@ export type UserCreateWithoutThemePreferenceInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutThemePreferenceInput = {
@@ -921,6 +959,7 @@ export type UserUncheckedCreateWithoutThemePreferenceInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
   statsSummary?: Prisma.StatsSummaryUncheckedCreateNestedOneWithoutUserInput
+  focusSessions?: Prisma.FocusSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutThemePreferenceInput = {
@@ -954,6 +993,7 @@ export type UserUpdateWithoutThemePreferenceInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutThemePreferenceInput = {
@@ -971,6 +1011,95 @@ export type UserUncheckedUpdateWithoutThemePreferenceInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
   statsSummary?: Prisma.StatsSummaryUncheckedUpdateOneWithoutUserNestedInput
+  focusSessions?: Prisma.FocusSessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutFocusSessionsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  authProvider: $Enums.AuthProvider
+  authProviderId: string
+  plan?: $Enums.PlanType
+  planStatus?: $Enums.PlanStatus
+  planExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  statsSummary?: Prisma.StatsSummaryCreateNestedOneWithoutUserInput
+  themePreference?: Prisma.ThemePreferenceCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutFocusSessionsInput = {
+  id?: string
+  email: string
+  name?: string | null
+  authProvider: $Enums.AuthProvider
+  authProviderId: string
+  plan?: $Enums.PlanType
+  planStatus?: $Enums.PlanStatus
+  planExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  statsSummary?: Prisma.StatsSummaryUncheckedCreateNestedOneWithoutUserInput
+  themePreference?: Prisma.ThemePreferenceUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutFocusSessionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutFocusSessionsInput, Prisma.UserUncheckedCreateWithoutFocusSessionsInput>
+}
+
+export type UserUpsertWithoutFocusSessionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutFocusSessionsInput, Prisma.UserUncheckedUpdateWithoutFocusSessionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutFocusSessionsInput, Prisma.UserUncheckedCreateWithoutFocusSessionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutFocusSessionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutFocusSessionsInput, Prisma.UserUncheckedUpdateWithoutFocusSessionsInput>
+}
+
+export type UserUpdateWithoutFocusSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  authProviderId?: Prisma.StringFieldUpdateOperationsInput | string
+  plan?: Prisma.EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+  planStatus?: Prisma.EnumPlanStatusFieldUpdateOperationsInput | $Enums.PlanStatus
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  statsSummary?: Prisma.StatsSummaryUpdateOneWithoutUserNestedInput
+  themePreference?: Prisma.ThemePreferenceUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutFocusSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  authProviderId?: Prisma.StringFieldUpdateOperationsInput | string
+  plan?: Prisma.EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+  planStatus?: Prisma.EnumPlanStatusFieldUpdateOperationsInput | $Enums.PlanStatus
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  statsSummary?: Prisma.StatsSummaryUncheckedUpdateOneWithoutUserNestedInput
+  themePreference?: Prisma.ThemePreferenceUncheckedUpdateOneWithoutUserNestedInput
 }
 
 
@@ -982,12 +1111,14 @@ export type UserCountOutputType = {
   subscriptions: number
   payments: number
   tasks: number
+  focusSessions: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   subscriptions?: boolean | UserCountOutputTypeCountSubscriptionsArgs
   payments?: boolean | UserCountOutputTypeCountPaymentsArgs
   tasks?: boolean | UserCountOutputTypeCountTasksArgs
+  focusSessions?: boolean | UserCountOutputTypeCountFocusSessionsArgs
 }
 
 /**
@@ -1021,6 +1152,13 @@ export type UserCountOutputTypeCountTasksArgs<ExtArgs extends runtime.Types.Exte
   where?: Prisma.TaskWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountFocusSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FocusSessionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1038,6 +1176,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
   statsSummary?: boolean | Prisma.User$statsSummaryArgs<ExtArgs>
   themePreference?: boolean | Prisma.User$themePreferenceArgs<ExtArgs>
+  focusSessions?: boolean | Prisma.User$focusSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1087,6 +1226,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
   statsSummary?: boolean | Prisma.User$statsSummaryArgs<ExtArgs>
   themePreference?: boolean | Prisma.User$themePreferenceArgs<ExtArgs>
+  focusSessions?: boolean | Prisma.User$focusSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1100,6 +1240,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     tasks: Prisma.$TaskPayload<ExtArgs>[]
     statsSummary: Prisma.$StatsSummaryPayload<ExtArgs> | null
     themePreference: Prisma.$ThemePreferencePayload<ExtArgs> | null
+    focusSessions: Prisma.$FocusSessionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1511,6 +1652,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   tasks<T extends Prisma.User$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   statsSummary<T extends Prisma.User$statsSummaryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$statsSummaryArgs<ExtArgs>>): Prisma.Prisma__StatsSummaryClient<runtime.Types.Result.GetResult<Prisma.$StatsSummaryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   themePreference<T extends Prisma.User$themePreferenceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$themePreferenceArgs<ExtArgs>>): Prisma.Prisma__ThemePreferenceClient<runtime.Types.Result.GetResult<Prisma.$ThemePreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  focusSessions<T extends Prisma.User$focusSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$focusSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FocusSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2045,6 +2187,30 @@ export type User$themePreferenceArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.ThemePreferenceInclude<ExtArgs> | null
   where?: Prisma.ThemePreferenceWhereInput
+}
+
+/**
+ * User.focusSessions
+ */
+export type User$focusSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FocusSession
+   */
+  select?: Prisma.FocusSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FocusSession
+   */
+  omit?: Prisma.FocusSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FocusSessionInclude<ExtArgs> | null
+  where?: Prisma.FocusSessionWhereInput
+  orderBy?: Prisma.FocusSessionOrderByWithRelationInput | Prisma.FocusSessionOrderByWithRelationInput[]
+  cursor?: Prisma.FocusSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FocusSessionScalarFieldEnum | Prisma.FocusSessionScalarFieldEnum[]
 }
 
 /**

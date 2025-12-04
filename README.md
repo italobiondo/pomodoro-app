@@ -219,4 +219,21 @@ Antes de continuarmos, faça o seguinte:
 
 Depois disso começamos a implementação.
 
+### Arvore de pastas
+
 find . \( -name 'node_modules' -o -name '.git' -o -name 'dist' \) -prune -o -print | sed 's/^\.\///'
+
+### Migrate
+
+```
+cd D:\Projetos Pessoais\pomodoro-app\backend
+
+# 1) Sobrescrever DATABASE_URL apenas para este terminal
+$env:DATABASE_URL = "postgresql://pomodoro:pomodoro@localhost:5432/pomodoro_db?schema=public"
+
+# 2) Rodar a migrate dev
+npx prisma migrate dev --name add_focus_session
+
+# 3) (Opcional, mas recomendado) regenerar o client
+npx prisma generate
+```

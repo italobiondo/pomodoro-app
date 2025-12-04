@@ -389,7 +389,8 @@ export const ModelName = {
   Payment: 'Payment',
   Task: 'Task',
   StatsSummary: 'StatsSummary',
-  ThemePreference: 'ThemePreference'
+  ThemePreference: 'ThemePreference',
+  FocusSession: 'FocusSession'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -405,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "subscription" | "payment" | "task" | "statsSummary" | "themePreference"
+    modelProps: "user" | "subscription" | "payment" | "task" | "statsSummary" | "themePreference" | "focusSession"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -853,6 +854,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    FocusSession: {
+      payload: Prisma.$FocusSessionPayload<ExtArgs>
+      fields: Prisma.FocusSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FocusSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FocusSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.FocusSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FocusSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>
+        }
+        findMany: {
+          args: Prisma.FocusSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>[]
+        }
+        create: {
+          args: Prisma.FocusSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>
+        }
+        createMany: {
+          args: Prisma.FocusSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FocusSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.FocusSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>
+        }
+        update: {
+          args: Prisma.FocusSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.FocusSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FocusSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FocusSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.FocusSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FocusSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.FocusSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFocusSession>
+        }
+        groupBy: {
+          args: Prisma.FocusSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FocusSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FocusSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FocusSessionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -975,6 +1050,20 @@ export const ThemePreferenceScalarFieldEnum = {
 } as const
 
 export type ThemePreferenceScalarFieldEnum = (typeof ThemePreferenceScalarFieldEnum)[keyof typeof ThemePreferenceScalarFieldEnum]
+
+
+export const FocusSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  focusMinutes: 'focusMinutes',
+  breakMinutes: 'breakMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FocusSessionScalarFieldEnum = (typeof FocusSessionScalarFieldEnum)[keyof typeof FocusSessionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1224,6 +1313,7 @@ export type GlobalOmitConfig = {
   task?: Prisma.TaskOmit
   statsSummary?: Prisma.StatsSummaryOmit
   themePreference?: Prisma.ThemePreferenceOmit
+  focusSession?: Prisma.FocusSessionOmit
 }
 
 /* Types for Logging */

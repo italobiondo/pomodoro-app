@@ -66,9 +66,12 @@ model User {
   statsSummary    StatsSummary?
   themePreference ThemePreference?
 
+  focusSessions   FocusSession[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 model Subscription {
   id                     String              @id @default(uuid())
@@ -151,4 +154,24 @@ model ThemePreference {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model FocusSession {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  startedAt   DateTime
+  endedAt     DateTime?
+
+  // minutos de foco reais ao encerrar a sessão
+  focusMinutes Int     @default(0)
+
+  // se quiser registrar também o break final após a sessão:
+  breakMinutes Int     @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }

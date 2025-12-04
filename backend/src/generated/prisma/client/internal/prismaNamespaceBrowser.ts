@@ -56,7 +56,8 @@ export const ModelName = {
   Payment: 'Payment',
   Task: 'Task',
   StatsSummary: 'StatsSummary',
-  ThemePreference: 'ThemePreference'
+  ThemePreference: 'ThemePreference',
+  FocusSession: 'FocusSession'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -158,6 +159,20 @@ export const ThemePreferenceScalarFieldEnum = {
 } as const
 
 export type ThemePreferenceScalarFieldEnum = (typeof ThemePreferenceScalarFieldEnum)[keyof typeof ThemePreferenceScalarFieldEnum]
+
+
+export const FocusSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  focusMinutes: 'focusMinutes',
+  breakMinutes: 'breakMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FocusSessionScalarFieldEnum = (typeof FocusSessionScalarFieldEnum)[keyof typeof FocusSessionScalarFieldEnum]
 
 
 export const SortOrder = {

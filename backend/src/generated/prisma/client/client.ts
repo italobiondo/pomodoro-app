@@ -67,3 +67,8 @@ export type StatsSummary = Prisma.StatsSummaryModel
  * 
  */
 export type ThemePreference = Prisma.ThemePreferenceModel
+/**
+ * Model FocusSession
+ * 
+ */
+export type FocusSession = Prisma.FocusSessionModel
