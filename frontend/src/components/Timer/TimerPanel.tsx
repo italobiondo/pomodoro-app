@@ -30,7 +30,6 @@ export const TimerPanel: React.FC = () => {
 		mode,
 		remainingSeconds,
 		isRunning,
-		completedPomodoros,
 		lastFinishedAt,
 		settings,
 		updateSettings,
@@ -118,11 +117,6 @@ export const TimerPanel: React.FC = () => {
 						)
 					)}
 				</div>
-
-				<span className="text-xs text-slate-400">
-					Pomodoros concluídos:{" "}
-					<strong suppressHydrationWarning>{completedPomodoros}</strong>
-				</span>
 			</header>
 
 			{/* Timer */}
