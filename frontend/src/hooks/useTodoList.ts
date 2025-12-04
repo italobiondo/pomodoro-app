@@ -26,10 +26,8 @@ const isOnline = () => {
 };
 
 // Logger simples para debug do fluxo de sync
-const logSync = (...args: unknown[]) => {
-	// Se quiser silenciar em produção depois, é só comentar essa linha:
-	console.log("[TasksSync]", ...args);
-};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const logSync = (..._args: unknown[]) => {};
 
 function normalizeTaskFromApi(task: TaskApiModel): TodoItem {
 	return {
