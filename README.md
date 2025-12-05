@@ -4,7 +4,7 @@ Para isso, preciso que você leia, entenda e considere SEMPRE todo o contexto ab
 
 ====================================================================
 📘 HISTÓRICO COMPLETO DO PROJETO (todas as sprints, decisões, códigos):
-https://pastebin.com/p7Jnwxhr
+https://pastebin.com/8qvj3bBE
 ====================================================================
 
 Caso tenha qualquer dúvida ou precise validar alguma decisão,
@@ -35,6 +35,10 @@ backend/prisma
 backend/prisma/migrations
 backend/prisma/migrations/20251202124830_init_schema
 backend/prisma/migrations/20251202124830_init_schema/migration.sql
+backend/prisma/migrations/20251203161327_add_task_deleted_at_and_manual_updated_at
+backend/prisma/migrations/20251203161327_add_task_deleted_at_and_manual_updated_at/migration.sql
+backend/prisma/migrations/20251204123942_add_focus_session
+backend/prisma/migrations/20251204123942_add_focus_session/migration.sql
 backend/prisma/migrations/migration_lock.toml
 backend/prisma/schema.prisma
 backend/prisma.config.ts
@@ -58,6 +62,7 @@ backend/src/generated/prisma/client/internal/class.ts
 backend/src/generated/prisma/client/internal/prismaNamespace.ts
 backend/src/generated/prisma/client/internal/prismaNamespaceBrowser.ts
 backend/src/generated/prisma/client/models
+backend/src/generated/prisma/client/models/FocusSession.ts
 backend/src/generated/prisma/client/models/Payment.ts
 backend/src/generated/prisma/client/models/StatsSummary.ts
 backend/src/generated/prisma/client/models/Subscription.ts
@@ -87,6 +92,12 @@ backend/src/modules/auth/strategies/jwt.strategy.ts
 backend/src/modules/health
 backend/src/modules/health/health.controller.ts
 backend/src/modules/health/health.module.ts
+backend/src/modules/stats
+backend/src/modules/stats/dto
+backend/src/modules/stats/dto/stats-response.dto.ts
+backend/src/modules/stats/stats.controller.ts
+backend/src/modules/stats/stats.module.ts
+backend/src/modules/stats/stats.service.ts
 backend/src/modules/tasks
 backend/src/modules/tasks/dto
 backend/src/modules/tasks/dto/create-task.dto.ts
@@ -135,11 +146,17 @@ frontend/src/app/pro/page.tsx
 frontend/src/components
 frontend/src/components/Auth
 frontend/src/components/Auth/SocialLoginButtons.tsx
+frontend/src/components/dashboard
+frontend/src/components/dashboard/StatsOverviewCard.tsx
 frontend/src/components/FreeLayout
 frontend/src/components/FreeLayout/FreeAdFooter.tsx
 frontend/src/components/FreeLayout/RightColumnFree.tsx
 frontend/src/components/Layout
 frontend/src/components/Layout/MainHeader.tsx
+frontend/src/components/Stats
+frontend/src/components/Stats/StatsOverview.tsx
+frontend/src/components/Stats/StatsOverviewCard.tsx
+frontend/src/components/Stats/StatsOverviewModal.tsx
 frontend/src/components/Timer
 frontend/src/components/Timer/TimerPanel.tsx
 frontend/src/components/Timer/TimerSettingsModal.tsx
@@ -151,6 +168,8 @@ frontend/src/components/YoutubePlayer/YoutubePlayer.tsx
 frontend/src/hooks
 frontend/src/hooks/useAuth.tsx
 frontend/src/hooks/useLocalStorage.ts
+frontend/src/hooks/useStats.ts
+frontend/src/hooks/useStatsOverview.ts
 frontend/src/hooks/useTheme.ts
 frontend/src/hooks/useTimer.ts
 frontend/src/hooks/useTodoList.ts
@@ -158,6 +177,7 @@ frontend/src/lib
 frontend/src/lib/apiClient.ts
 frontend/src/lib/authClient.ts
 frontend/src/types
+frontend/src/types/stats.ts
 frontend/src/types/tasks.ts
 frontend/src/types/timer.ts
 frontend/src/types/user.ts
@@ -203,19 +223,15 @@ Você deve sempre cruzar informações entre:
 - Sempre aponte riscos, bugs potenciais e melhorias de segurança.
 
 ====================================================================
-🎯 OBJETIVO INICIAL NESTE NOVO CHAT (Sprint 6)
-Quero continuar a Sprint 6, especificamente:
+🎯 OBJETIVO INICIAL NESTE NOVO CHAT
+Quero continuar:
 
-1. Finalizar integração do backend NestJS com PostgreSQL.
-2. Criar models, migrations e services (ORM).
-3. Implementar API real de Tasks (incluindo limites Free vs Pro).
-4. Preparar sincronização de tasks para contas Pro.
-5. Garantir que o backend esteja funcionando via docker-compose.
+1. Pendências deixadas para as próximas sprints
 
 Antes de continuarmos, faça o seguinte:
 
 1) Confirme que leu e entendeu TODO o contexto acima.  
-2) Liste os próximos passos ideais para avançar a Sprint 6.  
+2) Liste os próximos passos ideais para avançar.  
 
 Depois disso começamos a implementação.
 
