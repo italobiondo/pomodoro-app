@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
+import { useAuth } from "./useAuth";
+import { apiPost } from "../lib/apiClient";
 
 export type TimerMode = "pomodoro" | "short_break" | "long_break";
 
@@ -18,6 +20,14 @@ interface TimerState {
 	completedPomodoros: number;
 	lastFinishedAt: number | null; // para tocar som / confete
 }
+
+type FocusSessionApiResponse = {
+	id: string;
+	startedAt: string;
+	endedAt: string | null;
+	focusMinutes: number;
+	breakMinutes: number;
+};
 
 const TIMER_STATE_STORAGE_KEY = "pomodoro_timer_state_v1";
 const TIMER_SETTINGS_STORAGE_KEY = "pomodoro_timer_settings_v1";
@@ -135,6 +145,8 @@ function rehydrateState(raw: unknown, settings: TimerSettings): TimerState {
 }
 
 export function useTimer() {
+	const { isPro } = useAuth();
+
 	const [settings, setSettings] = useLocalStorage<TimerSettings>(
 		TIMER_SETTINGS_STORAGE_KEY,
 		DEFAULT_SETTINGS
@@ -159,6 +171,13 @@ export function useTimer() {
 		}
 	});
 
+	// 🔹 ID da sessão de foco atual (apenas Pro e pomodoro)
+	const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+	// Refs para detectar "transições" de conclusão de ciclo
+	const lastFinishedAtRef = useRef<number | null>(state.lastFinishedAt);
+	const lastCompletedPomodorosRef = useRef<number>(state.completedPomodoros);
+
 	// Persiste estado do timer
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -172,10 +191,6 @@ export function useTimer() {
 			// ignore
 		}
 	}, [state]);
-
-	// Se o usuário mudar as configs e o timer estiver parado, ajusta a duração atual
-	// A atualização foi movida para `updateSettings` para que seja feita explicitamente
-	// quando o usuário alterar as configurações, evitando setState direto no efeito.
 
 	// Loop de contagem
 	useEffect(() => {
@@ -243,6 +258,98 @@ export function useTimer() {
 
 		return () => window.clearInterval(intervalId);
 	}, [state.isRunning, settings]);
+
+	// 🔹 Efeito 1: detectar INÍCIO de um pomodoro (Pro) e abrir sessão no backend
+	useEffect(() => {
+		if (!isPro) return;
+		if (typeof window === "undefined") return;
+
+		const isPomodoro = state.mode === "pomodoro";
+		if (!isPomodoro) return;
+		if (!state.isRunning) return;
+		if (currentSessionId) return; // já existe sessão aberta
+
+		const fullDuration = getDurationForMode("pomodoro", settings);
+
+		// Queremos só quando começa um novo pomodoro, não quando retoma no meio.
+		const delta = fullDuration - state.remainingSeconds;
+		if (delta < 0 || delta > 1) {
+			// Se já passou mais de 1s do início "cheio", não abrimos sessão nova.
+			return;
+		}
+
+		// Chama o backend para iniciar sessão
+		(async () => {
+			try {
+				const res = await apiPost<FocusSessionApiResponse>(
+					"/stats/focus-sessions/start",
+					{
+						plannedFocusMinutes: settings.pomodoroMinutes,
+						plannedBreakMinutes: settings.shortBreakMinutes,
+					}
+				);
+
+				setCurrentSessionId(res.id);
+			} catch (err) {
+				// Se falhar, não vamos atrapalhar o timer
+				console.error("Failed to start focus session", err);
+				setCurrentSessionId(null);
+			}
+		})();
+	}, [
+		isPro,
+		state.mode,
+		state.isRunning,
+		state.remainingSeconds,
+		settings,
+		currentSessionId,
+	]);
+
+	// 🔹 Efeito 2: detectar FIM de um pomodoro (Pro) e fechar sessão no backend
+	useEffect(() => {
+		if (!isPro) return;
+		if (typeof window === "undefined") return;
+		if (!state.lastFinishedAt) return;
+
+		const prevFinishedAt = lastFinishedAtRef.current;
+		const prevCompletedPomodoros = lastCompletedPomodorosRef.current;
+
+		// Só entra quando houve alteração de lastFinishedAt
+		if (prevFinishedAt === state.lastFinishedAt) return;
+
+		const pomodoroCountIncreased =
+			state.completedPomodoros > prevCompletedPomodoros;
+
+		lastFinishedAtRef.current = state.lastFinishedAt;
+		lastCompletedPomodorosRef.current = state.completedPomodoros;
+
+		if (!pomodoroCountIncreased) {
+			// ciclo finalizado não foi um pomodoro (pode ter sido break)
+			return;
+		}
+
+		if (!currentSessionId) {
+			// Não temos sessão aberta (por exemplo, usuário recarregou a página durante o ciclo)
+			return;
+		}
+
+		(async () => {
+			try {
+				await apiPost<FocusSessionApiResponse>(
+					`/stats/focus-sessions/${currentSessionId}/finish`,
+					{
+						// Não enviamos focusMinutes/endedAt => backend calcula pelo startedAt → now
+						// breakMinutes poderia ser enviado aqui no futuro (pós-break).
+					}
+				);
+			} catch (err) {
+				console.error("Failed to finish focus session", err);
+			} finally {
+				// Em qualquer caso, limpamos a sessão atual
+				setCurrentSessionId(null);
+			}
+		})();
+	}, [isPro, state.lastFinishedAt, state.completedPomodoros, currentSessionId]);
 
 	// Actions expostas pro componente
 	const start = () => {
