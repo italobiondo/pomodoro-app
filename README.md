@@ -94,9 +94,13 @@ backend/src/modules/health/health.controller.ts
 backend/src/modules/health/health.module.ts
 backend/src/modules/stats
 backend/src/modules/stats/dto
+backend/src/modules/stats/dto/finish-focus-session.dto.ts
+backend/src/modules/stats/dto/focus-session-response.dto.ts
+backend/src/modules/stats/dto/start-focus-session.dto.ts
 backend/src/modules/stats/dto/stats-response.dto.ts
 backend/src/modules/stats/stats.controller.ts
 backend/src/modules/stats/stats.module.ts
+backend/src/modules/stats/stats.service.spec.ts
 backend/src/modules/stats/stats.service.ts
 backend/src/modules/tasks
 backend/src/modules/tasks/dto
@@ -221,6 +225,7 @@ Você deve sempre cruzar informações entre:
 - Nunca assuma estrutura implícita: detalhe completamente.
 - Sempre alinhe a solução com requisitos, arquitetura e histórico.
 - Sempre aponte riscos, bugs potenciais e melhorias de segurança.
+- Em caso de precisar alterar algum arquivo, solicite antes de alterar
 
 ====================================================================
 🎯 OBJETIVO INICIAL NESTE NOVO CHAT
@@ -231,7 +236,7 @@ Quero continuar:
 Antes de continuarmos, faça o seguinte:
 
 1) Confirme que leu e entendeu TODO o contexto acima.  
-2) Liste os próximos passos ideais para avançar.  
+2) Liste os próximos passos ideais para avançar.
 
 Depois disso começamos a implementação.
 

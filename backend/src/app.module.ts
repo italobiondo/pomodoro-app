@@ -7,6 +7,8 @@ import { TodosModule } from './modules/todos/todos.module';
 import { PrismaModule } from './infra/database/prisma/prisma.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { StatsModule } from './modules/stats/stats.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { StatsModule } from './modules/stats/stats.module';
     PrismaModule,
     TasksModule,
     StatsModule,
+    SubscriptionsModule,
+    PaymentsModule,
   ],
 })
 export class AppModule {}

@@ -105,8 +105,15 @@ model Payment {
   currency           String
   status             PaymentStatus
 
+  // Tipo do evento do provedor (ex: "payment", "payment.updated", "charge.succeeded", etc.)
+  providerEventType  String?
+
+  // Payload bruto para auditoria/debug (especialmente útil com webhooks)
+  rawPayload         Json?
+
   createdAt DateTime @default(now())
 }
+
 
 // Tasks que vão ser sincronizadas para usuário Pro
 model Task {
