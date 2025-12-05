@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,11 +17,38 @@ import { FinishFocusSessionDto } from './dto/finish-focus-session.dto';
 export class StatsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Garante que o usuário é Pro (plan === 'PRO').
+   * Caso contrário, lança ForbiddenException.
+   */
+  private async ensureUserIsPro(userId: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    // PlanType no Prisma: FREE | PRO
+    if (user.plan !== 'PRO') {
+      throw new ForbiddenException(
+        'Estatísticas de foco estão disponíveis apenas para usuários Pro.',
+      );
+    }
+  }
+
+  /**
+   * Retorna o overview de estatísticas do usuário (totais + hoje).
+   * Agora só permite usuário Pro.
+   */
   async getOverview(userId: string) {
+    await this.ensureUserIsPro(userId);
+
     const today = startOfDay(new Date());
 
     // 🔹 Carrega o summary (com tipo explícito)
-
     const summaryRecord: StatsSummary | null =
       await this.prisma.statsSummary.findUnique({
         where: { userId },
@@ -69,12 +97,18 @@ export class StatsService {
       focusMinutesToday,
     };
   }
+
+  /**
+   * Inicia uma nova sessão de foco para o usuário Pro.
+   * Cria o registro em FocusSession com startedAt = now.
+   */
   async startFocusSession(
     userId: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _dto: StartFocusSessionDto,
   ): Promise<FocusSession> {
-    // Por enquanto, ignoramos os campos de planned* (só útil no futuro).
+    await this.ensureUserIsPro(userId);
+
     const now = new Date();
 
     const session = await this.prisma.focusSession.create({
@@ -89,11 +123,16 @@ export class StatsService {
     return session;
   }
 
+  /**
+   * Finaliza uma sessão de foco, calcula os minutos e atualiza o StatsSummary.
+   */
   async finishFocusSession(
     userId: string,
     sessionId: string,
     dto: FinishFocusSessionDto,
   ): Promise<FocusSession> {
+    await this.ensureUserIsPro(userId);
+
     const session = await this.prisma.focusSession.findUnique({
       where: { id: sessionId },
     });
@@ -134,6 +173,9 @@ export class StatsService {
     return updatedSession;
   }
 
+  /**
+   * Atualiza (ou cria) o StatsSummary agregando os valores da sessão concluída.
+   */
   private async updateStatsSummaryFromSession(
     userId: string,
     session: FocusSession,
