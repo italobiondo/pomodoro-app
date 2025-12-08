@@ -31,7 +31,7 @@ export default function HomePage() {
 	}
 
 	return (
-		<main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
+		<main className="min-h-screen flex flex-col">
 			{/* Header */}
 			<MainHeader />
 
@@ -52,7 +52,7 @@ export default function HomePage() {
 
 			{/* Seção de plano Pro */}
 			<div className="w-full max-w-4xl mx-auto mt-8 px-4">
-				<div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-6 flex flex-col gap-3">
+				<div className="card-main p-4 sm:p-6 flex flex-col gap-3">
 					<h2 className="text-lg sm:text-xl font-semibold">
 						Plano Pomodoro Pro
 					</h2>
@@ -68,10 +68,13 @@ export default function HomePage() {
 					)}
 
 					{!loading && !isAuthenticated && (
-						<div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-							<p className="text-sm text-slate-300">
-								Para assinar o plano Pro, entre com sua conta Google.
-							</p>
+						<div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+							<div className="text-sm text-slate-300">
+								<p>Para assinar o plano Pro, entre com sua conta Google.</p>
+								<p className="text-slate-400 text-xs mt-1">
+									Você pode testar o app à vontade antes de decidir assinar.
+								</p>
+							</div>
 							<button
 								type="button"
 								onClick={loginWithGoogle}
@@ -121,6 +124,29 @@ export default function HomePage() {
 
 			{/* Rodapé de anúncio — só aparece quando rolar a página (somente no Free) */}
 			{!isPro && <FreeAdFooter />}
+
+			{/* Explicação da técnica Pomodoro (abaixo da área útil) */}
+			<section className="w-full max-w-4xl mx-auto mt-10 px-4">
+				<div className="card-secondary p-4 sm:p-6">
+					<h2 className="text-lg sm:text-xl font-semibold mb-2">
+						Como funciona a técnica Pomodoro
+					</h2>
+					<p className="text-sm text-slate-300 mb-2">
+						A técnica Pomodoro é um método simples de gerenciamento de tempo:
+						você alterna blocos de foco intenso com pequenas pausas, para manter
+						energia e concentração ao longo do dia.
+					</p>
+					<ul className="text-sm text-slate-300 list-disc list-inside space-y-1">
+						<li>25 minutos de foco total (um “Pomodoro”).</li>
+						<li>5 minutos de pausa curta entre cada ciclo.</li>
+						<li>Após 4 ciclos, uma pausa longa para recarregar.</li>
+					</ul>
+					<p className="text-xs text-slate-400 mt-3">
+						Use o timer acima para controlar seus ciclos e acompanhe o seu ritmo
+						de foco ao longo do tempo.
+					</p>
+				</div>
+			</section>
 		</main>
 	);
 }

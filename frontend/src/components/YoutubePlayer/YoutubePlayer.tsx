@@ -108,7 +108,7 @@ export const YoutubePlayer: React.FC = () => {
 	}
 
 	return (
-		<section className="rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3">
+		<section className="card-secondary px-4 py-3">
 			<header className="flex items-center justify-between mb-2">
 				<div>
 					<h2 className="text-sm font-semibold text-slate-100">

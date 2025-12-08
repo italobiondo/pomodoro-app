@@ -14,9 +14,10 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="pt-BR">
-			<body className="...">
+			<body className="min-h-screen antialiased">
 				<AuthProvider>{children}</AuthProvider>
 			</body>
 		</html>
 	);
 }
+

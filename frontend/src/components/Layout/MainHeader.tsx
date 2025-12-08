@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { SocialLoginButtons } from "@/components/Auth/SocialLoginButtons";
 import { useAuth } from "@/hooks/useAuth";
 import { StatsOverviewModal } from "@/components/Stats/StatsOverviewModal";
+import { useTheme } from "@/hooks/useTheme";
 
 export const MainHeader: React.FC = () => {
 	function openSettings() {
@@ -14,6 +15,7 @@ export const MainHeader: React.FC = () => {
 
 	const { isPro } = useAuth();
 	const [isStatsOpen, setIsStatsOpen] = useState(false);
+	const { isDark, toggleTheme } = useTheme();
 
 	return (
 		<>
@@ -46,6 +48,15 @@ export const MainHeader: React.FC = () => {
 							className="text-xs px-3 py-1.5 rounded-full border border-slate-600 text-slate-200 hover:border-slate-300 hover:text-slate-50 transition-colors"
 						>
 							Configurações
+						</button>
+
+						{/* Toggle de tema */}
+						<button
+							type="button"
+							onClick={toggleTheme}
+							className="text-xs px-3 py-1.5 rounded-full border border-slate-600 text-slate-200 hover:border-slate-300 hover:text-slate-50 transition-colors"
+						>
+							{isDark ? "Tema claro" : "Tema escuro"}
 						</button>
 
 						{/* Login / conta Pro via login social */}

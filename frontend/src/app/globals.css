@@ -11,8 +11,51 @@ body {
 /* Se quiser manter o fundo escuro global, pode deixar assim.
    Se preferir que só o <main> controle a cor, pode remover o background daqui. */
 body {
-	
 	color: #e5e7eb; /* slate-200 */
 	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
 		sans-serif;
+}
+
+/* ============================
+   Tema light/dark global
+   ============================ */
+
+:root.theme-dark {
+	--bg-body: #020617; /* slate-950 */
+	--text-body: #e5e7eb; /* slate-200 */
+
+	--card-bg-main: rgba(15, 23, 42, 0.9); /* slate-900-ish */
+	--card-border-main: #1f2937; /* slate-800 */
+
+	--card-bg-secondary: rgba(15, 23, 42, 0.75);
+	--card-border-secondary: #1f2937;
+}
+
+:root.theme-light {
+	--bg-body: #f9fafb; /* slate-50 */
+	--text-body: #020617; /* slate-950 */
+
+	--card-bg-main: #ffffff;
+	--card-border-main: #e5e7eb; /* slate-200 */
+
+	--card-bg-secondary: #f3f4f6; /* slate-100 */
+	--card-border-secondary: #e5e7eb; /* slate-200 */
+}
+
+body {
+	background-color: var(--bg-body);
+	color: var(--text-body);
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.card-main {
+	border-radius: 1rem; /* ~rounded-2xl */
+	border: 1px solid var(--card-border-main);
+	background-color: var(--card-bg-main);
+}
+
+.card-secondary {
+	border-radius: 1rem;
+	border: 1px solid var(--card-border-secondary);
+	background-color: var(--card-bg-secondary);
 }

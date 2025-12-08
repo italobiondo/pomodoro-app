@@ -96,7 +96,7 @@ export const TimerPanel: React.FC = () => {
 			: 1 - remainingSeconds / totalSecondsForCurrentMode;
 
 	return (
-		<section className="w-full max-w-md mx-auto rounded-2xl bg-slate-900/80 text-slate-50 p-6 shadow-lg border border-slate-800">
+		<section className="w-full max-w-md mx-auto card-main p-6 shadow-lg">
 			{/* Header / modos */}
 			<header className="flex items-center justify-between mb-4">
 				<div className="flex gap-2">
