@@ -226,6 +226,8 @@ Você deve sempre cruzar informações entre:
 - Sempre alinhe a solução com requisitos, arquitetura e histórico.
 - Sempre aponte riscos, bugs potenciais e melhorias de segurança.
 - Em caso de precisar alterar algum arquivo, solicite antes de alterar
+- após alteração, criação e explusão em arquivos, perguntar se deu algum erro de tipo de erro, seja de lint, sintaxe, ou no build, etc.
+     - Caso dê certo, sugestão de mensagem para o commit desses arquivos
 
 ====================================================================
 🎯 OBJETIVO INICIAL NESTE NOVO CHAT
