@@ -1,14 +1,10 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { MainHeader } from "@/components/Layout/MainHeader";
 
 export default function ProErrorPage() {
-	const searchParams = useSearchParams();
 	const router = useRouter();
-
-	const status = searchParams.get("status");
-	const errorMessage = searchParams.get("message");
 
 	function handleBackToPro() {
 		router.push("/pro");
@@ -29,21 +25,10 @@ export default function ProErrorPage() {
 						Nenhuma cobrança foi realizada.
 					</p>
 
-					{(status || errorMessage) && (
-						<div className="text-xs text-slate-400 space-y-1">
-							{status && (
-								<p>
-									<span className="font-semibold">Status:</span> {status}
-								</p>
-							)}
-							{errorMessage && (
-								<p>
-									<span className="font-semibold">Detalhes:</span>{" "}
-									{errorMessage}
-								</p>
-							)}
-						</div>
-					)}
+					<p className="text-xs text-slate-500">
+						Você pode tentar novamente em alguns instantes. Se o problema
+						persistir, verifique seus dados de pagamento no Mercado Pago.
+					</p>
 
 					<button
 						type="button"

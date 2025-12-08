@@ -1,24 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { MainHeader } from "@/components/Layout/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ProSuccessPage() {
-	const searchParams = useSearchParams();
 	const router = useRouter();
 	const { refetch } = useAuth();
-
 	const [refetched, setRefetched] = useState(false);
 
-	const paymentId = searchParams.get("payment_id");
-	const status = searchParams.get("status");
-	const externalReference = searchParams.get("external_reference");
-
 	useEffect(() => {
-		// Ao entrar na página de sucesso, garantimos que o estado
-		// de autenticação/assinatura seja atualizado.
 		if (!refetched) {
 			refetch()
 				.catch((err) => {
@@ -50,31 +42,10 @@ export default function ProSuccessPage() {
 						seu plano Pro será atualizado no aplicativo.
 					</p>
 
-					{(paymentId || status || externalReference) && (
-						<div className="text-xs text-slate-400 space-y-1">
-							{paymentId && (
-								<p>
-									<span className="font-semibold">Payment ID:</span> {paymentId}
-								</p>
-							)}
-							{status && (
-								<p>
-									<span className="font-semibold">Status recebido:</span>{" "}
-									{status}
-								</p>
-							)}
-							{externalReference && (
-								<p>
-									<span className="font-semibold">Ref. externa:</span>{" "}
-									{externalReference}
-								</p>
-							)}
-						</div>
-					)}
-
 					<p className="text-xs text-slate-500">
 						Se seu plano ainda aparecer como Free, aguarde alguns segundos e
-						clique no botão abaixo para voltar à página Pro.
+						clique no botão abaixo para voltar à página Pro e atualizar as
+						informações.
 					</p>
 
 					<button
