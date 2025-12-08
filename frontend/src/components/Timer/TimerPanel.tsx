@@ -152,7 +152,7 @@ export const TimerPanel: React.FC = () => {
 				<button
 					type="button"
 					onClick={toggle}
-					className="px-10 py-2 rounded-full text-lg font-semibold bg-emerald-500 text-white hover:bg-emerald-400 transition-colors"
+					className="px-10 py-2 rounded-full text-lg font-semibold btn-primary"
 				>
 					{isRunning ? "Pausar" : "Iniciar"}
 				</button>

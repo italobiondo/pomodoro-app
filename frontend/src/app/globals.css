@@ -8,14 +8,6 @@ body {
 	min-height: 100%;
 }
 
-/* Se quiser manter o fundo escuro global, pode deixar assim.
-   Se preferir que só o <main> controle a cor, pode remover o background daqui. */
-body {
-	color: #e5e7eb; /* slate-200 */
-	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-		sans-serif;
-}
-
 /* ============================
    Tema light/dark global
    ============================ */
@@ -34,6 +26,15 @@ body {
 	--text-primary: #f9fafb; /* quase branco */
 	--text-secondary: #e5e7eb; /* títulos menores */
 	--text-muted: #9ca3af; /* descrições */
+
+	/* botões principais */
+	--btn-primary-bg: #22c55e; /* emerald-500 */
+	--btn-primary-bg-hover: #16a34a; /* emerald-600-ish */
+	--btn-primary-text: #0b1120; /* quase preto, contraste bom */
+
+	/* sombras dos cards */
+	--card-main-shadow: 0 18px 45px rgba(15, 23, 42, 0.55);
+	--card-secondary-shadow: 0 10px 28px rgba(15, 23, 42, 0.45);
 }
 
 :root.theme-light {
@@ -50,12 +51,23 @@ body {
 	--text-primary: #020617;
 	--text-secondary: #111827;
 	--text-muted: #6b7280;
+
+	/* botões principais */
+	--btn-primary-bg: #22c55e;
+	--btn-primary-bg-hover: #16a34a;
+	--btn-primary-text: #ffffff;
+
+	/* sombras dos cards */
+	--card-main-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+	--card-secondary-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
 }
 
 body {
 	background-color: var(--bg-body);
 	color: var(--text-body);
 	transition: background-color 0.2s ease, color 0.2s ease;
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+		sans-serif;
 }
 
 /* Cards genéricos */
@@ -63,12 +75,14 @@ body {
 	border-radius: 1rem;
 	border: 1px solid var(--card-border-main);
 	background-color: var(--card-bg-main);
+	box-shadow: var(--card-main-shadow);
 }
 
 .card-secondary {
 	border-radius: 1rem;
 	border: 1px solid var(--card-border-secondary);
 	background-color: var(--card-bg-secondary);
+	box-shadow: var(--card-secondary-shadow);
 }
 
 /* Utilitários de texto semântico */
@@ -84,3 +98,42 @@ body {
 	color: var(--text-muted);
 }
 
+/* Botão primário padrão (verde em ambos os temas) */
+.btn-primary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding-block: 0.5rem;
+	border-radius: 999px;
+	border: 1px solid transparent;
+
+	background-color: var(--btn-primary-bg);
+	color: var(--btn-primary-text);
+	font-weight: 600;
+	transition: background-color 0.15s ease, box-shadow 0.15s ease,
+		transform 0.08s ease;
+	box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+
+.btn-primary:hover {
+	background-color: var(--btn-primary-bg-hover);
+	box-shadow: 0 6px 18px rgba(34, 197, 94, 0.45);
+}
+
+.btn-primary:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+:root.theme-dark {
+	--btn-primary-bg: #22c55e; /* emerald-500 */
+	--btn-primary-bg-hover: #16a34a; /* emerald-600 */
+	--btn-primary-text: #f9fafb; /* quase branco */
+}
+:root.theme-light {
+	--btn-primary-bg: #22c55e; /* emerald-500 */
+	--btn-primary-bg-hover: #16a34a; /* emerald-600 */
+	--btn-primary-text: #f9fafb; /* quase branco */
+}

@@ -40,7 +40,7 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 		<div className="flex flex-col gap-2">
 			<button
 				onClick={loginWithGoogle}
-				className="px-4 py-2 rounded-lg bg-white text-slate-900 text-sm font-medium flex items-center justify-center gap-2 hover:bg-slate-100 transition"
+				className="px-4 py-2 text-sm flex items-center justify-center gap-2 btn-primary"
 			>
 				<span>Entrar com Google</span>
 			</button>

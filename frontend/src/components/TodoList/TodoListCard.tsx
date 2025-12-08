@@ -114,7 +114,7 @@ export function TodoListCard() {
 				<button
 					type="submit"
 					disabled={!canAddMore || !newTitle.trim()}
-					className="text-xs px-3 py-2 rounded-lg bg-emerald-500 text-slate-900 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-emerald-400 transition-colors"
+					className="text-xs px-3 py-2 rounded-lg btn-primary"
 				>
 					Add
 				</button>

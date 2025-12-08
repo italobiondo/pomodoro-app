@@ -135,7 +135,7 @@ export const YoutubePlayer: React.FC = () => {
 					/>
 					<button
 						type="submit"
-						className="px-3 py-1.5 rounded-lg bg-emerald-600 text-[11px] text-white border border-emerald-500 hover:bg-emerald-500 transition-colors"
+						className="px-3 py-1.5 rounded-lg btn-primary"
 					>
 						Usar
 					</button>
