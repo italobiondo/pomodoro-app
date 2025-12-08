@@ -28,8 +28,8 @@ body {
 	--text-muted: #9ca3af; /* descrições */
 
 	/* botões principais */
-	--btn-primary-bg: #22c55e; /* emerald-500 */
-	--btn-primary-bg-hover: #16a34a; /* emerald-600-ish */
+	--btn-primary-bg: rgb(16 185 129); /* emerald-500 */
+	--btn-primary-bg-hover: rgb(4 120 87); /* emerald-600-ish */
 	--btn-primary-text: #0b1120; /* quase preto, contraste bom */
 
 	/* sombras dos cards */
@@ -53,8 +53,8 @@ body {
 	--text-muted: #6b7280;
 
 	/* botões principais */
-	--btn-primary-bg: #21c45d;
-	--btn-primary-bg-hover: #16a34a;
+	--btn-primary-bg: rgb(16 185 129);
+	--btn-primary-bg-hover: rgb(4 120 87);
 	--btn-primary-text: #ffffff;
 
 	/* sombras dos cards */
