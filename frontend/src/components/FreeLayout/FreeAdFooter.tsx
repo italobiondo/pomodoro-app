@@ -3,8 +3,8 @@
 export const FreeAdFooter = () => {
 	return (
 		<div className="w-full max-w-5xl mx-auto px-4 pb-8 mt-6">
-			<section className="card-secondary px-4 py-3 text-xs text-slate-400">
-				<p className="font-semibold text-slate-200 text-sm mb-1">
+			<section className="card-secondary px-4 py-3 text-xs text-muted">
+				<p className="font-semibold text-secondary text-sm mb-1">
 					Anúncio leve aqui (Free)
 				</p>
 				<p className="mb-1">

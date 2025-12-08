@@ -64,13 +64,13 @@ export function TodoListCard() {
 	}
 
 	return (
-		<section className="max-h-[854px] rounded-2xl bg-slate-900/70 border border-slate-700 p-4 flex flex-col gap-4">
+		<section className="max-h-[854px] card-main p-4 flex flex-col gap-4">
 			<header className="flex items-start justify-between gap-2">
 				<div>
-					<h2 className="text-sm font-semibold text-slate-100">
+					<h2 className="text-sm font-semibold text-secondary">
 						Sua lista de tarefas
 					</h2>
-					<p className="text-xs text-slate-400 mt-1">
+					<p className="text-xs text-muted mt-1">
 						{isPro
 							? "Organize até 100 tarefas no plano Pro."
 							: "Organize até 10 tarefas no plano Free."}
@@ -81,8 +81,8 @@ export function TodoListCard() {
 					className={
 						"text-[10px] px-2 py-0.5 rounded-full border font-semibold " +
 						(isPro
-							? "border-amber-400 bg-amber-400/10 text-amber-200"
-							: "border-emerald-500 bg-emerald-500/10 text-emerald-300")
+							? "border-amber-400 bg-amber-400/10 text-amber-600"
+							: "border-emerald-500 bg-emerald-500/10 text-emerald-600")
 					}
 				>
 					{isPro ? "PRO" : "FREE"}
@@ -91,7 +91,7 @@ export function TodoListCard() {
 
 			{/* Mensagem de erro da API / limite de tasks */}
 			{error && (
-				<div className="text-[11px] text-red-300 bg-red-500/10 border border-red-500/40 rounded-md px-3 py-2">
+				<div className="text-[11px] text-red-600 bg-red-500/5 border border-red-500/40 rounded-md px-3 py-2">
 					{error}
 				</div>
 			)}
@@ -101,7 +101,7 @@ export function TodoListCard() {
 				<input
 					type="text"
 					maxLength={255}
-					className="flex-1 rounded-lg bg-slate-800/80 border border-slate-700 px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-emerald-500/60"
+					className="flex-1 rounded-lg bg-slate-950/5 border border-slate-300 px-3 py-2 text-xs text-secondary placeholder:text-muted outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500"
 					placeholder={
 						canAddMore
 							? "Digite uma tarefa e pressione Enter"
@@ -121,7 +121,7 @@ export function TodoListCard() {
 			</form>
 
 			{/* Mensagem de limite / slots restantes */}
-			<div className="text-[11px] text-slate-400 flex justify-between items-center">
+			<div className="text-[11px] text-muted flex justify-between items-center">
 				<span>
 					{items.length} / {maxTasks} tarefas
 				</span>
@@ -137,7 +137,7 @@ export function TodoListCard() {
 			{/* Lista de tarefas */}
 			<div className="flex-1 min-h-0 overflow-y-auto custom-scroll">
 				{items.length === 0 ? (
-					<p className="text-xs text-slate-500 italic">
+					<p className="text-xs text-muted italic">
 						Nenhuma tarefa ainda. Crie a primeira para começar seu foco ✨
 					</p>
 				) : (
@@ -148,7 +148,7 @@ export function TodoListCard() {
 							return (
 								<li
 									key={item.id}
-									className="group flex items-start gap-2 rounded-lg bg-slate-800/60 border border-slate-700 px-3 py-2"
+									className="group flex items-start gap-2 card-secondary px-3 py-2"
 								>
 									<button
 										type="button"
@@ -156,7 +156,7 @@ export function TodoListCard() {
 										className={`mt-0.5 h-4 w-4 rounded-full border flex items-center justify-center text-[10px] ${
 											item.done
 												? "bg-emerald-500 border-emerald-500 text-slate-900"
-												: "border-slate-500 text-transparent"
+												: "border-slate-400 text-transparent"
 										}`}
 										aria-label={
 											item.done
@@ -172,7 +172,7 @@ export function TodoListCard() {
 											<input
 												type="text"
 												maxLength={255}
-												className="w-full bg-slate-900/80 border border-slate-600 rounded px-2 py-1 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/60"
+												className="w-full bg-slate-950/5 border border-slate-300 rounded px-2 py-1 text-xs text-secondary outline-none focus:ring-2 focus:ring-emerald-500/60"
 												value={editingTitle}
 												onChange={(e) => setEditingTitle(e.target.value)}
 												onBlur={() => saveEditing(item.id)}
@@ -190,15 +190,17 @@ export function TodoListCard() {
 											/>
 										) : (
 											<p
-												className={`text-xs text-slate-100 ${
-													item.done ? "line-through text-slate-500" : ""
+												className={`text-xs ${
+													item.done
+														? "line-through text-muted"
+														: "text-secondary"
 												}`}
 											>
 												{item.title}
 											</p>
 										)}
 
-										<p className="text-[10px] text-slate-500 mt-1">
+										<p className="text-[10px] text-muted mt-1">
 											Criada em{" "}
 											{new Date(item.createdAt).toLocaleDateString("pt-BR", {
 												day: "2-digit",
@@ -212,7 +214,7 @@ export function TodoListCard() {
 											<button
 												type="button"
 												onClick={() => startEditing(item.id, item.title)}
-												className="text-[10px] px-2 py-1 rounded bg-slate-700 text-slate-100 hover:bg-slate-600"
+												className="text-[10px] px-2 py-1 rounded bg-slate-950/5 text-secondary hover:bg-slate-200/80"
 											>
 												Editar
 											</button>
@@ -220,7 +222,7 @@ export function TodoListCard() {
 										<button
 											type="button"
 											onClick={() => removeItem(item.id)}
-											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-300 hover:bg-red-500/20"
+											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-600 hover:bg-red-500/20"
 										>
 											Excluir
 										</button>
@@ -238,7 +240,7 @@ export function TodoListCard() {
 					<button
 						type="button"
 						onClick={clearAll}
-						className="text-[11px] text-slate-400 hover:text-red-300 hover:underline"
+						className="text-[11px] text-muted hover:text-red-500 hover:underline"
 					>
 						Limpar todas as tarefas
 					</button>

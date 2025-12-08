@@ -111,27 +111,27 @@ export const YoutubePlayer: React.FC = () => {
 		<section className="card-secondary px-4 py-3">
 			<header className="flex items-center justify-between mb-2">
 				<div>
-					<h2 className="text-sm font-semibold text-slate-100">
+					<h2 className="text-sm font-semibold text-secondary">
 						Player de YouTube
 					</h2>
-					<p className="text-xs text-slate-400">
+					<p className="text-xs text-muted">
 						Conecte lo-fi, white noise ou sua playlist favorita.
 					</p>
 				</div>
 				{/* Badge simples só pra reforçar que está ativo */}
-				<span className="rounded-full bg-emerald-900/40 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-300 border border-emerald-700/60">
+				<span className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide border border-emerald-500/60 bg-emerald-500/10 text-emerald-600 dark:text-emerald-600">
 					Ativo
 				</span>
 			</header>
 
-			<form onSubmit={handleLoad} className="space-y-3 text-xs text-slate-400">
+			<form onSubmit={handleLoad} className="space-y-3 text-xs text-muted">
 				<div className="flex gap-2">
 					<input
 						type="url"
 						placeholder="Cole aqui o link do vídeo ou playlist..."
 						value={inputUrl}
 						onChange={(e) => setInputUrl(e.target.value)}
-						className="flex-1 rounded-lg bg-slate-900/60 border border-slate-700 px-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+						className="flex-1 rounded-lg bg-card-secondary border border-soft px-3 py-1.5 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
 					/>
 					<button
 						type="submit"
@@ -141,7 +141,7 @@ export const YoutubePlayer: React.FC = () => {
 					</button>
 				</div>
 
-				{error && <p className="text-[11px] text-red-400">{error}</p>}
+				{error && <p className="text-[11px] text-red-500">{error}</p>}
 
 				<div className="flex items-center gap-3">
 					<label className="flex items-center gap-1 text-xs cursor-pointer select-none">
@@ -149,17 +149,17 @@ export const YoutubePlayer: React.FC = () => {
 							type="checkbox"
 							checked={loop}
 							onChange={(e) => setLoop(e.target.checked)}
-							className="h-3 w-3 rounded border-slate-600 bg-slate-900"
+							className="h-3 w-3 rounded border-soft bg-card-secondary"
 						/>
-						<span className="text-slate-300 text-[11px]">Loop</span>
+						<span className="text-secondary text-[11px]">Loop</span>
 					</label>
 
-					<p className="text-[11px] text-slate-500">
+					<p className="text-[11px] text-muted">
 						Play/pause, volume e mudo ficam nos controles do próprio player.
 					</p>
 				</div>
 
-				<div className="mt-2 aspect-video w-full rounded-lg bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center">
+				<div className="mt-2 aspect-video w-full rounded-lg bg-card-secondary border border-soft overflow-hidden flex items-center justify-center">
 					{embedUrl ? (
 						<iframe
 							className="w-full h-full"
@@ -169,14 +169,14 @@ export const YoutubePlayer: React.FC = () => {
 							allowFullScreen
 						/>
 					) : (
-						<span className="text-[11px] text-slate-500 px-4 text-center">
+						<span className="text-[11px] text-muted px-4 text-center">
 							Cole um link de música, lo-fi ou som ambiente do YouTube para
 							acompanhar seus ciclos de foco.
 						</span>
 					)}
 				</div>
 
-				<p className="text-[11px] text-slate-500">
+				<p className="text-[11px] text-muted">
 					O player é totalmente integrado ao YouTube, sem anúncios extras além
 					do próprio YouTube.
 				</p>

@@ -22,24 +22,34 @@ body {
 
 :root.theme-dark {
 	--bg-body: #020617; /* slate-950 */
-	--text-body: #e5e7eb; /* slate-200 */
+	--text-body: #e5e7eb; /* texto padrão */
 
-	--card-bg-main: rgba(15, 23, 42, 0.9); /* slate-900-ish */
-	--card-border-main: #1f2937; /* slate-800 */
+	--card-bg-main: rgba(15, 23, 42, 0.9);
+	--card-border-main: #1f2937;
 
 	--card-bg-secondary: rgba(15, 23, 42, 0.75);
 	--card-border-secondary: #1f2937;
+
+	/* texto semântico */
+	--text-primary: #f9fafb; /* quase branco */
+	--text-secondary: #e5e7eb; /* títulos menores */
+	--text-muted: #9ca3af; /* descrições */
 }
 
 :root.theme-light {
-	--bg-body: #f9fafb; /* slate-50 */
-	--text-body: #020617; /* slate-950 */
+	--bg-body: #f9fafb; /* fundo claro */
+	--text-body: #020617; /* texto padrão escuro */
 
 	--card-bg-main: #ffffff;
-	--card-border-main: #e5e7eb; /* slate-200 */
+	--card-border-main: #e5e7eb;
 
-	--card-bg-secondary: #f3f4f6; /* slate-100 */
-	--card-border-secondary: #e5e7eb; /* slate-200 */
+	--card-bg-secondary: #f3f4f6;
+	--card-border-secondary: #e5e7eb;
+
+	/* texto semântico */
+	--text-primary: #020617;
+	--text-secondary: #111827;
+	--text-muted: #6b7280;
 }
 
 body {
@@ -48,8 +58,9 @@ body {
 	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Cards genéricos */
 .card-main {
-	border-radius: 1rem; /* ~rounded-2xl */
+	border-radius: 1rem;
 	border: 1px solid var(--card-border-main);
 	background-color: var(--card-bg-main);
 }
@@ -59,3 +70,17 @@ body {
 	border: 1px solid var(--card-border-secondary);
 	background-color: var(--card-bg-secondary);
 }
+
+/* Utilitários de texto semântico */
+.text-primary {
+	color: var(--text-primary);
+}
+
+.text-secondary {
+	color: var(--text-secondary);
+}
+
+.text-muted {
+	color: var(--text-muted);
+}
+

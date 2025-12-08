@@ -98,18 +98,18 @@ export const TimerPanel: React.FC = () => {
 	return (
 		<section className="w-full max-w-md mx-auto card-main p-6 shadow-lg">
 			{/* Header / modos */}
-			<header className="flex items-center justify-between mb-4">
-				<div className="flex gap-2">
+			<header className="mb-4">
+				<div className="flex justify-center gap-2 flex-wrap">
 					{(["pomodoro", "short_break", "long_break"] as TimerMode[]).map(
 						(m) => (
 							<button
 								key={m}
 								type="button"
 								onClick={() => switchMode(m)}
-								className={`px-3 py-1 rounded-full text-sm border transition-all ${
+								className={`px-3 py-1 rounded-full text-sm border transition-all min-w-[110px] text-center ${
 									mode === m
-										? "bg-slate-100 text-slate-900 border-slate-100"
-										: "border-slate-600 text-slate-300 hover:border-slate-300"
+										? "bg-emerald-500 text-white border-emerald-500 shadow-sm"
+										: "border-slate-300 text-muted hover:border-emerald-400 hover:text-secondary"
 								}`}
 							>
 								{getModeLabel(m)}
@@ -122,7 +122,7 @@ export const TimerPanel: React.FC = () => {
 			{/* Timer */}
 			<div className="flex flex-col items-center gap-4 mb-6">
 				{/* Círculo simples com barra de progresso */}
-				<div className="relative w-48 h-48 flex items-center justify-center">
+				<div className="relative w-48 h-48 flex items-center justify-center text-emerald-500">
 					<svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
 						<circle
 							cx="50"
@@ -136,7 +136,7 @@ export const TimerPanel: React.FC = () => {
 							cx="50"
 							cy="50"
 							r="45"
-							stroke="white"
+							stroke="currentColor"
 							strokeWidth="6"
 							strokeLinecap="round"
 							strokeDasharray={2 * Math.PI * 45}
@@ -144,7 +144,7 @@ export const TimerPanel: React.FC = () => {
 							fill="none"
 						/>
 					</svg>
-					<span className="absolute text-5xl font-semibold tabular-nums">
+					<span className="absolute text-5xl font-semibold tabular-nums text-secondary">
 						{formatTime(remainingSeconds)}
 					</span>
 				</div>
@@ -152,16 +152,16 @@ export const TimerPanel: React.FC = () => {
 				<button
 					type="button"
 					onClick={toggle}
-					className="px-10 py-2 rounded-full text-lg font-semibold bg-slate-100 text-slate-900 hover:bg-white transition-colors"
+					className="px-10 py-2 rounded-full text-lg font-semibold bg-emerald-500 text-white hover:bg-emerald-400 transition-colors"
 				>
 					{isRunning ? "Pausar" : "Iniciar"}
 				</button>
 
-				<div className="flex gap-3 text-xs text-slate-400">
+				<div className="flex gap-3 text-xs text-muted">
 					<button
 						type="button"
 						onClick={resetCurrent}
-						className="hover:text-slate-200"
+						className="underline underline-offset-4 hover:text-secondary"
 					>
 						Resetar ciclo
 					</button>
@@ -169,7 +169,7 @@ export const TimerPanel: React.FC = () => {
 					<button
 						type="button"
 						onClick={skipToNext}
-						className="underline underline-offset-4 hover:text-slate-200"
+						className="underline underline-offset-4 hover:text-secondary"
 					>
 						Pular para o próximo
 					</button>

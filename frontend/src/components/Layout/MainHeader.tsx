@@ -19,33 +19,36 @@ export const MainHeader: React.FC = () => {
 
 	return (
 		<>
-			<header className="w-full border-b border-slate-800">
+			<header className="w-full border-b border-soft bg-background/80 backdrop-blur-md">
 				<div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3">
+					{/* Branding */}
 					<div className="flex flex-col">
-						<h1 className="text-lg font-semibold tracking-tight">
+						<h1 className="text-lg font-semibold tracking-tight text-primary">
 							Pomodoro Focus
 						</h1>
-						<p className="text-xs text-slate-400">
+						<p className="text-xs text-muted">
 							• {isPro ? "Plano Pro" : "Plano Free"}
 						</p>
 					</div>
 
+					{/* Actions */}
 					<div className="flex items-center gap-2">
-						{/* Botão de estatísticas – só faz sentido para Pro */}
+						{/* Estatísticas – somente Pro */}
 						{isPro && (
 							<button
 								type="button"
 								onClick={() => setIsStatsOpen(true)}
-								className="text-xs px-3 py-1.5 rounded-full border border-slate-600 text-slate-200 hover:border-slate-300 hover:text-slate-50 transition-colors"
+								className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors"
 							>
 								Estatísticas
 							</button>
 						)}
 
+						{/* Configurações */}
 						<button
 							type="button"
 							onClick={openSettings}
-							className="text-xs px-3 py-1.5 rounded-full border border-slate-600 text-slate-200 hover:border-slate-300 hover:text-slate-50 transition-colors"
+							className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors"
 						>
 							Configurações
 						</button>
@@ -54,18 +57,18 @@ export const MainHeader: React.FC = () => {
 						<button
 							type="button"
 							onClick={toggleTheme}
-							className="text-xs px-3 py-1.5 rounded-full border border-slate-600 text-slate-200 hover:border-slate-300 hover:text-slate-50 transition-colors"
+							className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors"
 						>
 							{isDark ? "Tema claro" : "Tema escuro"}
 						</button>
 
-						{/* Login / conta Pro via login social */}
+						{/* Login / Conta */}
 						<SocialLoginButtons compact />
 					</div>
 				</div>
 			</header>
 
-			{/* Modal de stats */}
+			{/* Modal */}
 			<StatsOverviewModal
 				open={isStatsOpen}
 				onClose={() => setIsStatsOpen(false)}
