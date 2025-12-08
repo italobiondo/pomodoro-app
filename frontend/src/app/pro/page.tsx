@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { MainHeader } from "@/components/Layout/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { createMercadoPagoPreference } from "@/lib/apiClient";
@@ -94,8 +95,14 @@ export default function ProPage() {
 
 					{!loading && isAuthenticated && isPro && (
 						<p className="text-sm text-emerald-400">
-							Você já é Pro 🎉 — em breve você poderá gerenciar sua assinatura
-							em <span className="font-semibold">/pro/manage</span>.
+							Você já é Pro 🎉 — você pode gerenciar sua assinatura em{" "}
+							<Link
+								href="/pro/manage"
+								className="font-semibold underline text-emerald-300 hover:text-emerald-200"
+							>
+								/pro/manage
+							</Link>
+							.
 						</p>
 					)}
 				</div>

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { MercadoPagoWebhookDto } from './dto/mercado-pago-webhook.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -33,8 +33,11 @@ export class PaymentsController {
    * - Garantir que userId vem de metadata do provedor (não do client)
    */
   @Post('mercado-pago/webhook')
-  async handleMercadoPagoWebhook(@Body() body: MercadoPagoWebhookDto) {
-    await this.paymentsService.handleMercadoPagoWebhook(body);
+  async handleMercadoPagoWebhook(
+    @Body() body: MercadoPagoWebhookDto,
+    @Headers('x-signature') signature?: string,
+  ) {
+    await this.paymentsService.handleMercadoPagoWebhook(body, signature);
     return { received: true };
   }
 }

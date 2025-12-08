@@ -236,6 +236,7 @@ Você deve sempre cruzar informações entre:
 ====================================================================
 📏 REGRAS DE RESPOSTA (SEMPRE seguir)
 - Sempre indique o caminho COMPLETO do arquivo (ex: backend/src/...).
+- Sempre solicite um arquivo já exitente se for alterar. Assim evitamos erro de lógica
 - Sempre explique claramente onde o código deve ser inserido.
 - Sempre indique se um trecho substitui ou adiciona conteúdo.
 - Nunca assuma estrutura implícita: detalhe completamente.

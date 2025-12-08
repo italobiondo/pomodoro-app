@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../../infra/database/prisma/prisma.service';
 import { PaymentStatus } from '../../generated/prisma/client/client';
@@ -9,6 +10,7 @@ import { MercadoPagoWebhookDto } from './dto/mercado-pago-webhook.dto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { addMonths } from 'date-fns';
 import { CreateMercadoPagoPreferenceResponseDto } from './dto/create-mercado-pago-preference-response.dto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 @Injectable()
 export class PaymentsService {
@@ -18,6 +20,44 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly subscriptionsService: SubscriptionsService,
   ) {}
+
+  /**
+   * Valida a assinatura HMAC do webhook do Mercado Pago.
+   * Em DEV: se MERCADO_PAGO_WEBHOOK_SECRET não estiver definido, apenas loga e permite seguir.
+   */
+  private validateMercadoPagoSignature(
+    dto: MercadoPagoWebhookDto,
+    signature?: string,
+  ) {
+    const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
+
+    if (!secret) {
+      this.logger.warn(
+        'Webhook recebido SEM validação de assinatura porque MERCADO_PAGO_WEBHOOK_SECRET não está configurado (modo DEV).',
+      );
+      return;
+    }
+
+    if (!signature) {
+      throw new UnauthorizedException('Webhook sem assinatura (x-signature).');
+    }
+
+    const payload = JSON.stringify(dto);
+    const expected = createHmac('sha256', secret).update(payload).digest('hex');
+
+    const expectedBuf = Buffer.from(expected);
+    const signatureBuf = Buffer.from(signature);
+
+    const isValid =
+      expectedBuf.length === signatureBuf.length &&
+      timingSafeEqual(expectedBuf, signatureBuf);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Assinatura HMAC inválida no webhook.');
+    }
+
+    this.logger.log('Assinatura HMAC validada com sucesso.');
+  }
 
   /**
    * Cria uma preferência de checkout no Mercado Pago para o usuário.
@@ -40,6 +80,7 @@ export class PaymentsService {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -156,31 +197,68 @@ export class PaymentsService {
    * - Cria um registro em Payment.
    * - Se pago, ativa/renova a assinatura do usuário.
    */
-  async handleMercadoPagoWebhook(dto: MercadoPagoWebhookDto): Promise<void> {
+  async handleMercadoPagoWebhook(
+    dto: MercadoPagoWebhookDto,
+    signature?: string,
+  ): Promise<void> {
+    // 1 — Validação opcional do HMAC
+    this.validateMercadoPagoSignature(dto, signature);
+
     const paymentStatus = this.mapMercadoPagoStatus(dto.status);
 
     this.logger.log(
       `Recebido webhook Mercado Pago para userId=${dto.userId} paymentId=${dto.paymentId} status=${dto.status} -> mapped=${paymentStatus}`,
     );
 
-    // Persistência do Payment
-    const payment = await this.prisma.payment.create({
-      data: {
-        userId: dto.userId,
-        providerPaymentId: dto.paymentId,
-        amount: dto.amountInCents,
-        currency: dto.currency,
-        status: paymentStatus,
-        providerEventType: dto.eventType ?? null,
-        rawPayload: dto.rawPayload ?? dto,
-      },
+    // Idempotência — verifica se já existe pagamento com este providerPaymentId
+    const existing = await this.prisma.payment.findFirst({
+      where: { providerPaymentId: dto.paymentId },
     });
 
-    // Se não for pago, não mexe em assinatura
+    let payment;
+    let wasPaidBefore = false;
+
+    if (existing) {
+      wasPaidBefore = existing.status === PaymentStatus.PAID;
+
+      this.logger.log(
+        `Pagamento já existente. Atualizando estado anterior=${existing.status} → novo=${paymentStatus}`,
+      );
+
+      payment = await this.prisma.payment.update({
+        where: { id: existing.id },
+        data: {
+          amount: dto.amountInCents,
+          currency: dto.currency,
+          providerEventType: dto.eventType ?? null,
+          status: paymentStatus,
+          rawPayload: dto.rawPayload ?? dto,
+        },
+      });
+    } else {
+      payment = await this.prisma.payment.create({
+        data: {
+          userId: dto.userId,
+          providerPaymentId: dto.paymentId,
+          amount: dto.amountInCents,
+          currency: dto.currency,
+          status: paymentStatus,
+          providerEventType: dto.eventType ?? null,
+          rawPayload: dto.rawPayload ?? dto,
+        },
+      });
+    }
+
     if (paymentStatus !== PaymentStatus.PAID) {
       this.logger.log(
-        `Pagamento não está com status PAID (status=${paymentStatus}), nenhuma assinatura ativada.`,
+        'Pagamento não está completo, nenhuma assinatura ativada.',
       );
+      return;
+    }
+
+    // Se já estava PAID antes → ignoramos
+    if (wasPaidBefore) {
+      this.logger.log('Webhook repetido. Assinatura já ativada anteriormente.');
       return;
     }
 
@@ -194,6 +272,7 @@ export class PaymentsService {
     await this.subscriptionsService.activateSubscriptionForUser(dto.userId, {
       provider: 'mercado_pago',
       providerCustomerId: dto.userId, // MVP: amarrado ao nosso userId
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       providerSubscriptionId: `mp_sub_${payment.id}`,
       currentPeriodStart,
       currentPeriodEnd,

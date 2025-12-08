@@ -141,7 +141,7 @@ export class TasksController {
         done: item.isCompleted,
         createdAt: item.createdAt.toISOString(),
         updatedAt: item.updatedAt.toISOString(),
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         deletedAt: item.deletedAt ? item.deletedAt.toISOString() : null,
       })),
     };
