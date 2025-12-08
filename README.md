@@ -23,6 +23,8 @@ https://pastebin.com/skt1QRtv
 .
 .editorconfig
 .gitignore
+.vscode
+.vscode/settings.json
 backend
 backend/.env
 backend/.gitignore
@@ -39,6 +41,8 @@ backend/prisma/migrations/20251203161327_add_task_deleted_at_and_manual_updated_
 backend/prisma/migrations/20251203161327_add_task_deleted_at_and_manual_updated_at/migration.sql
 backend/prisma/migrations/20251204123942_add_focus_session
 backend/prisma/migrations/20251204123942_add_focus_session/migration.sql
+backend/prisma/migrations/20251205190632_add_payment_raw_payload
+backend/prisma/migrations/20251205190632_add_payment_raw_payload/migration.sql
 backend/prisma/migrations/migration_lock.toml
 backend/prisma/schema.prisma
 backend/prisma.config.ts
@@ -92,6 +96,12 @@ backend/src/modules/auth/strategies/jwt.strategy.ts
 backend/src/modules/health
 backend/src/modules/health/health.controller.ts
 backend/src/modules/health/health.module.ts
+backend/src/modules/payments
+backend/src/modules/payments/dto
+backend/src/modules/payments/dto/mercado-pago-webhook.dto.ts
+backend/src/modules/payments/payments.controller.ts
+backend/src/modules/payments/payments.module.ts
+backend/src/modules/payments/payments.service.ts
 backend/src/modules/stats
 backend/src/modules/stats/dto
 backend/src/modules/stats/dto/finish-focus-session.dto.ts
@@ -102,6 +112,12 @@ backend/src/modules/stats/stats.controller.ts
 backend/src/modules/stats/stats.module.ts
 backend/src/modules/stats/stats.service.spec.ts
 backend/src/modules/stats/stats.service.ts
+backend/src/modules/subscriptions
+backend/src/modules/subscriptions/dto
+backend/src/modules/subscriptions/dto/subscription-status-response.dto.ts
+backend/src/modules/subscriptions/subscriptions.controller.ts
+backend/src/modules/subscriptions/subscriptions.module.ts
+backend/src/modules/subscriptions/subscriptions.service.ts
 backend/src/modules/tasks
 backend/src/modules/tasks/dto
 backend/src/modules/tasks/dto/create-task.dto.ts
@@ -233,7 +249,64 @@ Você deve sempre cruzar informações entre:
 🎯 OBJETIVO INICIAL NESTE NOVO CHAT
 Quero continuar:
 
-1. Pendências deixadas para as próximas sprints
+1. **Criar endpoint de criação de Checkout Preference (Mercado Pago)**
+
+Backend:
+
+```
+POST /api/payments/mercado-pago/create-preference
+```
+
+Resposta:
+
+```json
+{ "init_point": "https://mercadopago...." }
+```
+
+---
+
+2. **Implementar botão “Assinar Pro” no frontend**
+
+* `/pro` deve mostrar botão se usuário for FREE
+* Botão chama `create-preference`
+* Redireciona para `init_point`
+
+---
+
+3. **Criar páginas de retorno**
+
+* `/pro/success?payment_id=...`
+* `/pro/error`
+
+Com `refetch()` após retorno.
+
+---
+
+4. **Página `/pro/manage`**
+
+Mostrar:
+
+* Status do plano
+* Renovação
+* Provedor
+* Data de expiração
+* Possível botão de “Cancelar assinatura”
+
+---
+
+5. **Hardening dos webhooks**
+
+* Validar assinatura HMAC (envio real do Mercado Pago)
+* Prevenir duplicidade de eventos (idempotência)
+* Logs mais detalhados
+
+---
+
+6.**Integração com Stripe (opcional)**
+
+Backend já está 100% preparado para múltiplos providers.
+
+---
 
 Antes de continuarmos, faça o seguinte:
 
