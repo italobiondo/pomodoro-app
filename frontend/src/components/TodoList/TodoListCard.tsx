@@ -81,7 +81,7 @@ export function TodoListCard() {
 					className={
 						"text-[10px] px-2 py-0.5 rounded-full border font-semibold " +
 						(isPro
-							? "border-amber-400 bg-amber-400/10 text-amber-600"
+							? "border-amber-400 bg-amber-400/10 text-amber-400"
 							: "border-emerald-500 bg-emerald-500/10 text-emerald-600")
 					}
 				>
@@ -91,7 +91,7 @@ export function TodoListCard() {
 
 			{/* Mensagem de erro da API / limite de tasks */}
 			{error && (
-				<div className="text-[11px] text-red-600 bg-red-500/5 border border-red-500/40 rounded-md px-3 py-2">
+				<div className="text-[11px] text-red-500 bg-red-500/5 border border-red-500/40 rounded-md px-3 py-2">
 					{error}
 				</div>
 			)}
@@ -222,7 +222,7 @@ export function TodoListCard() {
 										<button
 											type="button"
 											onClick={() => removeItem(item.id)}
-											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-600 hover:bg-red-500/20"
+											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20"
 										>
 											Excluir
 										</button>

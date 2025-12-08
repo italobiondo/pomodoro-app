@@ -108,8 +108,8 @@ export const TimerPanel: React.FC = () => {
 								onClick={() => switchMode(m)}
 								className={`px-3 py-1 rounded-full text-sm border transition-all min-w-[110px] text-center ${
 									mode === m
-										? "bg-emerald-500 text-white border-emerald-500 shadow-sm"
-										: "border-slate-300 text-muted hover:border-emerald-400 hover:text-secondary"
+										? "btn-primary shadow-sm"
+										: "border-slate-300 text-muted hover:border-emerald-500 hover:text-secondary"
 								}`}
 							>
 								{getModeLabel(m)}

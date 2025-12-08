@@ -12,7 +12,7 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 	if (loading) {
 		return (
 			<button
-				className="px-4 py-2 rounded-lg bg-slate-800 text-slate-200 text-sm opacity-70 cursor-wait"
+				className="px-4 py-2 rounded-lg bg-slate-800 text-muted text-sm opacity-70 cursor-wait"
 				disabled
 			>
 				Carregando...
@@ -23,12 +23,12 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 	if (user) {
 		return (
 			<div className="flex items-center gap-3">
-				<span className="text-sm text-slate-300">
+				<span className="text-sm text-muted">
 					Olá, {user.name || user.email}
 				</span>
 				<button
 					onClick={logout}
-					className="px-3 py-1 rounded-lg bg-slate-800 text-slate-200 text-xs hover:bg-slate-700 transition"
+					className="px-3 py-1 rounded-lg bg-slate-800 text-muted text-xs hover:bg-slate-700 transition"
 				>
 					Sair
 				</button>
@@ -46,7 +46,7 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 			</button>
 
 			{!compact && (
-				<p className="text-[11px] text-slate-400 text-center">
+				<p className="text-[11px] text-muted text-center">
 					Ao continuar, você acessa o plano Pro usando login social.
 				</p>
 			)}
