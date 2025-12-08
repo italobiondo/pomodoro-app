@@ -70,3 +70,13 @@ export async function apiDelete<T = void>(path: string): Promise<T> {
 
 	return res.json() as Promise<T>;
 }
+
+export type CreateMercadoPagoPreferenceResponse = {
+	init_point: string;
+};
+
+export function createMercadoPagoPreference(): Promise<CreateMercadoPagoPreferenceResponse> {
+	return apiPost<CreateMercadoPagoPreferenceResponse>(
+		"/payments/mercado-pago/create-preference"
+	);
+}

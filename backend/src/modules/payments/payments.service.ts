@@ -75,12 +75,16 @@ export class PaymentsService {
         userId,
         plan: 'PRO_MONTHLY',
       },
-      back_urls: {
-        success: `${frontendUrl}/pro/success`,
-        failure: `${frontendUrl}/pro/error`,
-        pending: `${frontendUrl}/pro/error`,
-      },
-      auto_return: 'approved',
+      // IMPORTANTE:
+      // Não enviamos back_urls/auto_return em ambiente de desenvolvimento/local
+      // porque o Mercado Pago passou a bloquear URLs HTTP na Preference API.
+      // Em produção, com domínio HTTPS, podemos reativar:
+      // back_urls: {
+      //   success: `${frontendUrl}/pro/success`,
+      //   failure: `${frontendUrl}/pro/error`,
+      //   pending: `${frontendUrl}/pro/error`,
+      // },
+      // auto_return: 'approved',
       external_reference: `user_${userId}_${Date.now()}`,
     };
 
