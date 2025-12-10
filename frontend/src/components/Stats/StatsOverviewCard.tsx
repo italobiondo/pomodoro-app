@@ -6,7 +6,7 @@ export function StatsOverviewCard() {
 	const { data, loading, error } = useStatsOverview();
 
 	if (loading) {
-		return <p className="text-slate-400 text-sm">Carregando estatísticas…</p>;
+		return <p className="text-sm text-muted">Carregando estatísticas…</p>;
 	}
 
 	if (error || !data) {
@@ -20,20 +20,18 @@ export function StatsOverviewCard() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-				<div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-					<p className="text-[11px] uppercase tracking-wide text-slate-500">
+				<div className="card-secondary rounded-xl p-3">
+					<p className="text-[11px] uppercase tracking-wide text-muted">
 						Pomodoros hoje
 					</p>
-					<p className="text-2xl font-semibold text-slate-50">
+					<p className="text-2xl font-semibold text-primary">
 						{data.pomodorosToday}
 					</p>
-					<p className="text-[11px] text-slate-500">
-						{data.focusMinutesToday} min
-					</p>
+					<p className="text-[11px] text-muted">{data.focusMinutesToday} min</p>
 				</div>
 
 				<div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-					<p className="text-[11px] uppercase tracking-wide text-slate-500">
+					<p className="text-[11px] uppercase tracking-wide text-muted">
 						Tasks concluídas
 					</p>
 					<p className="text-2xl font-semibold text-emerald-400">
@@ -42,28 +40,28 @@ export function StatsOverviewCard() {
 				</div>
 
 				<div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-					<p className="text-[11px] uppercase tracking-wide text-slate-500">
+					<p className="text-[11px] uppercase tracking-wide text-muted">
 						Pomodoros (total)
 					</p>
-					<p className="text-2xl font-semibold text-slate-50">
+					<p className="text-2xl font-semibold text-primary">
 						{data.totalPomodorosCompleted}
 					</p>
 				</div>
 
 				<div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-					<p className="text-[11px] uppercase tracking-wide text-slate-500">
+					<p className="text-[11px] uppercase tracking-wide text-muted">
 						Foco acumulado
 					</p>
-					<p className="text-2xl font-semibold text-slate-50">
+					<p className="text-2xl font-semibold text-primary">
 						{data.totalFocusMinutes}
 					</p>
 				</div>
 
 				<div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3">
-					<p className="text-[11px] uppercase tracking-wide text-slate-500">
+					<p className="text-[11px] uppercase tracking-wide text-muted">
 						Pausas acumuladas
 					</p>
-					<p className="text-2xl font-semibold text-slate-50">
+					<p className="text-2xl font-semibold text-primary">
 						{data.totalBreakMinutes}
 					</p>
 				</div>

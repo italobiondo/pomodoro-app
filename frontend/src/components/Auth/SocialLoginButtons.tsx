@@ -13,7 +13,7 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 	if (loading) {
 		return (
 			<button
-				className="px-4 py-2 rounded-lg bg-slate-800 text-muted text-sm opacity-70 cursor-wait"
+				className="px-4 py-2 rounded-lg bg-soft border border-soft text-muted text-sm opacity-70 cursor-wait"
 				disabled
 			>
 				Carregando...
@@ -29,7 +29,7 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 				</span>
 				<button
 					onClick={logout}
-					className="px-3 py-1 rounded-lg bg-slate-800 text-muted text-xs hover:bg-slate-700 transition inline-flex items-center gap-1.5"
+					className="px-3 py-1 rounded-lg bg-soft border border-soft text-xs text-secondary hover:bg-soft transition-colors inline-flex items-center gap-1.5"
 				>
 					<LogOut className="h-4 w-4" aria-hidden />
 					Sair

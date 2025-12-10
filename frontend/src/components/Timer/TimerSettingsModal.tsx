@@ -41,7 +41,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 						type="button"
 						onClick={onClose}
 						className="text-muted hover:text-secondary text-sm inline-flex"
-						aria-label="Fechar configura‡äes"
+						aria-label="Fechar configurações"
 					>
 						<X className="h-4 w-4" aria-hidden />
 					</button>
