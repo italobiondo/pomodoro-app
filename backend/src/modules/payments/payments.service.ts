@@ -1,4 +1,8 @@
 import {
+  DEFAULT_PUBLIC_PRO_PLAN_ID,
+  getPlanById,
+} from '../../config/plans.config';
+import {
   Injectable,
   Logger,
   InternalServerErrorException,
@@ -199,19 +203,37 @@ export class PaymentsService {
       );
     }
 
+    /**
+     * Para o MVP, usamos sempre o plano Pro Mensal padrão definido no catálogo.
+     * No futuro, podemos aceitar um planId vindo do frontend.
+     */
+    const planId = DEFAULT_PUBLIC_PRO_PLAN_ID;
+    const plan = getPlanById(planId);
+
+    if (!plan) {
+      this.logger.error(
+        `Plano de assinatura não encontrado para id=${planId}. Verifique backend/src/config/plans.config.ts.`,
+      );
+      throw new InternalServerErrorException(
+        'Plano de assinatura indisponível no momento',
+      );
+    }
+
     const body = {
       items: [
         {
-          title: 'Pomodoro Pro - Plano Mensal',
+          title: plan.name,
           quantity: 1,
-          unit_price: 19.9,
-          currency_id: 'BRL',
+          unit_price: plan.price,
+          currency_id: plan.currency,
         },
       ],
-      // Metadata é fundamental para o webhook saber de qual usuário é o pagamento
+      // Metadata é fundamental para o webhook saber de qual usuário
+      // e de qual plano é o pagamento.
       metadata: {
         userId,
-        plan: 'PRO_MONTHLY',
+        planId: plan.id,
+        planType: plan.type,
       },
       // IMPORTANTE:
       // Não enviamos back_urls/auto_return em ambiente de desenvolvimento/local
@@ -281,7 +303,7 @@ export class PaymentsService {
     }
 
     this.logger.log(
-      `Preference criada no Mercado Pago para userId=${userId} preferenceId=${data.id} initPoint=${initPoint}`,
+      `Preference criada no Mercado Pago para userId=${userId} preferenceId=${data.id} initPoint=${initPoint} plan=${plan.id}`,
     );
 
     return { init_point: initPoint };
