@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 declare global {
 	interface Window {
@@ -12,21 +12,37 @@ const ADS_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
 const ADS_SLOT = process.env.NEXT_PUBLIC_ADSENSE_FOOTER_SLOT_ID;
 
 export const FreeAdFooter = () => {
-	const [adsLoaded, setAdsLoaded] = useState(false);
 	const isConfigured = Boolean(ADS_CLIENT && ADS_SLOT);
+	const containerRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
 		if (!isConfigured) return;
 
+		const container = containerRef.current;
+		if (!container) return;
+
+		// Se a largura ainda é 0, o layout não foi calculado.
+		if (container.offsetWidth === 0) {
+			return;
+		}
+
+		const ins = container.querySelector(
+			"ins.adsbygoogle"
+		) as HTMLModElement | null;
+
+		if (!ins) return;
+
+		// Se o AdSense já marcou o slot como preenchido, não chamamos de novo.
+		const status = (ins as HTMLElement).dataset?.adsbygoogleStatus;
+		if (status === "done") {
+			return;
+		}
+
 		try {
-			// Inicializa/atualiza o bloco de anúncio
 			(window.adsbygoogle = window.adsbygoogle || []).push({});
-			// eslint-disable-next-line react-hooks/set-state-in-effect
-			setAdsLoaded(true);
 		} catch (err) {
 			console.error("[FreeAdFooter] Erro ao carregar anúncio Google", err);
-			setAdsLoaded(false);
 		}
 	}, [isConfigured]);
 
@@ -38,7 +54,7 @@ export const FreeAdFooter = () => {
 				</p>
 
 				{isConfigured ? (
-					<div className="w-full flex justify-center">
+					<div className="w-full flex justify-center" ref={containerRef}>
 						<ins
 							className="adsbygoogle"
 							style={{ display: "block" }}
@@ -59,13 +75,6 @@ export const FreeAdFooter = () => {
 							<li>Sempre respeitando o foco do usuário.</li>
 						</ul>
 					</>
-				)}
-
-				{isConfigured && !adsLoaded && (
-					<p className="mt-2 text-[11px] text-muted">
-						Carregando anúncio… sua experiência de foco permanece em primeiro
-						lugar.
-					</p>
 				)}
 			</section>
 		</div>
