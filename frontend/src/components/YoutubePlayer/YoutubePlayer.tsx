@@ -45,6 +45,7 @@ export const YoutubePlayer: React.FC = () => {
 	const [currentUrl, setCurrentUrl] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loop, setLoop] = useState(false);
+	const [autoPlayTrigger, setAutoPlayTrigger] = useState(0);
 
 	// Carrega do localStorage apenas no client (evita hydration mismatch)
 	useEffect(() => {
@@ -55,6 +56,20 @@ export const YoutubePlayer: React.FC = () => {
 			setInputUrl(stored);
 			setCurrentUrl(stored);
 		}
+	}, []);
+
+	// Ouve o evento disparado pelo Timer para tentar dar autoplay
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+
+		const handler = () => {
+			setAutoPlayTrigger((prev) => prev + 1);
+		};
+
+		window.addEventListener("pomodoro:focusPlayRequest", handler);
+		return () => {
+			window.removeEventListener("pomodoro:focusPlayRequest", handler);
+		};
 	}, []);
 
 	// Persiste sempre que o link atual muda
@@ -74,7 +89,7 @@ export const YoutubePlayer: React.FC = () => {
 		return extractVideoId(currentUrl);
 	}, [currentUrl]);
 
-	const embedUrl = useMemo(() => {
+		const embedUrl = useMemo(() => {
 		if (!videoId) return null;
 
 		const params = new URLSearchParams({
@@ -88,8 +103,17 @@ export const YoutubePlayer: React.FC = () => {
 			params.set("playlist", videoId);
 		}
 
+		// Quando autoPlayTrigger > 0, tentamos dar autoplay no vídeo.
+		// Também adicionamos um parâmetro "ap" pra garantir mudança de URL
+		// e forçar o reload do iframe.
+		if (autoPlayTrigger > 0) {
+			params.set("autoplay", "1");
+			params.set("ap", String(autoPlayTrigger));
+		}
+
 		return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
-	}, [videoId, loop]);
+	}, [videoId, loop, autoPlayTrigger]);
+
 
 	function handleLoad(e?: React.FormEvent) {
 		if (e) e.preventDefault();

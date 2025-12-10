@@ -96,6 +96,27 @@ export const TimerPanel: React.FC = () => {
 			? 0
 			: 1 - remainingSeconds / totalSecondsForCurrentMode;
 
+	// Quando o usuário inicia um NOVO ciclo de pomodoro (cheio),
+	// disparamos um evento global para o player tentar dar play.
+	const handleToggleClick = () => {
+		const wasRunning = isRunning;
+		const isPomodoro = mode === "pomodoro";
+		const isFullCycle =
+			totalSecondsForCurrentMode > 0 &&
+			remainingSeconds === totalSecondsForCurrentMode;
+
+		toggle();
+
+		if (
+			!wasRunning && // estava parado e vai iniciar
+			isPomodoro &&
+			isFullCycle &&
+			typeof window !== "undefined"
+		) {
+			window.dispatchEvent(new CustomEvent("pomodoro:focusPlayRequest"));
+		}
+	};
+
 	return (
 		<section className="w-full max-w-md mx-auto card-main p-6 shadow-lg">
 			{/* Header / modos */}
@@ -152,7 +173,7 @@ export const TimerPanel: React.FC = () => {
 
 				<button
 					type="button"
-					onClick={toggle}
+					onClick={handleToggleClick}
 					className="px-10 py-2 rounded-full text-lg font-semibold btn-primary inline-flex items-center gap-2"
 				>
 					{isRunning ? (
