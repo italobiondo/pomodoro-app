@@ -21,7 +21,7 @@ export const MainHeader: React.FC = () => {
 
 	return (
 		<>
-			<header className="w-full border-b border-soft bg-background/80 backdrop-blur-md">
+			<header className="w-full border-b border-soft bg-background backdrop-blur-md">
 				<div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3">
 					{/* Branding */}
 					<div className="flex flex-col">

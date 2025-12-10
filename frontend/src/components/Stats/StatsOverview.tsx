@@ -22,9 +22,9 @@ export function StatsOverview() {
 
 function Card({ label, value }: { label: string; value: number }) {
 	return (
-		<div className="p-4 bg-neutral-800 rounded-lg shadow text-center">
-			<div className="text-neutral-400 text-sm">{label}</div>
-			<div className="text-3xl font-bold text-white">{value}</div>
+		<div className="card-secondary p-4 text-center">
+			<div className="text-sm text-muted">{label}</div>
+			<div className="mt-2 text-3xl font-semibold text-primary">{value}</div>
 		</div>
 	);
 }

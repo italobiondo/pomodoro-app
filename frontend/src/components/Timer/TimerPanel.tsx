@@ -110,7 +110,7 @@ export const TimerPanel: React.FC = () => {
 								className={`px-3 py-1 rounded-full text-sm border transition-all min-w-[110px] text-center ${
 									mode === m
 										? "btn-primary shadow-sm"
-										: "border-slate-300 text-muted hover:border-emerald-500 hover:text-secondary"
+										: "border-soft text-muted hover:border-emerald-500 hover:text-secondary"
 								}`}
 							>
 								{getModeLabel(m)}

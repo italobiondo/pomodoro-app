@@ -6,7 +6,17 @@ module.exports = {
 		"./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
 	],
 	theme: {
-		extend: {},
+		extend: {
+			colors: {
+				// Usa as variáveis de tema para light/dark
+				background: "var(--bg-body)",
+				soft: "var(--surface-soft)",
+			},
+			borderColor: {
+				soft: "var(--border-soft)",
+			},
+		},
 	},
+
 	plugins: [],
 };

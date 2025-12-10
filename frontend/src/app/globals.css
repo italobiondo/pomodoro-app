@@ -35,6 +35,10 @@ body {
 	/* sombras dos cards */
 	--card-main-shadow: 0 18px 45px rgba(15, 23, 42, 0.55);
 	--card-secondary-shadow: 0 10px 28px rgba(15, 23, 42, 0.45);
+
+	/* superfícies suaves e bordas */
+	--surface-soft: rgba(15, 23, 42, 0.65);
+	--border-soft: #1f2937;
 }
 
 :root.theme-light {
@@ -60,6 +64,10 @@ body {
 	/* sombras dos cards */
 	--card-main-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
 	--card-secondary-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+
+	/* superfícies suaves e bordas */
+	--surface-soft: #f9fafb;
+	--border-soft: #e5e7eb;
 }
 
 body {

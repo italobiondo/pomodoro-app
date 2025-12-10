@@ -24,7 +24,7 @@ export function StatsOverviewModal({ open, onClose }: StatsOverviewModalProps) {
 						type="button"
 						onClick={onClose}
 						className="text-slate-400 hover:text-slate-100 text-sm inline-flex"
-						aria-label="Fechar estat︿ticas"
+						aria-label="Fechar estatíticas"
 					>
 						<X className="h-4 w-4" aria-hidden />
 					</button>

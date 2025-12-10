@@ -110,7 +110,7 @@ export function TodoListCard() {
 				<input
 					type="text"
 					maxLength={255}
-					className="flex-1 rounded-lg bg-slate-950/5 border border-slate-300 px-3 py-2 text-xs text-secondary placeholder:text-muted outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500"
+					className="flex-1 rounded-lg bg-soft border border-soft px-3 py-2 text-xs text-secondary placeholder:text-muted outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500"
 					placeholder={
 						canAddMore
 							? "Digite uma tarefa e pressione Enter"
@@ -165,8 +165,8 @@ export function TodoListCard() {
 										onClick={() => handleToggleDone(item.id, item.done)}
 										className={`mt-0.5 h-4 w-4 rounded-full border flex items-center justify-center text-[10px] ${
 											item.done
-												? "bg-emerald-500 border-emerald-500 text-slate-900"
-												: "border-slate-400 text-transparent"
+												? "bg-emerald-500 border-emerald-500 text-secondary"
+												: "border-soft text-transparent"
 										}`}
 										aria-label={
 											item.done
@@ -182,7 +182,7 @@ export function TodoListCard() {
 											<input
 												type="text"
 												maxLength={255}
-												className="w-full bg-slate-950/5 border border-slate-300 rounded px-2 py-1 text-xs text-secondary outline-none focus:ring-2 focus:ring-emerald-500/60"
+												className="w-full bg-soft border border-soft rounded px-2 py-1 text-xs text-secondary outline-none focus:ring-2 focus:ring-emerald-500/60"
 												value={editingTitle}
 												onChange={(e) => setEditingTitle(e.target.value)}
 												onBlur={() => saveEditing(item.id)}
@@ -224,7 +224,7 @@ export function TodoListCard() {
 											<button
 												type="button"
 												onClick={() => startEditing(item.id, item.title)}
-												className="text-[10px] px-2 py-1 rounded bg-slate-950/5 text-secondary hover:bg-slate-200/80 inline-flex items-center gap-1"
+												className="text-[10px] px-2 py-1 rounded bg-soft text-secondary hover:bg-soft inline-flex items-center gap-1"
 											>
 												<Pencil className="h-3 w-3" aria-hidden />
 												Editar

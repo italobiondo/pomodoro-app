@@ -150,7 +150,7 @@ export default function HomePage() {
 
 			{/* Explicação da técnica Pomodoro (abaixo da área útil) */}
 			<section className="w-full max-w-4xl mx-auto mt-10 px-4 pt-4">
-				<div className="card-secondary p-4 sm:p-6">
+				<div className="card-main p-4 sm:p-6">
 					<h2 className="text-lg sm:text-xl font-semibold mb-2 text-secondary">
 						Como funciona a técnica Pomodoro
 					</h2>
