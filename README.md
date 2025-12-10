@@ -60,6 +60,7 @@ backend/src/app.module.ts
 backend/src/app.service.ts
 backend/src/config
 backend/src/config/config.module.ts
+backend/src/config/plans.config.ts
 backend/src/generated
 backend/src/generated/prisma
 backend/src/generated/prisma/client
@@ -109,6 +110,9 @@ backend/src/modules/payments/dto/mercado-pago-webhook.dto.ts
 backend/src/modules/payments/payments.controller.ts
 backend/src/modules/payments/payments.module.ts
 backend/src/modules/payments/payments.service.ts
+backend/src/modules/plans
+backend/src/modules/plans/plans.controller.ts
+backend/src/modules/plans/plans.module.ts
 backend/src/modules/stats
 backend/src/modules/stats/dto
 backend/src/modules/stats/dto/finish-focus-session.dto.ts
@@ -148,6 +152,7 @@ backend/test/jest-e2e.json
 backend/tsconfig.build.json
 backend/tsconfig.json
 frontend
+frontend/.env.local
 frontend/.gitignore
 frontend/eslint.config.mjs
 frontend/next-env.d.ts
@@ -185,12 +190,16 @@ frontend/src/components/dashboard/StatsOverviewCard.tsx
 frontend/src/components/FreeLayout
 frontend/src/components/FreeLayout/FreeAdFooter.tsx
 frontend/src/components/FreeLayout/RightColumnFree.tsx
+frontend/src/components/Info
+frontend/src/components/Info/PomodoroExplanation.tsx
 frontend/src/components/Layout
 frontend/src/components/Layout/MainHeader.tsx
 frontend/src/components/Stats
 frontend/src/components/Stats/StatsOverview.tsx
 frontend/src/components/Stats/StatsOverviewCard.tsx
 frontend/src/components/Stats/StatsOverviewModal.tsx
+frontend/src/components/Support
+frontend/src/components/Support/SupportCoffeeButton.tsx
 frontend/src/components/Timer
 frontend/src/components/Timer/TimerPanel.tsx
 frontend/src/components/Timer/TimerSettingsModal.tsx
@@ -263,7 +272,7 @@ Você deve sempre cruzar informações entre:
 ====================================================================
 🎯 OBJETIVO INICIAL NESTE NOVO CHAT
 
-- Verificar o que precisa ser feito seguindo o que foi definido na documentação
+- Verificar o que precisa ser feito seguindo o que foi definido na documentação e ainda está pendente
 
 Antes de continuarmos, faça o seguinte:
 
