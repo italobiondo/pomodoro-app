@@ -70,7 +70,7 @@ export const ALL_PLANS: PlanDefinition[] = [
     name: 'Pomodoro Pro - Plano Mensal',
     description:
       'Acesso ao plano Pro: tasks avançadas, estatísticas de foco e experiência sem anúncios.',
-    price: 19.9,
+    price: 5.9,
     currency: 'BRL',
     interval: 'month',
     intervalCount: 1,

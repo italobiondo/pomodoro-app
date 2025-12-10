@@ -80,3 +80,17 @@ export function createMercadoPagoPreference(): Promise<CreateMercadoPagoPreferen
 		"/payments/mercado-pago/create-preference"
 	);
 }
+
+export type Plan = {
+	id: string;
+	name: string;
+	description: string;
+	price: number;
+	currency: string;
+	interval: string;
+	intervalCount: number;
+};
+
+export function getPlans(): Promise<Plan[]> {
+	return apiGet<Plan[]>("/plans");
+}
