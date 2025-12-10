@@ -30,33 +30,33 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 	if (!open) return null;
 
 	return (
-		<div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70">
-			<div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 shadow-xl px-5 py-4">
+		<div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
+			<div className="w-full max-w-md card-main px-5 py-5">
 				<header className="flex items-center justify-between mb-4">
-					<div className="flex items-center gap-2 text-slate-100">
+					<div className="flex items-center gap-2 text-primary">
 						<Clock4 className="h-4 w-4" aria-hidden />
-						<h2 className="text-sm font-semibold">Configurações do timer</h2>
+						<h2 className="text-sm font-semibold">Configurações</h2>
 					</div>
 					<button
 						type="button"
 						onClick={onClose}
-						className="text-slate-400 hover:text-slate-100 text-sm inline-flex"
+						className="text-muted hover:text-secondary text-sm inline-flex"
 						aria-label="Fechar configura‡äes"
 					>
 						<X className="h-4 w-4" aria-hidden />
 					</button>
 				</header>
 
-				<div className="space-y-4 text-xs text-slate-300">
+				<div className="space-y-4 text-xs text-secondary">
 					{/* Tempo (minutos) */}
 					<section>
-						<div className="flex items-center gap-2 text-slate-200 mb-2 text-[11px] font-semibold">
+						<div className="flex items-center gap-2 text-secondary mb-2 text-[11px] font-semibold">
 							<Clock4 className="h-4 w-4" aria-hidden />
 							<span>Tempo (minutos)</span>
 						</div>
 						<div className="grid grid-cols-3 gap-3">
 							<div className="flex flex-col gap-1">
-								<label className="text-[11px] text-slate-400">Pomodoro</label>
+								<label className="text-[11px] text-muted">Pomodoro</label>
 								<input
 									type="number"
 									min={1}
@@ -67,14 +67,12 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 											pomodoroMinutes: Number(e.target.value) || 1,
 										})
 									}
-									className="rounded-md bg-slate-800 border border-slate-700 px-2 py-1 text-xs text-slate-50"
+									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500"
 								/>
 							</div>
 
 							<div className="flex flex-col gap-1">
-								<label className="text-[11px] text-slate-400">
-									Pausa curta
-								</label>
+								<label className="text-[11px] text-muted">Pausa curta</label>
 								<input
 									type="number"
 									min={1}
@@ -85,14 +83,12 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 											shortBreakMinutes: Number(e.target.value) || 1,
 										})
 									}
-									className="rounded-md bg-slate-800 border border-slate-700 px-2 py-1 text-xs text-slate-50"
+									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500"
 								/>
 							</div>
 
 							<div className="flex flex-col gap-1">
-								<label className="text-[11px] text-slate-400">
-									Pausa longa
-								</label>
+								<label className="text-[11px] text-muted">Pausa longa</label>
 								<input
 									type="number"
 									min={1}
@@ -103,7 +99,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 											longBreakMinutes: Number(e.target.value) || 1,
 										})
 									}
-									className="rounded-md bg-slate-800 border border-slate-700 px-2 py-1 text-xs text-slate-50"
+									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500"
 								/>
 							</div>
 						</div>
@@ -111,7 +107,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 
 					{/* Comportamento do ciclo */}
 					<section className="space-y-2">
-						<div className="flex items-center gap-2 text-slate-200 text-[11px] font-semibold">
+						<div className="flex items-center gap-2 text-secondary text-[11px] font-semibold">
 							<Repeat className="h-4 w-4" aria-hidden />
 							<span>Ciclo</span>
 						</div>
@@ -123,9 +119,9 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 								onChange={(e) =>
 									onChangeSettings({ autoStartNext: e.target.checked })
 								}
-								className="rounded border-slate-600 bg-slate-900"
+								className="rounded border-soft bg-background accent-emerald-500"
 							/>
-							<span className="text-xs text-slate-300">
+							<span className="text-xs text-secondary">
 								Iniciar automaticamente o próximo ciclo
 							</span>
 						</label>
@@ -135,9 +131,9 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 								type="checkbox"
 								checked={soundEnabled}
 								onChange={(e) => onChangeSoundEnabled(e.target.checked)}
-								className="rounded border-slate-600 bg-slate-900"
+								className="rounded border-soft bg-background accent-emerald-500"
 							/>
-							<span className="inline-flex items-center gap-1 text-xs text-slate-300">
+							<span className="inline-flex items-center gap-1 text-xs text-secondary">
 								<Bell className="h-4 w-4" aria-hidden />
 								Tocar som ao finalizar um ciclo
 							</span>
@@ -149,7 +145,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 					<button
 						type="button"
 						onClick={onClose}
-						className="px-3 py-1.5 rounded-lg text-xs bg-slate-800 text-slate-100 border border-slate-600 hover:bg-slate-700 inline-flex items-center gap-1.5"
+						className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5"
 					>
 						<X className="h-4 w-4" aria-hidden />
 						Fechar

@@ -41,21 +41,23 @@ export default function ProManagePage() {
 	}
 
 	return (
-		<main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
+		<main className="min-h-screen flex flex-col bg-background text-secondary">
 			<MainHeader />
 
 			<div className="flex-1 flex items-center justify-center px-4 py-8">
-				<div className="w-full max-w-2xl bg-slate-900/70 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col gap-6">
-					<h1 className="text-2xl font-semibold">Gerenciar plano Pro</h1>
+				<div className="w-full max-w-2xl card-main p-6 sm:p-8 flex flex-col gap-6">
+					<h1 className="text-2xl font-semibold text-primary">
+						Gerenciar plano Pro
+					</h1>
 
 					{loading && (
-						<p className="text-sm text-slate-400">
+						<p className="text-sm text-muted">
 							Carregando informações da sua assinatura...
 						</p>
 					)}
 
 					{!loading && !isAuthenticated && (
-						<p className="text-sm text-slate-300">
+						<p className="text-sm text-secondary">
 							Você precisa estar autenticado para ver os detalhes do seu plano.
 						</p>
 					)}
@@ -63,25 +65,25 @@ export default function ProManagePage() {
 					{!loading && isAuthenticated && (
 						<>
 							<section className="space-y-2">
-								<h2 className="text-sm font-semibold text-slate-200">
+								<h2 className="text-sm font-semibold text-primary">
 									Status do plano
 								</h2>
 
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
 									<div className="space-y-1">
-										<p className="text-slate-400">Plano atual</p>
-										<p className="font-medium">
+										<p className="text-muted">Plano atual</p>
+										<p className="font-medium text-secondary">
 											{isPro ? "Pomodoro Pro" : "Plano Free"}
 										</p>
 									</div>
 
 									<div className="space-y-1">
-										<p className="text-slate-400">Status</p>
+										<p className="text-muted">Status</p>
 										<p
 											className={
 												planStatus === "ACTIVE"
-													? "font-medium text-emerald-400"
-													: "font-medium text-slate-300"
+													? "font-medium text-emerald-500"
+													: "font-medium text-secondary"
 											}
 										>
 											{planStatus}
@@ -89,37 +91,37 @@ export default function ProManagePage() {
 									</div>
 
 									<div className="space-y-1">
-										<p className="text-slate-400">Provedor</p>
-										<p className="font-medium">
-											{subscription?.provider ?? "—"}
+										<p className="text-muted">Provedor</p>
+										<p className="font-medium text-secondary">
+											{subscription?.provider ?? "-"}
 										</p>
 									</div>
 
 									<div className="space-y-1">
-										<p className="text-slate-400">Expira em</p>
-										<p className="font-medium">
-											{planExpiresAt ? formatDate(planExpiresAt) : "—"}
+										<p className="text-muted">Expira em</p>
+										<p className="font-medium text-secondary">
+											{planExpiresAt ? formatDate(planExpiresAt) : "-"}
 										</p>
 									</div>
 								</div>
 							</section>
 
 							<section className="space-y-2">
-								<h2 className="text-sm font-semibold text-slate-200">
+								<h2 className="text-sm font-semibold text-primary">
 									Período atual da assinatura
 								</h2>
 
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
 									<div className="space-y-1">
-										<p className="text-slate-400">Início do período</p>
-										<p className="font-medium">
+										<p className="text-muted">Início do período</p>
+										<p className="font-medium text-secondary">
 											{formatDate(currentPeriodStart)}
 										</p>
 									</div>
 
 									<div className="space-y-1">
-										<p className="text-slate-400">Fim do período</p>
-										<p className="font-medium">
+										<p className="text-muted">Fim do período</p>
+										<p className="font-medium text-secondary">
 											{formatDate(currentPeriodEnd)}
 										</p>
 									</div>
@@ -127,12 +129,12 @@ export default function ProManagePage() {
 							</section>
 
 							<section className="space-y-3">
-								<h2 className="text-sm font-semibold text-slate-200">
+								<h2 className="text-sm font-semibold text-primary">
 									Ações da assinatura
 								</h2>
 
 								{!isPro && (
-									<p className="text-sm text-slate-300">
+									<p className="text-sm text-secondary">
 										No momento, você está no plano Free. Para assinar o plano
 										Pro, acesse a página{" "}
 										<span className="font-semibold">/pro</span> e inicie o
@@ -142,7 +144,7 @@ export default function ProManagePage() {
 
 								{isPro && (
 									<>
-										<p className="text-sm text-slate-300">
+										<p className="text-sm text-secondary">
 											No futuro, aqui você poderá gerenciar a sua assinatura
 											(Provedor: Mercado Pago), incluindo cancelamento, troca de
 											plano e visualização de histórico de cobranças.
@@ -151,7 +153,7 @@ export default function ProManagePage() {
 										<button
 											type="button"
 											disabled
-											className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-slate-800 text-slate-400 cursor-not-allowed"
+											className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-soft text-muted cursor-not-allowed border border-soft"
 										>
 											Cancelar assinatura (em breve)
 										</button>

@@ -28,33 +28,35 @@ export default function ProPage() {
 	}
 
 	return (
-		<main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
+		<main className="min-h-screen flex flex-col bg-background text-secondary">
 			<MainHeader />
 
 			<div className="flex-1 flex items-center justify-center px-4 py-8">
-				<div className="w-full max-w-xl bg-slate-900/70 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col gap-4">
-					<h1 className="text-2xl font-semibold">Plano Pomodoro Pro</h1>
+				<div className="w-full max-w-xl card-main p-6 sm:p-8 flex flex-col gap-4">
+					<h1 className="text-2xl font-semibold text-primary">
+						Plano Pomodoro Pro
+					</h1>
 
-					<p className="text-sm text-slate-300">
+					<p className="text-sm text-secondary">
 						Assine o plano Pro para desbloquear todos os recursos avançados do
 						Pomodoro App.
 					</p>
 
-					<ul className="text-sm text-slate-300 list-disc list-inside space-y-1">
+					<ul className="text-sm text-secondary list-disc list-inside space-y-1">
 						<li>Sincronização de tasks em múltiplos dispositivos</li>
 						<li>Histórico completo de foco e estatísticas avançadas</li>
 						<li>Limite ampliado de tasks e sessões</li>
 					</ul>
 
 					{loading && (
-						<p className="text-sm text-slate-400">
+						<p className="text-sm text-muted">
 							Carregando informações da sua conta...
 						</p>
 					)}
 
 					{!loading && !isAuthenticated && (
 						<div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-							<p className="text-sm text-slate-300">
+							<p className="text-sm text-secondary">
 								Para assinar o plano Pro, entre com sua conta Google.
 							</p>
 							<button
@@ -69,9 +71,9 @@ export default function ProPage() {
 
 					{!loading && isAuthenticated && !isPro && (
 						<div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-							<div className="text-sm text-slate-300">
-								<p className="font-medium">Plano Mensal – R$ 19,90</p>
-								<p className="text-slate-400">
+							<div className="text-sm text-secondary">
+								<p className="font-medium">Plano Mensal - R$ 19,90</p>
+								<p className="text-muted">
 									Pagamento processado com segurança pelo Mercado Pago.
 								</p>
 							</div>
@@ -86,7 +88,7 @@ export default function ProPage() {
 									{creatingPreference ? "Redirecionando..." : "Assinar Pro"}
 								</button>
 								{error && (
-									<p className="text-xs text-red-400 text-left sm:text-right">
+									<p className="text-xs text-red-500 text-left sm:text-right">
 										{error}
 									</p>
 								)}
@@ -95,11 +97,11 @@ export default function ProPage() {
 					)}
 
 					{!loading && isAuthenticated && isPro && (
-						<p className="text-sm text-emerald-400">
+						<p className="text-sm text-emerald-500">
 							Você já é Pro 🎉 — você pode gerenciar sua assinatura em{" "}
 							<Link
 								href="/pro/manage"
-								className="font-semibold underline text-emerald-300 hover:text-emerald-200"
+								className="font-semibold underline text-emerald-500 hover:text-emerald-400"
 							>
 								/pro/manage
 							</Link>
