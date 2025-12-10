@@ -34,7 +34,7 @@ export default function ProSuccessPage() {
 			<div className="flex-1 flex items-center justify-center px-4">
 				<div className="w-full max-w-md card-main p-6 flex flex-col gap-4">
 					<h1 className="text-xl font-semibold text-emerald-500">
-						Pagamento confirmado ??
+						Pagamento confirmado! 🎉
 					</h1>
 
 					<p className="text-sm text-secondary">
