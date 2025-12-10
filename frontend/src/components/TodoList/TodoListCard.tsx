@@ -4,6 +4,14 @@ import { FormEvent, useState } from "react";
 import { useTodoList } from "../../hooks/useTodoList";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/useAuth";
+import {
+	Check,
+	ClipboardList,
+	Eraser,
+	Pencil,
+	Plus,
+	Trash2,
+} from "lucide-react";
 
 export function TodoListCard() {
 	const {
@@ -67,7 +75,8 @@ export function TodoListCard() {
 		<section className="max-h-[854px] card-main p-4 flex flex-col gap-4">
 			<header className="flex items-start justify-between gap-2">
 				<div>
-					<h2 className="text-sm font-semibold text-secondary">
+					<h2 className="text-sm font-semibold text-secondary flex items-center gap-2">
+						<ClipboardList className="h-4 w-4" aria-hidden />
 						Sua lista de tarefas
 					</h2>
 					<p className="text-xs text-muted mt-1">
@@ -114,8 +123,9 @@ export function TodoListCard() {
 				<button
 					type="submit"
 					disabled={!canAddMore || !newTitle.trim()}
-					className="text-xs px-3 py-2 rounded-lg btn-primary"
+					className="text-xs px-3 py-2 rounded-lg btn-primary inline-flex items-center gap-1.5"
 				>
+					<Plus className="h-4 w-4" aria-hidden />
 					Add
 				</button>
 			</form>
@@ -164,7 +174,7 @@ export function TodoListCard() {
 												: "Marcar tarefa como concluída"
 										}
 									>
-										✓
+										<Check className="h-3 w-3" aria-hidden />
 									</button>
 
 									<div className="flex-1">
@@ -214,16 +224,18 @@ export function TodoListCard() {
 											<button
 												type="button"
 												onClick={() => startEditing(item.id, item.title)}
-												className="text-[10px] px-2 py-1 rounded bg-slate-950/5 text-secondary hover:bg-slate-200/80"
+												className="text-[10px] px-2 py-1 rounded bg-slate-950/5 text-secondary hover:bg-slate-200/80 inline-flex items-center gap-1"
 											>
+												<Pencil className="h-3 w-3" aria-hidden />
 												Editar
 											</button>
 										)}
 										<button
 											type="button"
 											onClick={() => removeItem(item.id)}
-											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20"
+											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 inline-flex items-center gap-1"
 										>
+											<Trash2 className="h-3 w-3" aria-hidden />
 											Excluir
 										</button>
 									</div>
@@ -240,8 +252,9 @@ export function TodoListCard() {
 					<button
 						type="button"
 						onClick={clearAll}
-						className="text-[11px] text-muted hover:text-red-500 hover:underline"
+						className="text-[11px] text-muted hover:text-red-500 hover:underline inline-flex items-center gap-1"
 					>
+						<Eraser className="h-4 w-4" aria-hidden />
 						Limpar todas as tarefas
 					</button>
 				</footer>

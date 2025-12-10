@@ -5,6 +5,7 @@ import { SocialLoginButtons } from "@/components/Auth/SocialLoginButtons";
 import { useAuth } from "@/hooks/useAuth";
 import { StatsOverviewModal } from "@/components/Stats/StatsOverviewModal";
 import { useTheme } from "@/hooks/useTheme";
+import { BarChart3, Moon, Settings, Sun } from "lucide-react";
 
 export const MainHeader: React.FC = () => {
 	function openSettings() {
@@ -38,8 +39,9 @@ export const MainHeader: React.FC = () => {
 							<button
 								type="button"
 								onClick={() => setIsStatsOpen(true)}
-								className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors"
+								className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center gap-1.5"
 							>
+								<BarChart3 className="h-4 w-4" aria-hidden />
 								Estatísticas
 							</button>
 						)}
@@ -48,8 +50,9 @@ export const MainHeader: React.FC = () => {
 						<button
 							type="button"
 							onClick={openSettings}
-							className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors"
+							className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center gap-1.5"
 						>
+							<Settings className="h-4 w-4" aria-hidden />
 							Configurações
 						</button>
 
@@ -57,8 +60,13 @@ export const MainHeader: React.FC = () => {
 						<button
 							type="button"
 							onClick={toggleTheme}
-							className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors"
+							className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center gap-1.5"
 						>
+							{isDark ? (
+								<Sun className="h-4 w-4" aria-hidden />
+							) : (
+								<Moon className="h-4 w-4" aria-hidden />
+							)}
 							{isDark ? "Tema claro" : "Tema escuro"}
 						</button>
 

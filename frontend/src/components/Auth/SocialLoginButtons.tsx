@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "../../hooks/useAuth";
+import { LogIn, LogOut } from "lucide-react";
 
 interface SocialLoginButtonsProps {
 	compact?: boolean;
@@ -28,8 +29,9 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 				</span>
 				<button
 					onClick={logout}
-					className="px-3 py-1 rounded-lg bg-slate-800 text-muted text-xs hover:bg-slate-700 transition"
+					className="px-3 py-1 rounded-lg bg-slate-800 text-muted text-xs hover:bg-slate-700 transition inline-flex items-center gap-1.5"
 				>
+					<LogOut className="h-4 w-4" aria-hidden />
 					Sair
 				</button>
 			</div>
@@ -42,6 +44,7 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 				onClick={loginWithGoogle}
 				className="px-4 py-2 text-sm flex items-center justify-center gap-2 btn-primary"
 			>
+				<LogIn className="h-4 w-4" aria-hidden />
 				<span>Entrar com Google</span>
 			</button>
 

@@ -8,6 +8,7 @@ import { FreeAdFooter } from "@/components/FreeLayout/FreeAdFooter";
 import { MainHeader } from "@/components/Layout/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { createMercadoPagoPreference } from "@/lib/apiClient";
+import { LogIn } from "lucide-react";
 
 export default function HomePage() {
 	const { isPro, isAuthenticated, loading, loginWithGoogle } = useAuth();
@@ -107,11 +108,11 @@ export default function HomePage() {
 							{/* Estado: não logado */}
 							{!loading && !isAuthenticated && (
 								<button
-									type="button"
 									onClick={loginWithGoogle}
-									className="px-10 py-2 rounded-full text-lg font-semibold btn-primary"
+									className="px-4 py-2 text-sm flex items-center justify-center gap-2 btn-primary"
 								>
-									Entrar com Google
+									<LogIn className="h-4 w-4" aria-hidden />
+									<span>Entrar com Google</span>
 								</button>
 							)}
 

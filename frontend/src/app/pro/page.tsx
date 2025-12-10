@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MainHeader } from "@/components/Layout/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { createMercadoPagoPreference } from "@/lib/apiClient";
+import { LogIn } from "lucide-react";
 
 export default function ProPage() {
 	const { isPro, isAuthenticated, loading, loginWithGoogle } = useAuth();
@@ -57,11 +58,11 @@ export default function ProPage() {
 								Para assinar o plano Pro, entre com sua conta Google.
 							</p>
 							<button
-								type="button"
 								onClick={loginWithGoogle}
-								className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-slate-100 text-slate-900 hover:bg-white transition"
+								className="px-4 py-2 text-sm flex items-center justify-center gap-2 btn-primary"
 							>
-								Entrar com Google
+								<LogIn className="h-4 w-4" aria-hidden />
+								<span>Entrar com Google</span>
 							</button>
 						</div>
 					)}
@@ -80,7 +81,7 @@ export default function ProPage() {
 									type="button"
 									onClick={handleSubscribeClick}
 									disabled={creatingPreference}
-									className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-emerald-500 text-white hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed transition"
+									className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium btn-primary"
 								>
 									{creatingPreference ? "Redirecionando..." : "Assinar Pro"}
 								</button>

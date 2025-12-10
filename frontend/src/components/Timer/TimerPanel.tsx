@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { TimerMode, useTimer } from "@/hooks/useTimer";
 import { TimerSettingsModal } from "./TimerSettingsModal";
+import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 
 function formatTime(totalSeconds: number): string {
 	const minutes = Math.floor(totalSeconds / 60);
@@ -152,25 +153,37 @@ export const TimerPanel: React.FC = () => {
 				<button
 					type="button"
 					onClick={toggle}
-					className="px-10 py-2 rounded-full text-lg font-semibold btn-primary"
+					className="px-10 py-2 rounded-full text-lg font-semibold btn-primary inline-flex items-center gap-2"
 				>
-					{isRunning ? "Pausar" : "Iniciar"}
+					{isRunning ? (
+						<>
+							<Pause className="h-5 w-5" aria-hidden />
+							Pausar
+						</>
+					) : (
+						<>
+							<Play className="h-5 w-5" aria-hidden />
+							Iniciar
+						</>
+					)}
 				</button>
 
 				<div className="flex gap-3 text-xs text-muted">
 					<button
 						type="button"
 						onClick={resetCurrent}
-						className="underline underline-offset-4 hover:text-secondary"
+						className="underline underline-offset-4 hover:text-secondary inline-flex items-center gap-1"
 					>
+						<RotateCcw className="h-4 w-4" aria-hidden />
 						Resetar ciclo
 					</button>
 					<span>•</span>
 					<button
 						type="button"
 						onClick={skipToNext}
-						className="underline underline-offset-4 hover:text-secondary"
+						className="underline underline-offset-4 hover:text-secondary inline-flex items-center gap-1"
 					>
+						<SkipForward className="h-4 w-4" aria-hidden />
 						Pular para o próximo
 					</button>
 				</div>
