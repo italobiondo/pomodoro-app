@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 import { TimerPanel } from "@/components/Timer/TimerPanel";
 import { RightColumnFree } from "@/components/FreeLayout/RightColumnFree";
 import { YoutubePlayer } from "@/components/YoutubePlayer/YoutubePlayer";
 import { FreeAdFooter } from "@/components/FreeLayout/FreeAdFooter";
 import { MainHeader } from "@/components/Layout/MainHeader";
-import { useAuth } from "@/hooks/useAuth";
+import { PomodoroExplanation } from "@/components/Info/PomodoroExplanation";
 import { createMercadoPagoPreference } from "@/lib/apiClient";
 import { LogIn } from "lucide-react";
 
@@ -38,8 +39,8 @@ export default function HomePage() {
 			<MainHeader />
 
 			{/* Conteúdo principal */}
-			<div className="w-full max-w-4xl mx-auto grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-stretch pt-4">
-				<div className="flex flex-col items-center gap-4 px-4">
+			<div className="w-full max-w-4xl mx-auto px-4 pt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-stretch">
+				<div className="flex flex-col items-center gap-4">
 					<div className="w-full max-w-md">
 						<TimerPanel />
 					</div>
@@ -58,7 +59,7 @@ export default function HomePage() {
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 						{/* Coluna esquerda: textos */}
 						<div className="flex-1 space-y-2">
-							<h2 className="text-lg sm:text-xl font-semibold">
+							<h2 className="text-lg sm:text-xl font-semibold text-secondary">
 								Plano Pomodoro Pro
 							</h2>
 
@@ -129,10 +130,11 @@ export default function HomePage() {
 										type="button"
 										onClick={handleSubscribeClick}
 										disabled={creatingPreference}
-										className="inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-medium bg-emerald-500 text-white hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed transition"
+										className="inline-flex items-center justify-center px-5 py-2 text-sm font-medium btn-primary disabled:opacity-60 disabled:cursor-not-allowed"
 									>
 										{creatingPreference ? "Redirecionando..." : "Assinar Pro"}
 									</button>
+
 									{error && (
 										<p className="text-xs text-red-400 text-right max-w-xs">
 											{error}
@@ -148,28 +150,8 @@ export default function HomePage() {
 			{/* Rodapé de anúncio — só aparece quando rolar a página (somente no Free) */}
 			{!isPro && <FreeAdFooter />}
 
-			{/* Explicação da técnica Pomodoro (abaixo da área útil) */}
-			<section className="w-full max-w-4xl mx-auto mt-10 px-4 pt-4">
-				<div className="card-main p-4 sm:p-6">
-					<h2 className="text-lg sm:text-xl font-semibold mb-2 text-secondary">
-						Como funciona a técnica Pomodoro
-					</h2>
-					<p className="text-sm text-muted mb-2">
-						A técnica Pomodoro é um método simples de gerenciamento de tempo:
-						você alterna blocos de foco intenso com pequenas pausas, para manter
-						energia e concentração ao longo do dia.
-					</p>
-					<ul className="text-sm text-secondary list-disc list-inside space-y-1">
-						<li>25 minutos de foco total (um “Pomodoro”).</li>
-						<li>5 minutos de pausa curta entre cada ciclo.</li>
-						<li>Após 4 ciclos, uma pausa longa para recarregar.</li>
-					</ul>
-					<p className="text-xs text-muted mt-3">
-						Use o timer acima para controlar seus ciclos e acompanhe o seu ritmo
-						de foco ao longo do tempo.
-					</p>
-				</div>
-			</section>
+			{/* Explicação da técnica Pomodoro */}
+			<PomodoroExplanation />
 		</main>
 	);
 }
