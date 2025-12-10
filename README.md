@@ -17,6 +17,12 @@ https://pastebin.com/4guRTDaH
 https://pastebin.com/mCzDjDs8
 https://pastebin.com/skt1QRtv
 
+Possiveis Sprints
+https://pastebin.com/s6uf6qxQ
+
+Issues abertas:
+https://pastebin.com/Wa3ahGZn
+
 ====================================================================
 📂 ÁRVORE DO PROJETO (referência atual)
 ```
@@ -256,74 +262,8 @@ Você deve sempre cruzar informações entre:
 
 ====================================================================
 🎯 OBJETIVO INICIAL NESTE NOVO CHAT
-Quero continuar por algumas pendências:
 
-"""
-Estas foram as tarefas que listamos no **início** e não concluímos ainda:
-
----
-
-## **1. Implementar segurança REAL no webhook Mercado Pago**
-
-* Validar **HMAC-SHA256** da assinatura.
-* Verificar header `X-MP-Signature`.
-* Rejeitar webhooks falsos (HOJE está aceitando tudo).
-* Ativar isso somente para produção (mantendo dev liberado).
-
----
-
-## **2. Melhorar a UX de navegação para usuários autenticados**
-
-Planejamos tratar:
-
-* Definir **como o usuário chega às páginas Pro**.
-* Navegação organizada entre:
-
-  * `/pro`
-  * `/pro/manage`
-  * `/stats`
-  * `/settings`
-* Criar transições coerentes para:
-
-  * usuário free
-  * usuário logado mas não Pro
-  * usuário Pro
-
----
-
-## **3. Refinar completamente o tema claro**
-
-Ainda faltam revisar:
-
-* Tons definitivos de verde (`btn-primary` + seletor do timer).
-* Tons das bordas no light mode.
-* Ajustar alguns elementos que ainda estão com restos de `slate-*`.
-* Revisar contraste de ícones e pequenos textos.
-
----
-
-## **4. Componentes que ainda precisam ser migrados para o sistema de tema**
-
-Entre eles:
-
-* `RightColumnFree`
-* `FreeAdFooter`
-* Modal de Estatísticas
-* TimerSettingsModal
-
-Esses ainda possuem cores estáticas (`slate-800`, `slate-700`, etc).
-
----
-
-## **5. Polimento final de UX da tela principal**
-
-* Ajustar espaçamentos globais.
-* Revisar tipografia geral.
-* Verificar responsividade mobile completa.
-* Garantir coerência entre todos os cards.
-
----
-"""
+- Verificar o que precisa ser feito seguindo o que foi definido na documentação
 
 Antes de continuarmos, faça o seguinte:
 
