@@ -35,9 +35,9 @@ export class PaymentsController {
   @Post('mercado-pago/webhook')
   async handleMercadoPagoWebhook(
     @Body() body: MercadoPagoWebhookDto,
-    @Headers('x-signature') signature?: string,
+    @Headers() headers: Record<string, string | string[]>,
   ) {
-    await this.paymentsService.handleMercadoPagoWebhook(body, signature);
+    await this.paymentsService.handleMercadoPagoWebhook(body, headers);
     return { received: true };
   }
 }

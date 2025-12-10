@@ -22,41 +22,138 @@ export class PaymentsService {
   ) {}
 
   /**
+   * Recupera um header de forma case-insensitive.
+   */
+  private getHeaderValue(
+    headers: Record<string, string | string[]> | undefined,
+    name: string,
+  ): string | undefined {
+    if (!headers) {
+      return undefined;
+    }
+
+    const target = name.toLowerCase();
+
+    for (const [key, value] of Object.entries(headers)) {
+      if (key.toLowerCase() === target) {
+        if (Array.isArray(value)) {
+          return value[0];
+        }
+        return value;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
    * Valida a assinatura HMAC do webhook do Mercado Pago.
-   * Em DEV: se MERCADO_PAGO_WEBHOOK_SECRET não estiver definido, apenas loga e permite seguir.
+   *
+   * Especificação:
+   * - Header: x-signature (ex: "ts=123456789,v1=abcdef...")
+   * - Header: x-request-id
+   * - Manifesto: "id:{paymentId};request-id:{x-request-id};ts:{ts};"
+   * - HMAC-SHA256 em hex usando MERCADO_PAGO_WEBHOOK_SECRET.
+   *
+   * Somente é OBRIGATÓRIO em produção.
+   * Em outros ambientes, apenas loga e permite seguir.
    */
   private validateMercadoPagoSignature(
     dto: MercadoPagoWebhookDto,
-    signature?: string,
-  ) {
+    headers?: Record<string, string | string[]>,
+  ): void {
+    const appEnv = process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development';
+    const isProduction = appEnv === 'production';
     const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
 
-    if (!secret) {
+    // Ambientes não produtivos: não bloqueiam, apenas logam
+    if (!isProduction) {
       this.logger.warn(
-        'Webhook recebido SEM validação de assinatura porque MERCADO_PAGO_WEBHOOK_SECRET não está configurado (modo DEV).',
+        `Webhook Mercado Pago recebido em ambiente "${appEnv}" sem validação estrita de assinatura (apenas log).`,
       );
       return;
     }
 
-    if (!signature) {
-      throw new UnauthorizedException('Webhook sem assinatura (x-signature).');
+    if (!secret) {
+      this.logger.error(
+        'MERCADO_PAGO_WEBHOOK_SECRET não está configurada em produção. Webhook será rejeitado.',
+      );
+      throw new InternalServerErrorException(
+        'Configuração de segurança do webhook indisponível',
+      );
     }
 
-    const payload = JSON.stringify(dto);
-    const expected = createHmac('sha256', secret).update(payload).digest('hex');
+    if (!headers) {
+      throw new UnauthorizedException(
+        'Cabeçalhos ausentes no webhook do Mercado Pago.',
+      );
+    }
 
-    const expectedBuf = Buffer.from(expected);
-    const signatureBuf = Buffer.from(signature);
+    // Alguns docs antigos usam X-MP-Signature; a doc nova usa x-signature.
+    const signatureHeader =
+      this.getHeaderValue(headers, 'x-signature') ??
+      this.getHeaderValue(headers, 'x-mp-signature');
+
+    const requestId = this.getHeaderValue(headers, 'x-request-id');
+
+    if (!signatureHeader || !requestId) {
+      throw new UnauthorizedException(
+        'Cabeçalhos de assinatura ausentes (x-signature/x-request-id).',
+      );
+    }
+
+    // Ex: "ts=123456789,v1=abcdef..." (pode vir com espaço após vírgula)
+    const parts = signatureHeader.split(',');
+    let ts: string | undefined;
+    let hash: string | undefined;
+
+    for (const part of parts) {
+      const [key, value] = part.split('=').map((p) => p.trim());
+      if (key === 'ts') {
+        ts = value;
+      } else if (key === 'v1') {
+        hash = value;
+      }
+    }
+
+    if (!ts || !hash) {
+      throw new UnauthorizedException(
+        'Formato inválido do header x-signature (esperado: ts=... , v1=...).',
+      );
+    }
+
+    const resourceId = dto.paymentId ? String(dto.paymentId) : undefined;
+
+    if (!resourceId) {
+      this.logger.warn(
+        'Webhook Mercado Pago recebido sem paymentId no DTO. Requisição rejeitada.',
+      );
+      throw new UnauthorizedException('Webhook inválido (sem paymentId).');
+    }
+
+    const manifest = `id:${resourceId};request-id:${requestId};ts:${ts};`;
+
+    const expectedHash = createHmac('sha256', secret)
+      .update(manifest)
+      .digest('hex');
+
+    const expectedBuf = Buffer.from(expectedHash, 'utf8');
+    const receivedBuf = Buffer.from(hash, 'utf8');
 
     const isValid =
-      expectedBuf.length === signatureBuf.length &&
-      timingSafeEqual(expectedBuf, signatureBuf);
+      expectedBuf.length === receivedBuf.length &&
+      timingSafeEqual(expectedBuf, receivedBuf);
 
     if (!isValid) {
+      this.logger.warn(
+        `Assinatura HMAC inválida no webhook Mercado Pago (paymentId=${resourceId}, requestId=${requestId}).`,
+      );
       throw new UnauthorizedException('Assinatura HMAC inválida no webhook.');
     }
 
-    this.logger.log('Assinatura HMAC validada com sucesso.');
+    this.logger.log(
+      `Assinatura HMAC do webhook Mercado Pago validada com sucesso (paymentId=${resourceId}, requestId=${requestId}).`,
+    );
   }
 
   /**
@@ -199,10 +296,10 @@ export class PaymentsService {
    */
   async handleMercadoPagoWebhook(
     dto: MercadoPagoWebhookDto,
-    signature?: string,
+    headers?: Record<string, string | string[]>,
   ): Promise<void> {
-    // 1 — Validação opcional do HMAC
-    this.validateMercadoPagoSignature(dto, signature);
+    // 1 — Validação HMAC (apenas em produção, controlado por env)
+    this.validateMercadoPagoSignature(dto, headers);
 
     const paymentStatus = this.mapMercadoPagoStatus(dto.status);
 
