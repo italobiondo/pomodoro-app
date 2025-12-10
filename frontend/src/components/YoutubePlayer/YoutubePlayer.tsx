@@ -41,21 +41,21 @@ function extractVideoId(url: string): string | null {
 }
 
 export const YoutubePlayer: React.FC = () => {
-	// Lê do localStorage na inicialização (sem useEffect)
-	const [inputUrl, setInputUrl] = useState<string>(() => {
-		if (typeof window === "undefined") return "";
-		const stored = window.localStorage.getItem(YOUTUBE_STORAGE_KEY);
-		return stored ?? "";
-	});
-
-	const [currentUrl, setCurrentUrl] = useState<string | null>(() => {
-		if (typeof window === "undefined") return null;
-		const stored = window.localStorage.getItem(YOUTUBE_STORAGE_KEY);
-		return stored || null;
-	});
-
+	const [inputUrl, setInputUrl] = useState<string>("");
+	const [currentUrl, setCurrentUrl] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loop, setLoop] = useState(false);
+
+	// Carrega do localStorage apenas no client (evita hydration mismatch)
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		const stored = window.localStorage.getItem(YOUTUBE_STORAGE_KEY);
+		if (stored) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			setInputUrl(stored);
+			setCurrentUrl(stored);
+		}
+	}, []);
 
 	// Persiste sempre que o link atual muda
 	useEffect(() => {
@@ -83,7 +83,6 @@ export const YoutubePlayer: React.FC = () => {
 			controls: "1",
 		});
 
-		// Loop usando parâmetros oficiais do YouTube
 		if (loop) {
 			params.set("loop", "1");
 			params.set("playlist", videoId);
@@ -118,7 +117,6 @@ export const YoutubePlayer: React.FC = () => {
 						Conecte lo-fi, white noise ou sua playlist favorita.
 					</p>
 				</div>
-				{/* Badge simples só pra reforçar que está ativo */}
 				<span className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide border border-emerald-500/60 bg-emerald-500/10 text-emerald-600 dark:text-emerald-600">
 					Ativo
 				</span>
@@ -131,12 +129,9 @@ export const YoutubePlayer: React.FC = () => {
 						placeholder="Cole aqui o link do vídeo ou playlist..."
 						value={inputUrl}
 						onChange={(e) => setInputUrl(e.target.value)}
-						className="flex-1 rounded-lg bg-card-secondary border border-soft px-3 py-1.5 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+						className="flex-1 rounded-lg bg-soft border border-soft px-3 py-1.5 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
 					/>
-					<button
-						type="submit"
-						className="px-3 py-1.5 rounded-lg btn-primary"
-					>
+					<button type="submit" className="px-3 py-1.5 rounded-lg btn-primary">
 						Usar
 					</button>
 				</div>
@@ -149,7 +144,7 @@ export const YoutubePlayer: React.FC = () => {
 							type="checkbox"
 							checked={loop}
 							onChange={(e) => setLoop(e.target.checked)}
-							className="h-3 w-3 rounded border-soft bg-card-secondary"
+							className="h-3 w-3 rounded border-soft bg-background accent-emerald-500"
 						/>
 						<span className="text-secondary text-[11px]">Loop</span>
 					</label>
@@ -159,7 +154,7 @@ export const YoutubePlayer: React.FC = () => {
 					</p>
 				</div>
 
-				<div className="mt-2 aspect-video w-full rounded-lg bg-card-secondary border border-soft overflow-hidden flex items-center justify-center">
+				<div className="mt-2 aspect-video w-full rounded-lg bg-soft border border-soft overflow-hidden flex items-center justify-center">
 					{embedUrl ? (
 						<iframe
 							className="w-full h-full"

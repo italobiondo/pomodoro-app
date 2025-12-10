@@ -172,7 +172,7 @@ export const TimerPanel: React.FC = () => {
 					<button
 						type="button"
 						onClick={resetCurrent}
-						className="underline underline-offset-4 hover:text-secondary inline-flex items-center gap-1"
+						className="underline underline-offset-4 hover:text-secondary inline-flex items-center gap-1 cursor-pointer"
 					>
 						<RotateCcw className="h-4 w-4" aria-hidden />
 						Resetar ciclo
@@ -181,7 +181,7 @@ export const TimerPanel: React.FC = () => {
 					<button
 						type="button"
 						onClick={skipToNext}
-						className="underline underline-offset-4 hover:text-secondary inline-flex items-center gap-1"
+						className="underline underline-offset-4 hover:text-secondary inline-flex items-center gap-1 cursor-pointer"
 					>
 						<SkipForward className="h-4 w-4" aria-hidden />
 						Pular para o próximo

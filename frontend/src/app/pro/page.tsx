@@ -29,7 +29,7 @@ export default function ProPage() {
 
 	return (
 		<main className="min-h-screen flex flex-col bg-background text-secondary">
-			<MainHeader />
+			<MainHeader showSettings={false} />
 
 			<div className="flex-1 flex items-center justify-center px-4 py-8">
 				<div className="w-full max-w-xl card-main p-6 sm:p-8 flex flex-col gap-4">

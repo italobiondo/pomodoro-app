@@ -29,7 +29,7 @@ export default function ProSuccessPage() {
 
 	return (
 		<main className="min-h-screen flex flex-col bg-background text-secondary">
-			<MainHeader />
+			<MainHeader showSettings={false} />
 
 			<div className="flex-1 flex items-center justify-center px-4">
 				<div className="w-full max-w-md card-main p-6 flex flex-col gap-4">

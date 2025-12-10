@@ -158,7 +158,7 @@ export function TodoListCard() {
 							return (
 								<li
 									key={item.id}
-									className="group flex items-start gap-2 card-secondary px-3 py-2"
+									className="group flex items-start gap-2 rounded-lg border border-soft bg-soft px-3 py-2"
 								>
 									<button
 										type="button"
@@ -166,7 +166,7 @@ export function TodoListCard() {
 										className={`mt-0.5 h-4 w-4 rounded-full border flex items-center justify-center text-[10px] ${
 											item.done
 												? "bg-emerald-500 border-emerald-500 text-secondary"
-												: "border-soft text-transparent"
+												: "border-soft bg-background text-transparent bg-gray-200"
 										}`}
 										aria-label={
 											item.done
