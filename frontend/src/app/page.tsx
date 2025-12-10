@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { TimerPanel } from "@/components/Timer/TimerPanel";
 import { RightColumnFree } from "@/components/FreeLayout/RightColumnFree";
@@ -9,29 +7,10 @@ import { YoutubePlayer } from "@/components/YoutubePlayer/YoutubePlayer";
 import { FreeAdFooter } from "@/components/FreeLayout/FreeAdFooter";
 import { MainHeader } from "@/components/Layout/MainHeader";
 import { PomodoroExplanation } from "@/components/Info/PomodoroExplanation";
-import { createMercadoPagoPreference } from "@/lib/apiClient";
-import { LogIn } from "lucide-react";
+import { SupportCoffeeButton } from "@/components/Support/SupportCoffeeButton";
 
 export default function HomePage() {
-	const { isPro, isAuthenticated, loading, loginWithGoogle } = useAuth();
-	const [creatingPreference, setCreatingPreference] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-
-	async function handleSubscribeClick() {
-		try {
-			setError(null);
-			setCreatingPreference(true);
-
-			const res = await createMercadoPagoPreference();
-			// Redireciona para o checkout do Mercado Pago
-			window.location.href = res.init_point;
-		} catch (err) {
-			console.error("[/pro] Erro ao criar preference do Mercado Pago", err);
-			setError("Não foi possível iniciar o checkout. Tente novamente.");
-		} finally {
-			setCreatingPreference(false);
-		}
-	}
+	const { isPro } = useAuth();
 
 	return (
 		<main className="min-h-screen flex flex-col">
@@ -58,6 +37,9 @@ export default function HomePage() {
 
 			{/* Explicação da técnica Pomodoro */}
 			<PomodoroExplanation />
+
+			{/* Botão flutuante de apoio (Ko-fi) - visível para Free e Pro */}
+			<SupportCoffeeButton />
 		</main>
 	);
 }
