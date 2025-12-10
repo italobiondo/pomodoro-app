@@ -98,6 +98,7 @@ backend/src/modules/health/health.controller.ts
 backend/src/modules/health/health.module.ts
 backend/src/modules/payments
 backend/src/modules/payments/dto
+backend/src/modules/payments/dto/create-mercado-pago-preference-response.dto.ts
 backend/src/modules/payments/dto/mercado-pago-webhook.dto.ts
 backend/src/modules/payments/payments.controller.ts
 backend/src/modules/payments/payments.module.ts
@@ -143,6 +144,7 @@ backend/tsconfig.json
 frontend
 frontend/.gitignore
 frontend/eslint.config.mjs
+frontend/next-env.d.ts
 frontend/next.config.ts
 frontend/package-lock.json
 frontend/package.json
@@ -162,7 +164,13 @@ frontend/src/app/globals.css
 frontend/src/app/layout.tsx
 frontend/src/app/page.tsx
 frontend/src/app/pro
+frontend/src/app/pro/error
+frontend/src/app/pro/error/page.tsx
+frontend/src/app/pro/manage
+frontend/src/app/pro/manage/page.tsx
 frontend/src/app/pro/page.tsx
+frontend/src/app/pro/success
+frontend/src/app/pro/success/page.tsx
 frontend/src/components
 frontend/src/components/Auth
 frontend/src/components/Auth/SocialLoginButtons.tsx
@@ -248,66 +256,74 @@ Você deve sempre cruzar informações entre:
 
 ====================================================================
 🎯 OBJETIVO INICIAL NESTE NOVO CHAT
-Quero continuar:
+Quero continuar por algumas pendências:
 
-1. **Criar endpoint de criação de Checkout Preference (Mercado Pago)**
-
-Backend:
-
-```
-POST /api/payments/mercado-pago/create-preference
-```
-
-Resposta:
-
-```json
-{ "init_point": "https://mercadopago...." }
-```
+"""
+Estas foram as tarefas que listamos no **início** e não concluímos ainda:
 
 ---
 
-2. **Implementar botão “Assinar Pro” no frontend**
+## **1. Implementar segurança REAL no webhook Mercado Pago**
 
-* `/pro` deve mostrar botão se usuário for FREE
-* Botão chama `create-preference`
-* Redireciona para `init_point`
-
----
-
-3. **Criar páginas de retorno**
-
-* `/pro/success?payment_id=...`
-* `/pro/error`
-
-Com `refetch()` após retorno.
+* Validar **HMAC-SHA256** da assinatura.
+* Verificar header `X-MP-Signature`.
+* Rejeitar webhooks falsos (HOJE está aceitando tudo).
+* Ativar isso somente para produção (mantendo dev liberado).
 
 ---
 
-4. **Página `/pro/manage`**
+## **2. Melhorar a UX de navegação para usuários autenticados**
 
-Mostrar:
+Planejamos tratar:
 
-* Status do plano
-* Renovação
-* Provedor
-* Data de expiração
-* Possível botão de “Cancelar assinatura”
+* Definir **como o usuário chega às páginas Pro**.
+* Navegação organizada entre:
+
+  * `/pro`
+  * `/pro/manage`
+  * `/stats`
+  * `/settings`
+* Criar transições coerentes para:
+
+  * usuário free
+  * usuário logado mas não Pro
+  * usuário Pro
+
+---
+
+## **3. Refinar completamente o tema claro**
+
+Ainda faltam revisar:
+
+* Tons definitivos de verde (`btn-primary` + seletor do timer).
+* Tons das bordas no light mode.
+* Ajustar alguns elementos que ainda estão com restos de `slate-*`.
+* Revisar contraste de ícones e pequenos textos.
 
 ---
 
-5. **Hardening dos webhooks**
+## **4. Componentes que ainda precisam ser migrados para o sistema de tema**
 
-* Validar assinatura HMAC (envio real do Mercado Pago)
-* Prevenir duplicidade de eventos (idempotência)
-* Logs mais detalhados
+Entre eles:
+
+* `RightColumnFree`
+* `FreeAdFooter`
+* Modal de Estatísticas
+* TimerSettingsModal
+
+Esses ainda possuem cores estáticas (`slate-800`, `slate-700`, etc).
 
 ---
 
-6.**Integração com Stripe (opcional)**
+## **5. Polimento final de UX da tela principal**
 
-Backend já está 100% preparado para múltiplos providers.
+* Ajustar espaçamentos globais.
+* Revisar tipografia geral.
+* Verificar responsividade mobile completa.
+* Garantir coerência entre todos os cards.
 
 ---
+"""
 
 Antes de continuarmos, faça o seguinte:
 
@@ -316,9 +332,11 @@ Antes de continuarmos, faça o seguinte:
 
 Depois disso começamos a implementação.
 
+====================================================================
+
 ### Arvore de pastas
 
-find . \( -name 'node_modules' -o -name '.git' -o -name 'dist' \) -prune -o -print | sed 's/^\.\///'
+find . \( -name 'node_modules' -o -name '.git' -o -name 'dist' -o -name '.next' \) -prune -o -print | sed 's/^\.\///'
 
 ### Migrate
 
