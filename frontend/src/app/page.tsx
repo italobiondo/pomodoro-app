@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { TimerPanel } from "@/components/Timer/TimerPanel";
 import { RightColumnFree } from "@/components/FreeLayout/RightColumnFree";
 import { YoutubePlayer } from "@/components/YoutubePlayer/YoutubePlayer";
@@ -96,9 +97,14 @@ export default function HomePage() {
 
 							{!loading && isAuthenticated && isPro && (
 								<p className="text-sm text-emerald-500">
-									Você já é Pro 🎉 — em breve você poderá gerenciar sua
-									assinatura em
-									<span className="font-semibold"> /pro/manage</span>.
+									Você já é Pro 🎉 — gerencie sua assinatura em{" "}
+									<Link
+										href="/pro/manage"
+										className="font-semibold underline text-emerald-500 hover:text-emerald-400"
+									>
+										/pro/manage
+									</Link>
+									.
 								</p>
 							)}
 						</div>

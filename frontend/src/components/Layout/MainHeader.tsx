@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { SocialLoginButtons } from "@/components/Auth/SocialLoginButtons";
 import { useAuth } from "@/hooks/useAuth";
 import { StatsOverviewModal } from "@/components/Stats/StatsOverviewModal";
@@ -14,7 +15,7 @@ export const MainHeader: React.FC = () => {
 		}
 	}
 
-	const { isPro } = useAuth();
+	const { isPro, isAuthenticated, loading } = useAuth();
 	const [isStatsOpen, setIsStatsOpen] = useState(false);
 	const { isDark, toggleTheme } = useTheme();
 
@@ -34,6 +35,29 @@ export const MainHeader: React.FC = () => {
 
 					{/* Actions */}
 					<div className="flex items-center gap-2">
+						{/* CTA de plano Pro / gerenciamento */}
+						{!loading && (
+							<>
+								{isAuthenticated && isPro && (
+									<Link
+										href="/pro/manage"
+										className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center gap-1.5"
+									>
+										Gerenciar plano
+									</Link>
+								)}
+
+								{(!isAuthenticated || !isPro) && (
+									<Link
+										href="/pro"
+										className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center gap-1.5"
+									>
+										Seja Pro
+									</Link>
+								)}
+							</>
+						)}
+
 						{/* Estatísticas – somente Pro */}
 						{isPro && (
 							<button

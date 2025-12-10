@@ -1,10 +1,22 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { MainHeader } from "@/components/Layout/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ProManagePage() {
 	const { user, loading, isAuthenticated, isPro } = useAuth();
+	const router = useRouter();
+
+	useEffect(() => {
+		if (loading) return;
+
+		// Não autenticado ou não Pro → volta para /pro (página de upgrade)
+		if (!isAuthenticated || !isPro) {
+			router.replace("/pro");
+		}
+	}, [loading, isAuthenticated, isPro, router]);
 
 	const subscription = user?.subscription as
 		| {
