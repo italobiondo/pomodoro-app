@@ -89,7 +89,7 @@ export const YoutubePlayer: React.FC = () => {
 		return extractVideoId(currentUrl);
 	}, [currentUrl]);
 
-		const embedUrl = useMemo(() => {
+	const embedUrl = useMemo(() => {
 		if (!videoId) return null;
 
 		const params = new URLSearchParams({
@@ -114,7 +114,6 @@ export const YoutubePlayer: React.FC = () => {
 		return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
 	}, [videoId, loop, autoPlayTrigger]);
 
-
 	function handleLoad(e?: React.FormEvent) {
 		if (e) e.preventDefault();
 
@@ -131,7 +130,10 @@ export const YoutubePlayer: React.FC = () => {
 	}
 
 	return (
-		<section className="card-main px-4 py-3">
+		<section
+			className="card-main px-4 py-3"
+			aria-label="Player de YouTube para foco"
+		>
 			<header className="flex items-center justify-between mb-2">
 				<div>
 					<h2 className="text-sm font-semibold text-secondary">
@@ -153,8 +155,11 @@ export const YoutubePlayer: React.FC = () => {
 						placeholder="Cole aqui o link do vídeo ou playlist..."
 						value={inputUrl}
 						onChange={(e) => setInputUrl(e.target.value)}
+						aria-label="Link de vídeo ou playlist do YouTube"
+						title="Cole aqui o link de um vídeo ou playlist do YouTube para usar no player de foco"
 						className="flex-1 rounded-lg bg-soft border border-soft px-3 py-1.5 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
 					/>
+
 					<button type="submit" className="px-3 py-1.5 rounded-lg btn-primary">
 						Usar
 					</button>
@@ -184,6 +189,7 @@ export const YoutubePlayer: React.FC = () => {
 							className="w-full h-full"
 							src={embedUrl}
 							title="Player de foco do YouTube"
+							aria-label="Player de foco do YouTube"
 							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 							allowFullScreen
 						/>

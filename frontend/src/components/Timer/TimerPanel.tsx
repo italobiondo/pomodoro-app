@@ -118,7 +118,10 @@ export const TimerPanel: React.FC = () => {
 	};
 
 	return (
-		<section className="w-full max-w-md mx-auto card-main p-6 shadow-lg">
+		<section
+			className="w-full max-w-md mx-auto card-main p-6 shadow-lg"
+			aria-label="Timer Pomodoro"
+		>
 			{/* Header / modos */}
 			<header className="mb-4">
 				<div className="flex justify-center gap-2 flex-wrap">
@@ -128,6 +131,7 @@ export const TimerPanel: React.FC = () => {
 								key={m}
 								type="button"
 								onClick={() => switchMode(m)}
+								aria-pressed={mode === m}
 								className={`px-3 py-1 rounded-full text-sm border transition-all min-w-[110px] text-center ${
 									mode === m
 										? "btn-primary shadow-sm"
@@ -174,6 +178,8 @@ export const TimerPanel: React.FC = () => {
 				<button
 					type="button"
 					onClick={handleToggleClick}
+					aria-pressed={isRunning}
+					aria-label={isRunning ? "Pausar timer" : "Iniciar timer"}
 					className="px-10 py-2 rounded-full text-lg font-semibold btn-primary inline-flex items-center gap-2"
 				>
 					{isRunning ? (
