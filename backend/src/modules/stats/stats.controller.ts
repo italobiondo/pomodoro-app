@@ -7,6 +7,7 @@ import { StatsService } from './stats.service';
 import { StartFocusSessionDto } from './dto/start-focus-session.dto';
 import { FinishFocusSessionDto } from './dto/finish-focus-session.dto';
 import { FocusSessionResponseDto } from './dto/focus-session-response.dto';
+import { CreateFocusSessionEventDto } from './dto/create-focus-session-event.dto';
 
 @Controller('stats')
 @UseGuards(JwtAuthGuard)
@@ -19,6 +20,7 @@ export class StatsController {
   ): Promise<StatsOverviewResponse> {
     return this.statsService.getOverview(user.id);
   }
+
   @Post('focus-sessions/start')
   async startFocusSession(
     @CurrentUser() user: AuthenticatedUser,
@@ -54,5 +56,16 @@ export class StatsController {
       focusMinutes: session.focusMinutes,
       breakMinutes: session.breakMinutes,
     };
+  }
+
+  // ✅ NOVO: eventos finos (skips/resets/finalização etc.)
+  @Post('focus-sessions/:id/events')
+  async addFocusSessionEvent(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') sessionId: string,
+    @Body() body: CreateFocusSessionEventDto,
+  ): Promise<{ ok: true }> {
+    await this.statsService.addFocusSessionEvent(user.id, sessionId, body);
+    return { ok: true };
   }
 }

@@ -235,6 +235,25 @@ export function useTimer() {
 	const lastFinishedAtRef = useRef<number | null>(state.lastFinishedAt);
 	const lastCompletedPomodorosRef = useRef<number>(state.completedPomodoros);
 
+	const postEvent = (
+		type:
+			| "POMODORO_FINISHED"
+			| "CYCLE_SKIPPED"
+			| "BREAK_SKIPPED"
+			| "RESET_CURRENT",
+		metadata?: Record<string, unknown>
+	) => {
+		if (!isPro) return;
+		if (!currentSessionId) return;
+
+		apiPost(`/stats/focus-sessions/${currentSessionId}/events`, {
+			type,
+			metadata,
+		}).catch(() => {
+			// não impacta o timer
+		});
+	};
+
 	// Persiste estado do timer
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -308,6 +327,14 @@ export function useTimer() {
 						remainingSeconds: remaining,
 						lastUpdatedAt: now,
 					};
+				}
+
+				if (prev.mode === "pomodoro") {
+					queueMicrotask(() => {
+						postEvent("POMODORO_FINISHED", {
+							mode: prev.mode,
+						});
+					});
 				}
 
 				// Ciclo finalizado
@@ -479,6 +506,11 @@ export function useTimer() {
 	};
 
 	const resetCurrent = () => {
+		// Fire-and-forget fora do setState (não travar timer)
+		queueMicrotask(() => {
+			postEvent("RESET_CURRENT", { mode: state.mode });
+		});
+
 		setState((prev) => ({
 			...prev,
 			remainingSeconds: getDurationForMode(prev.mode, settings),
@@ -498,6 +530,14 @@ export function useTimer() {
 	};
 
 	const skipToNext = () => {
+		queueMicrotask(() => {
+			const isBreak =
+				state.mode === "short_break" || state.mode === "long_break";
+			postEvent(isBreak ? "BREAK_SKIPPED" : "CYCLE_SKIPPED", {
+				mode: state.mode,
+			});
+		});
+
 		setState((prev) => {
 			const completedPomodoros =
 				prev.mode === "pomodoro"

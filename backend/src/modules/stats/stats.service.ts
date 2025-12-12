@@ -9,9 +9,11 @@ import { startOfDay } from 'date-fns';
 import {
   FocusSession,
   StatsSummary,
+  FocusSessionEventType,
 } from '../../generated/prisma/client/client';
 import { StartFocusSessionDto } from './dto/start-focus-session.dto';
 import { FinishFocusSessionDto } from './dto/finish-focus-session.dto';
+import { CreateFocusSessionEventDto } from './dto/create-focus-session-event.dto';
 
 @Injectable()
 export class StatsService {
@@ -171,6 +173,49 @@ export class StatsService {
     await this.updateStatsSummaryFromSession(userId, updatedSession);
 
     return updatedSession;
+  }
+
+  /**
+   * ✅ NOVO: registra eventos finos ligados a uma sessão (somente Pro)
+   * - valida se a sessão pertence ao usuário
+   * - grava FocusSessionEvent no banco
+   */
+  async addFocusSessionEvent(
+    userId: string,
+    sessionId: string,
+    dto: CreateFocusSessionEventDto,
+  ): Promise<void> {
+    await this.ensureUserIsPro(userId);
+
+    const session = await this.prisma.focusSession.findUnique({
+      where: { id: sessionId },
+      select: { id: true, userId: true },
+    });
+
+    if (!session || session.userId !== userId) {
+      throw new NotFoundException('Focus session not found for this user.');
+    }
+
+    // Garantia extra: só aceitar os eventos do escopo mínimo definido
+    const allowed: FocusSessionEventType[] = [
+      FocusSessionEventType.POMODORO_FINISHED,
+      FocusSessionEventType.CYCLE_SKIPPED,
+      FocusSessionEventType.BREAK_SKIPPED,
+      FocusSessionEventType.RESET_CURRENT,
+    ];
+
+    if (!allowed.includes(dto.type)) {
+      throw new BadRequestException('Event type not allowed in current scope.');
+    }
+
+    await this.prisma.focusSessionEvent.create({
+      data: {
+        userId,
+        focusSessionId: sessionId,
+        type: dto.type,
+        metadata: dto.metadata ?? undefined,
+      },
+    });
   }
 
   /**
