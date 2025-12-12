@@ -10,6 +10,7 @@ import { StatsModule } from './modules/stats/stats.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PlansModule } from './modules/plans/plans.module';
+import { TimerStateModule } from './modules/timer-state/timer-state.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PlansModule } from './modules/plans/plans.module';
     SubscriptionsModule,
     PaymentsModule,
     PlansModule,
+    TimerStateModule,
   ],
 })
 export class AppModule {}

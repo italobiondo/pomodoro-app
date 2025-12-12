@@ -268,6 +268,7 @@ Você deve sempre cruzar informações entre:
 - Em caso de precisar alterar algum arquivo, solicite antes de alterar
 - após alteração, criação e explusão em arquivos, perguntar se deu algum erro de tipo de erro, seja de lint, sintaxe, ou no build, etc.
      - Caso dê certo, sugestão de mensagem para o commit desses arquivos
+- se for necessário adicionar alguma dependência ou nova migrate, mande os comandos a serem executados para isso
 
 ====================================================================
 🎯 OBJETIVO INICIAL NESTE NOVO CHAT
@@ -294,6 +295,8 @@ cd D:\Projetos Pessoais\pomodoro-app\backend
 
 # 1) Sobrescrever DATABASE_URL apenas para este terminal
 $env:DATABASE_URL = "postgresql://pomodoro:pomodoro@localhost:5432/pomodoro_db?schema=public"
+
+npx prisma format
 
 # 2) Rodar a migrate dev
 npx prisma migrate dev --name add_focus_session

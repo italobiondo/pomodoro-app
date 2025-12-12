@@ -49,14 +49,14 @@ enum PaymentStatus {
 // =========================
 
 model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
+  id             String       @id @default(uuid())
+  email          String       @unique
   name           String?
   authProvider   AuthProvider
   authProviderId String
 
-  plan          PlanType     @default(FREE)
-  planStatus    PlanStatus   @default(ACTIVE)
+  plan          PlanType   @default(FREE)
+  planStatus    PlanStatus @default(ACTIVE)
   planExpiresAt DateTime?
 
   // Relacionamentos
@@ -66,19 +66,21 @@ model User {
   statsSummary    StatsSummary?
   themePreference ThemePreference?
 
-  focusSessions   FocusSession[]
+  timerState TimerState?
+
+  focusSessions      FocusSession[]
+  focusSessionEvents FocusSessionEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-
 model Subscription {
-  id                     String              @id @default(uuid())
-  userId                 String
-  user                   User                @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  provider               String              // stripe, mercado_pago, pagarme, etc.
+  provider               String // stripe, mercado_pago, pagarme, etc.
   providerCustomerId     String
   providerSubscriptionId String
 
@@ -93,92 +95,143 @@ model Subscription {
 }
 
 model Payment {
-  id                 String         @id @default(uuid())
-  userId             String
-  user               User           @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  subscriptionId     String?
-  subscription       Subscription?  @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
 
-  providerPaymentId  String
-  amount             Int            // em centavos
-  currency           String
-  status             PaymentStatus
+  providerPaymentId String
+  amount            Int // em centavos
+  currency          String
+  status            PaymentStatus
 
   // Tipo do evento do provedor (ex: "payment", "payment.updated", "charge.succeeded", etc.)
-  providerEventType  String?
+  providerEventType String?
 
   // Payload bruto para auditoria/debug (especialmente útil com webhooks)
-  rawPayload         Json?
+  rawPayload Json?
 
   createdAt DateTime @default(now())
 }
 
-
 // Tasks que vão ser sincronizadas para usuário Pro
 model Task {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  title       String   @db.VarChar(255)
-  isCompleted Boolean  @default(false)
+  title       String  @db.VarChar(255)
+  isCompleted Boolean @default(false)
 
   // Para estatísticas e histórico básico
   completedAt DateTime?
 
   // Para sincronização com o cliente (Pro)
-  clientId   String?   // id local do front
+  clientId   String? // id local do front
   lastSyncAt DateTime? // reservado para futuros fluxos de sync
   deletedAt  DateTime? // soft delete para suportar sync multi-dispositivo
 
-  createdAt  DateTime  @default(now())
+  createdAt DateTime @default(now())
   // NÃO usamos mais @updatedAt aqui para poder controlar esse campo via sync
-  updatedAt  DateTime  @default(now())
+  updatedAt DateTime @default(now())
 
   @@index([userId])
 }
 
 // Resumo de estatísticas agregadas (sem dados brutos de foco minuto a minuto)
 model StatsSummary {
-  id                  String   @id @default(uuid())
-  userId              String   @unique
-  user                User     @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
 
-  totalPomodorosCompleted Int   @default(0)
-  totalFocusMinutes       Int   @default(0)
-  totalBreakMinutes       Int   @default(0)
+  totalPomodorosCompleted Int      @default(0)
+  totalFocusMinutes       Int      @default(0)
+  totalBreakMinutes       Int      @default(0)
   lastUpdatedAt           DateTime @default(now())
 }
 
 // Preferência de tema por usuário (inclui temas Pro)
 model ThemePreference {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
 
-  themeKey  String   // "light", "dark", "neon", etc.
+  themeKey String // "light", "dark", "neon", etc.
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model FocusSession {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  startedAt   DateTime
-  endedAt     DateTime?
+  startedAt DateTime
+  endedAt   DateTime?
 
   // minutos de foco reais ao encerrar a sessão
-  focusMinutes Int     @default(0)
+  focusMinutes Int @default(0)
 
   // se quiser registrar também o break final após a sessão:
-  breakMinutes Int     @default(0)
+  breakMinutes Int @default(0)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events FocusSessionEvent[]
 
   @@index([userId])
+}
+
+model TimerState {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  mode               String
+  remainingSeconds   Int
+  isRunning          Boolean
+  lastUpdatedAt      DateTime?
+  completedPomodoros Int
+  lastFinishedAt     DateTime?
+
+  clientUpdatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum FocusSessionEventType {
+  POMODORO_STARTED
+  POMODORO_PAUSED
+  POMODORO_RESUMED
+  POMODORO_FINISHED
+  BREAK_STARTED
+  BREAK_FINISHED
+  BREAK_SKIPPED
+  CYCLE_SKIPPED
+  RESET_CURRENT
+}
+
+model FocusSessionEvent {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  focusSessionId String
+  focusSession   FocusSession @relation(fields: [focusSessionId], references: [id])
+
+  type       FocusSessionEventType
+  occurredAt DateTime              @default(now())
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([focusSessionId])
 }

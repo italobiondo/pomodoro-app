@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useAuth } from "./useAuth";
 import { apiPost } from "../lib/apiClient";
+import { apiGet, apiPut } from "../lib/apiClient";
 
 export type TimerMode = "pomodoro" | "short_break" | "long_break";
 
@@ -27,6 +28,16 @@ type FocusSessionApiResponse = {
 	endedAt: string | null;
 	focusMinutes: number;
 	breakMinutes: number;
+};
+
+type RemoteTimerState = {
+	mode: TimerMode;
+	remainingSeconds: number;
+	isRunning: boolean;
+	lastUpdatedAt: string | null;
+	completedPomodoros: number;
+	lastFinishedAt: string | null;
+	clientUpdatedAt: string | null;
 };
 
 const TIMER_STATE_STORAGE_KEY = "pomodoro_timer_state_v1";
@@ -171,6 +182,53 @@ export function useTimer() {
 		}
 	});
 
+	// 🔹 Pro: hidrata estado do timer a partir do backend (multi-dispositivo)
+	useEffect(() => {
+		if (!isPro) return;
+		if (typeof window === "undefined") return;
+
+		let cancelled = false;
+
+		(async () => {
+			try {
+				const remote = await apiGet<RemoteTimerState | null>("/timer-state");
+				if (!remote || cancelled) return;
+
+				setState((local) => {
+					const localUpdated = local.lastUpdatedAt ?? 0;
+
+					const remoteUpdated = remote.clientUpdatedAt
+						? new Date(remote.clientUpdatedAt).getTime()
+						: 0;
+
+					// Se remoto for mais recente, aplica
+					if (remoteUpdated > localUpdated) {
+						return {
+							mode: remote.mode,
+							remainingSeconds: remote.remainingSeconds,
+							isRunning: remote.isRunning,
+							lastUpdatedAt: remote.lastUpdatedAt
+								? new Date(remote.lastUpdatedAt).getTime()
+								: null,
+							completedPomodoros: remote.completedPomodoros,
+							lastFinishedAt: remote.lastFinishedAt
+								? new Date(remote.lastFinishedAt).getTime()
+								: null,
+						};
+					}
+
+					return local;
+				});
+			} catch {
+				// Falha de rede não quebra o timer
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [isPro]);
+
 	// 🔹 ID da sessão de foco atual (apenas Pro e pomodoro)
 	const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
@@ -191,6 +249,40 @@ export function useTimer() {
 			// ignore
 		}
 	}, [state]);
+
+	// 🔹 Pro: sincroniza estado do timer com backend (debounce)
+	const syncTimeoutRef = useRef<number | null>(null);
+
+	useEffect(() => {
+		if (!isPro) return;
+		if (typeof window === "undefined") return;
+
+		if (syncTimeoutRef.current) {
+			window.clearTimeout(syncTimeoutRef.current);
+		}
+
+		syncTimeoutRef.current = window.setTimeout(async () => {
+			try {
+				await apiPut("/timer-state", {
+					mode: state.mode,
+					remainingSeconds: state.remainingSeconds,
+					isRunning: state.isRunning,
+					lastUpdatedAt: state.lastUpdatedAt,
+					completedPomodoros: state.completedPomodoros,
+					lastFinishedAt: state.lastFinishedAt,
+					clientUpdatedAt: new Date().toISOString(),
+				});
+			} catch {
+				// Ignora erro de sync
+			}
+		}, 5000);
+
+		return () => {
+			if (syncTimeoutRef.current) {
+				window.clearTimeout(syncTimeoutRef.current);
+			}
+		};
+	}, [isPro, state]);
 
 	// Loop de contagem
 	useEffect(() => {
