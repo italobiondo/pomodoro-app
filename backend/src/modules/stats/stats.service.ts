@@ -10,6 +10,7 @@ import {
   FocusSession,
   StatsSummary,
   FocusSessionEventType,
+  Prisma,
 } from '../../generated/prisma/client/client';
 import { StartFocusSessionDto } from './dto/start-focus-session.dto';
 import { FinishFocusSessionDto } from './dto/finish-focus-session.dto';
@@ -213,7 +214,9 @@ export class StatsService {
         userId,
         focusSessionId: sessionId,
         type: dto.type,
-        metadata: dto.metadata ?? undefined,
+        metadata: dto.metadata
+          ? (dto.metadata as unknown as Prisma.InputJsonValue)
+          : undefined,
       },
     });
   }

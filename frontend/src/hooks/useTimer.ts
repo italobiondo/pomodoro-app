@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useAuth } from "./useAuth";
 import { apiGet, apiPost, apiPut } from "../lib/apiClient";
@@ -235,24 +235,27 @@ export function useTimer() {
 	const lastFinishedAtRef = useRef<number | null>(state.lastFinishedAt);
 	const lastCompletedPomodorosRef = useRef<number>(state.completedPomodoros);
 
-	const postEvent = (
-		type:
-			| "POMODORO_FINISHED"
-			| "CYCLE_SKIPPED"
-			| "BREAK_SKIPPED"
-			| "RESET_CURRENT",
-		metadata?: Record<string, unknown>
-	) => {
-		if (!isPro) return;
-		if (!currentSessionId) return;
+	const postEvent = useCallback(
+		(
+			type:
+				| "POMODORO_FINISHED"
+				| "CYCLE_SKIPPED"
+				| "BREAK_SKIPPED"
+				| "RESET_CURRENT",
+			metadata?: Record<string, unknown>
+		) => {
+			if (!isPro) return;
+			if (!currentSessionId) return;
 
-		apiPost(`/stats/focus-sessions/${currentSessionId}/events`, {
-			type,
-			metadata,
-		}).catch(() => {
-			// não impacta o timer
-		});
-	};
+			apiPost(`/stats/focus-sessions/${currentSessionId}/events`, {
+				type,
+				metadata,
+			}).catch(() => {
+				// não impacta o timer
+			});
+		},
+		[isPro, currentSessionId]
+	);
 
 	// Persiste estado do timer
 	useEffect(() => {
@@ -375,7 +378,7 @@ export function useTimer() {
 		}, 1000);
 
 		return () => window.clearInterval(intervalId);
-	}, [state.isRunning, settings]);
+	}, [state.isRunning, settings, postEvent]);
 
 	// 🔹 Efeito 1: detectar INÍCIO de um pomodoro (Pro) e abrir sessão no backend
 	useEffect(() => {
