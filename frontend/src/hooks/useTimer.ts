@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useAuth } from "./useAuth";
-import { apiPost } from "../lib/apiClient";
-import { apiGet, apiPut } from "../lib/apiClient";
+import { apiGet, apiPost, apiPut } from "../lib/apiClient";
 
 export type TimerMode = "pomodoro" | "short_break" | "long_break";
 
