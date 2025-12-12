@@ -32,6 +32,7 @@ export const TimerPanel: React.FC = () => {
 		remainingSeconds,
 		isRunning,
 		lastFinishedAt,
+		completedPomodoros,
 		settings,
 		updateSettings,
 		toggle,
@@ -41,7 +42,13 @@ export const TimerPanel: React.FC = () => {
 	} = useTimer();
 
 	const [soundEnabled, setSoundEnabled] = useState(true);
+
+	// Controla som de fim de ciclo (pomodoro)
 	const lastFinishedRef = useRef<number | null>(null);
+	const prevCompletedPomodorosRef = useRef<number>(completedPomodoros);
+
+	// Controla som de “faltam 5s para acabar a pausa”
+	const breakWarningPlayedRef = useRef<boolean>(false);
 
 	const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -56,27 +63,73 @@ export const TimerPanel: React.FC = () => {
 		};
 	}, []);
 
-	// Toca som simples quando um ciclo termina
+	// Som ao TERMINAR um POMODORO (fim do foco → início da pausa)
 	useEffect(() => {
 		if (!soundEnabled) return;
 		if (!lastFinishedAt) return;
 
-		// Ignora primeira hidratação
-		if (!lastFinishedRef.current) {
+		// Primeira hidratação: apenas sincroniza refs
+		if (lastFinishedRef.current === null) {
 			lastFinishedRef.current = lastFinishedAt;
+			prevCompletedPomodorosRef.current = completedPomodoros;
 			return;
 		}
 
-		if (lastFinishedAt !== lastFinishedRef.current) {
-			lastFinishedRef.current = lastFinishedAt;
+		// Se não mudou o lastFinishedAt, não faz nada
+		if (lastFinishedAt === lastFinishedRef.current) {
+			return;
+		}
 
-			// Coloque o arquivo em: frontend/public/sounds/basic-notification.mp3
-			const audio = new Audio("/sounds/basic-notification.mp3");
+		const prevCompleted = prevCompletedPomodorosRef.current ?? 0;
+
+		lastFinishedRef.current = lastFinishedAt;
+		prevCompletedPomodorosRef.current = completedPomodoros;
+
+		// Se o número de pomodoros concluídos aumentou, significa que o ciclo finalizado foi um pomodoro
+		const finishedPomodoro = completedPomodoros > prevCompleted;
+
+		if (!finishedPomodoro) {
+			// Ciclo finalizado foi uma pausa (short/long), não disparamos este som
+			return;
+		}
+
+		// Arquivo sugerido: frontend/public/sounds/pomodoro-end.mp3
+		const audio = new Audio("/sounds/pomodoro-end.mp3");
+		audio.play().catch(() => {
+			// Autoplay pode ser bloqueado — apenas ignora
+		});
+	}, [lastFinishedAt, completedPomodoros, soundEnabled]);
+
+	// Som quando faltam 5 segundos para ACABAR a PAUSA (short ou long)
+	useEffect(() => {
+		if (!soundEnabled) return;
+		if (typeof window === "undefined") return;
+
+		const isBreak = mode === "short_break" || mode === "long_break";
+
+		// Se mudou para modo foco, limpamos o flag
+		if (!isBreak) {
+			breakWarningPlayedRef.current = false;
+			return;
+		}
+
+		// Enquanto estiver longe do fim, garantimos que o warning possa tocar depois
+		if (remainingSeconds > 5) {
+			breakWarningPlayedRef.current = false;
+			return;
+		}
+
+		// Quando chegar exatamente em 5 segundos e ainda não tocamos o alerta, tocamos
+		if (remainingSeconds === 5 && !breakWarningPlayedRef.current) {
+			breakWarningPlayedRef.current = true;
+
+			// Arquivo sugerido: frontend/public/sounds/break-ending.mp3
+			const audio = new Audio("/sounds/break-ending.wav");
 			audio.play().catch(() => {
-				// Usuário pode ter bloqueado autoplay — apenas ignora
+				// Autoplay pode ser bloqueado — apenas ignora
 			});
 		}
-	}, [lastFinishedAt, soundEnabled]);
+	}, [mode, remainingSeconds, soundEnabled]);
 
 	const totalSecondsForCurrentMode = useMemo(() => {
 		switch (mode) {

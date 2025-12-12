@@ -153,21 +153,21 @@ export function useTimer() {
 	);
 
 	const [state, setState] = useState<TimerState>(() => {
+		// SSR / build
 		if (typeof window === "undefined") {
-			// SSR / build
-			return createInitialState(DEFAULT_SETTINGS);
+			return createInitialState(settings);
 		}
 
 		try {
 			const stored = window.localStorage.getItem(TIMER_STATE_STORAGE_KEY);
 			if (!stored) {
-				return createInitialState(DEFAULT_SETTINGS);
+				return createInitialState(settings);
 			}
 
 			const parsed = JSON.parse(stored);
-			return rehydrateState(parsed, DEFAULT_SETTINGS);
+			return rehydrateState(parsed, settings);
 		} catch {
-			return createInitialState(DEFAULT_SETTINGS);
+			return createInitialState(settings);
 		}
 	});
 
