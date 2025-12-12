@@ -52,14 +52,6 @@ export const TimerPanel: React.FC = () => {
 
 	const [settingsOpen, setSettingsOpen] = useState(false);
 
-	const [modeTransition, setModeTransition] = useState(false);
-
-	useEffect(() => {
-		setModeTransition(true);
-		const t = window.setTimeout(() => setModeTransition(false), 170);
-		return () => window.clearTimeout(t);
-	}, [mode]);
-
 	useEffect(() => {
 		if (typeof window === "undefined") return;
 
@@ -122,13 +114,13 @@ export const TimerPanel: React.FC = () => {
 		}
 
 		// Enquanto estiver longe do fim, garantimos que o warning possa tocar depois
-		if (remainingSeconds > 5) {
+		if (remainingSeconds > 4) {
 			breakWarningPlayedRef.current = false;
 			return;
 		}
 
 		// Quando chegar exatamente em 5 segundos e ainda não tocamos o alerta, tocamos
-		if (remainingSeconds === 5 && !breakWarningPlayedRef.current) {
+		if (remainingSeconds === 4 && !breakWarningPlayedRef.current) {
 			breakWarningPlayedRef.current = true;
 
 			// Arquivo sugerido: frontend/public/sounds/break-ending.mp3
@@ -225,9 +217,10 @@ export const TimerPanel: React.FC = () => {
 			<div className="flex flex-col items-center gap-4 mb-6">
 				{/* Círculo simples com barra de progresso */}
 				<div
+					key={mode}
 					className={[
 						"relative w-48 h-48 flex items-center justify-center text-emerald-500",
-						modeTransition ? "timer-mode-transition" : "",
+						"timer-mode-transition",
 						isBreakEnding ? "timer-soft-pulse" : "",
 					].join(" ")}
 				>
