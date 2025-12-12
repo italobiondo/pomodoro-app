@@ -1,75 +1,13 @@
 @import "tailwindcss";
 
-/* Estilos globais básicos do projeto */
+/* ============================
+   Base
+   ============================ */
 html,
 body {
 	margin: 0;
 	padding: 0;
 	min-height: 100%;
-}
-
-/* ============================
-   Tema light/dark global
-   ============================ */
-
-:root.theme-dark {
-	--bg-body: #020617; /* slate-950 */
-	--text-body: #e5e7eb; /* texto padrão */
-
-	--card-bg-main: rgba(15, 23, 42, 0.9);
-	--card-border-main: #1f2937;
-
-	--card-bg-secondary: rgba(15, 23, 42, 0.75);
-	--card-border-secondary: #1f2937;
-
-	/* texto semântico */
-	--text-primary: #f9fafb; /* quase branco */
-	--text-secondary: #e5e7eb; /* títulos menores */
-	--text-muted: #9ca3af; /* descrições */
-
-	/* botões principais */
-	--btn-primary-bg: rgb(16 185 129); /* emerald-500 */
-	--btn-primary-bg-hover: rgb(4 120 87); /* emerald-600-ish */
-	--btn-primary-text: #0b1120; /* quase preto, contraste bom */
-
-	/* sombras dos cards */
-	--card-main-shadow: 0 18px 45px rgba(15, 23, 42, 0.55);
-	--card-secondary-shadow: 0 10px 28px rgba(15, 23, 42, 0.45);
-
-	/* superfícies suaves e bordas */
-	--surface-soft: rgba(15, 23, 42, 0.65);
-	--border-soft: rgba(51, 65, 85, 0.8);
-	--bg-soft: rgba(15, 23, 42, 0.85);
-}
-
-:root.theme-light {
-	--bg-body: #f9fafb; /* fundo claro */
-	--text-body: #020617; /* texto padrão escuro */
-
-	--card-bg-main: #ffffff;
-	--card-border-main: #e5e7eb;
-
-	--card-bg-secondary: #f3f4f6;
-	--card-border-secondary: #e5e7eb;
-
-	/* texto semântico */
-	--text-primary: #020617;
-	--text-secondary: #111827;
-	--text-muted: #6b7280;
-
-	/* botões principais */
-	--btn-primary-bg: rgb(16 185 129);
-	--btn-primary-bg-hover: rgb(4 120 87);
-	--btn-primary-text: #ffffff;
-
-	/* sombras dos cards */
-	--card-main-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
-	--card-secondary-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-
-	/* superfícies suaves e bordas */
-	--surface-soft: #f9fafb;
-	--border-soft: #e5e7eb;
-	--bg-soft: #f9fafb;
 }
 
 body {
@@ -80,7 +18,64 @@ body {
 		sans-serif;
 }
 
-/* Cards genéricos */
+/* ============================
+   Tema global (dark / light)
+   ============================ */
+:root.theme-dark {
+	--bg-body: #020617; /* slate-950 */
+	--text-body: #e5e7eb;
+
+	--card-bg-main: rgba(15, 23, 42, 0.9);
+	--card-border-main: #1f2937;
+
+	--card-bg-secondary: rgba(15, 23, 42, 0.75);
+	--card-border-secondary: #1f2937;
+
+	--text-primary: #f9fafb;
+	--text-secondary: #e5e7eb;
+	--text-muted: #9ca3af;
+
+	--btn-primary-bg: rgb(16 185 129); /* emerald-500 */
+	--btn-primary-bg-hover: rgb(4 120 87); /* emerald-600-ish */
+	--btn-primary-text: #0b1120;
+
+	--card-main-shadow: 0 18px 45px rgba(15, 23, 42, 0.55);
+	--card-secondary-shadow: 0 10px 28px rgba(15, 23, 42, 0.45);
+
+	--surface-soft: rgba(15, 23, 42, 0.65);
+	--border-soft: rgba(51, 65, 85, 0.8);
+	--bg-soft: rgba(15, 23, 42, 0.85);
+}
+
+:root.theme-light {
+	--bg-body: #f9fafb;
+	--text-body: #020617;
+
+	--card-bg-main: #ffffff;
+	--card-border-main: #e5e7eb;
+
+	--card-bg-secondary: #f3f4f6;
+	--card-border-secondary: #e5e7eb;
+
+	--text-primary: #020617;
+	--text-secondary: #111827;
+	--text-muted: #6b7280;
+
+	--btn-primary-bg: rgb(16 185 129);
+	--btn-primary-bg-hover: rgb(4 120 87);
+	--btn-primary-text: #ffffff;
+
+	--card-main-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+	--card-secondary-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+
+	--surface-soft: #f9fafb;
+	--border-soft: #e5e7eb;
+	--bg-soft: #f9fafb;
+}
+
+/* ============================
+   Componentes globais (cards, botões)
+   ============================ */
 .card-main {
 	border-radius: 1rem;
 	border: 1px solid var(--card-border-main);
@@ -95,20 +90,6 @@ body {
 	box-shadow: var(--card-secondary-shadow);
 }
 
-/* Utilitários de texto semântico */
-.text-primary {
-	color: var(--text-primary);
-}
-
-.text-secondary {
-	color: var(--text-secondary);
-}
-
-.text-muted {
-	color: var(--text-muted);
-}
-
-/* Botão primário padrão (verde em ambos os temas) */
 .btn-primary {
 	display: inline-flex;
 	align-items: center;
@@ -120,6 +101,7 @@ body {
 	background-color: var(--btn-primary-bg);
 	color: var(--btn-primary-text);
 	font-weight: 600;
+
 	transition: background-color 0.15s ease, box-shadow 0.15s ease,
 		transform 0.08s ease;
 }
@@ -135,10 +117,69 @@ body {
 	box-shadow: none;
 }
 
+/* ============================
+   Utilitários semânticos
+   ============================ */
+.text-primary {
+	color: var(--text-primary);
+}
+
+.text-secondary {
+	color: var(--text-secondary);
+}
+
+.text-muted {
+	color: var(--text-muted);
+}
+
 .border-soft {
 	border-color: var(--border-soft);
 }
 
 .bg-soft {
 	background-color: var(--bg-soft);
+}
+
+/* ============================
+   Animações (Timer UX)
+   ============================ */
+/* Pulso suave (últimos 5s da pausa) */
+@keyframes pomodoro-soft-pulse {
+	0% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(1.03);
+		opacity: 0.92;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Transição sutil ao trocar modo (pomodoro ↔ pausa) */
+@keyframes pomodoro-mode-pop {
+	0% {
+		transform: scale(0.985);
+		opacity: 0.85;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Classes utilitárias aplicadas no TimerPanel */
+.timer-soft-pulse {
+	animation: pomodoro-soft-pulse 0.9s ease-in-out infinite;
+	transform-origin: center;
+	will-change: transform, opacity;
+}
+
+.timer-mode-transition {
+	animation: pomodoro-mode-pop 160ms ease-out;
+	transform-origin: center;
+	will-change: transform, opacity;
 }

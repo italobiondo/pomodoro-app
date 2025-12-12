@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { TimerMode, useTimer } from "@/hooks/useTimer";
 import { TimerSettingsModal } from "./TimerSettingsModal";
-import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
+import { Info, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 
 function formatTime(totalSeconds: number): string {
 	const minutes = Math.floor(totalSeconds / 60);
@@ -51,6 +51,14 @@ export const TimerPanel: React.FC = () => {
 	const breakWarningPlayedRef = useRef<boolean>(false);
 
 	const [settingsOpen, setSettingsOpen] = useState(false);
+
+	const [modeTransition, setModeTransition] = useState(false);
+
+	useEffect(() => {
+		setModeTransition(true);
+		const t = window.setTimeout(() => setModeTransition(false), 170);
+		return () => window.clearTimeout(t);
+	}, [mode]);
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -149,6 +157,10 @@ export const TimerPanel: React.FC = () => {
 			? 0
 			: 1 - remainingSeconds / totalSecondsForCurrentMode;
 
+	const isBreak = mode === "short_break" || mode === "long_break";
+	const isBreakEnding =
+		isBreak && remainingSeconds <= 5 && remainingSeconds > 0;
+
 	// Quando o usuário inicia um NOVO ciclo de pomodoro (cheio),
 	// disparamos um evento global para o player tentar dar play.
 	const handleToggleClick = () => {
@@ -191,7 +203,18 @@ export const TimerPanel: React.FC = () => {
 										: "border-soft text-muted hover:border-emerald-500 hover:text-secondary"
 								}`}
 							>
-								{getModeLabel(m)}
+								<span className="inline-flex items-center gap-1">
+									{getModeLabel(m)}
+									{m === "long_break" ? (
+										<span
+											className="inline-flex items-center"
+											title="Pausas longas acontecem a cada 4 pomodoros para ajudar na recuperação mental."
+											aria-label="Informação sobre pausa longa"
+										>
+											<Info className="h-4 w-4 opacity-70" aria-hidden />
+										</span>
+									) : null}
+								</span>
 							</button>
 						)
 					)}
@@ -201,7 +224,13 @@ export const TimerPanel: React.FC = () => {
 			{/* Timer */}
 			<div className="flex flex-col items-center gap-4 mb-6">
 				{/* Círculo simples com barra de progresso */}
-				<div className="relative w-48 h-48 flex items-center justify-center text-emerald-500">
+				<div
+					className={[
+						"relative w-48 h-48 flex items-center justify-center text-emerald-500",
+						modeTransition ? "timer-mode-transition" : "",
+						isBreakEnding ? "timer-soft-pulse" : "",
+					].join(" ")}
+				>
 					<svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
 						<circle
 							cx="50"
