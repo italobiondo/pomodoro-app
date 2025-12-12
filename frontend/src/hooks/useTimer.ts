@@ -12,6 +12,8 @@ export interface TimerSettings {
 	autoStartNext: boolean;
 }
 
+type LastFinishKind = "pomodoro_natural" | "pomodoro_skipped" | "break" | null;
+
 interface TimerState {
 	mode: TimerMode;
 	remainingSeconds: number;
@@ -19,6 +21,7 @@ interface TimerState {
 	lastUpdatedAt: number | null; // timestamp em ms
 	completedPomodoros: number;
 	lastFinishedAt: number | null; // para tocar som / confete
+	lastFinishKind: LastFinishKind; // evita duplicidade e diferencia fim natural vs skip
 }
 
 type FocusSessionApiResponse = {
@@ -85,6 +88,7 @@ function createInitialState(settings: TimerSettings): TimerState {
 		lastUpdatedAt: null,
 		completedPomodoros: 0,
 		lastFinishedAt: null,
+		lastFinishKind: null,
 	};
 }
 
@@ -95,6 +99,7 @@ type PersistedTimerState = {
 	lastUpdatedAt?: number | null;
 	completedPomodoros?: number;
 	lastFinishedAt?: number | null;
+	lastFinishKind?: LastFinishKind;
 };
 
 function rehydrateState(raw: unknown, settings: TimerSettings): TimerState {
@@ -114,8 +119,15 @@ function rehydrateState(raw: unknown, settings: TimerSettings): TimerState {
 			typeof data.completedPomodoros === "number" ? data.completedPomodoros : 0,
 		lastFinishedAt:
 			typeof data.lastFinishedAt === "number" ? data.lastFinishedAt : null,
+		lastFinishKind:
+			data.lastFinishKind === "pomodoro_natural" ||
+			data.lastFinishKind === "pomodoro_skipped" ||
+			data.lastFinishKind === "break"
+				? data.lastFinishKind
+				: null,
 	};
 
+	// Se não está rodando, apenas normaliza remaining para não exceder o máximo do modo.
 	if (!base.isRunning || !base.lastUpdatedAt) {
 		const maxForMode = getDurationForMode(base.mode, settings);
 		return {
@@ -124,6 +136,7 @@ function rehydrateState(raw: unknown, settings: TimerSettings): TimerState {
 		};
 	}
 
+	// Se está rodando, recalcula tempo com base em lastUpdatedAt.
 	const now = Date.now();
 	const elapsed = Math.floor((now - base.lastUpdatedAt) / 1000);
 	const remaining = base.remainingSeconds - elapsed;
@@ -136,6 +149,7 @@ function rehydrateState(raw: unknown, settings: TimerSettings): TimerState {
 		};
 	}
 
+	// Caso o tempo tenha "estourado" durante reload, avançamos para o próximo modo.
 	const completedPomodoros =
 		base.mode === "pomodoro"
 			? base.completedPomodoros + 1
@@ -151,6 +165,7 @@ function rehydrateState(raw: unknown, settings: TimerSettings): TimerState {
 		lastUpdatedAt: null,
 		completedPomodoros,
 		lastFinishedAt: now,
+		lastFinishKind: base.mode === "pomodoro" ? "pomodoro_natural" : "break",
 	};
 }
 
@@ -195,7 +210,6 @@ export function useTimer() {
 
 				setState((local) => {
 					const localUpdated = local.lastUpdatedAt ?? 0;
-
 					const remoteUpdated = remote.clientUpdatedAt
 						? new Date(remote.clientUpdatedAt).getTime()
 						: 0;
@@ -213,6 +227,8 @@ export function useTimer() {
 							lastFinishedAt: remote.lastFinishedAt
 								? new Date(remote.lastFinishedAt).getTime()
 								: null,
+							// backend não tem esse campo; preservamos o local
+							lastFinishKind: local.lastFinishKind ?? null,
 						};
 					}
 
@@ -231,9 +247,12 @@ export function useTimer() {
 	// 🔹 ID da sessão de foco atual (apenas Pro e pomodoro)
 	const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-	// Refs para detectar "transições" de conclusão de ciclo
+	// Refs para detectar "transições" de conclusão de ciclo (finish da sessão no backend)
 	const lastFinishedAtRef = useRef<number | null>(state.lastFinishedAt);
 	const lastCompletedPomodorosRef = useRef<number>(state.completedPomodoros);
+
+	// Emissão de evento "once" por lastFinishedAt (evita duplicidade)
+	const lastFinishEmittedAtRef = useRef<number | null>(null);
 
 	const postEvent = useCallback(
 		(
@@ -332,14 +351,6 @@ export function useTimer() {
 					};
 				}
 
-				if (prev.mode === "pomodoro") {
-					queueMicrotask(() => {
-						postEvent("POMODORO_FINISHED", {
-							mode: prev.mode,
-						});
-					});
-				}
-
 				// Ciclo finalizado
 				const completedPomodoros =
 					prev.mode === "pomodoro"
@@ -353,6 +364,8 @@ export function useTimer() {
 					lastUpdatedAt: now,
 					completedPomodoros,
 					lastFinishedAt: now,
+					lastFinishKind:
+						prev.mode === "pomodoro" ? "pomodoro_natural" : "break",
 				};
 
 				const nextMode = getNextMode(prev.mode, completedPomodoros);
@@ -378,7 +391,22 @@ export function useTimer() {
 		}, 1000);
 
 		return () => window.clearInterval(intervalId);
-	}, [state.isRunning, settings, postEvent]);
+	}, [state.isRunning, settings]);
+
+	// 🔹 Emite evento de fim natural do pomodoro (fora do setState updater, evitando duplicidade)
+	useEffect(() => {
+		if (!isPro) return;
+		if (!state.lastFinishedAt) return;
+
+		// once por timestamp
+		if (lastFinishEmittedAtRef.current === state.lastFinishedAt) return;
+		lastFinishEmittedAtRef.current = state.lastFinishedAt;
+
+		// apenas fim NATURAL do pomodoro
+		if (state.lastFinishKind !== "pomodoro_natural") return;
+
+		postEvent("POMODORO_FINISHED", { mode: "pomodoro" });
+	}, [isPro, state.lastFinishedAt, state.lastFinishKind, postEvent]);
 
 	// 🔹 Efeito 1: detectar INÍCIO de um pomodoro (Pro) e abrir sessão no backend
 	useEffect(() => {
@@ -558,6 +586,7 @@ export function useTimer() {
 				lastUpdatedAt: null,
 				completedPomodoros,
 				lastFinishedAt: Date.now(),
+				lastFinishKind: prev.mode === "pomodoro" ? "pomodoro_skipped" : "break",
 			};
 		});
 	};
