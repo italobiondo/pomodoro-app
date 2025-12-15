@@ -68,7 +68,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 
 	return (
 		<>
-			<header className="w-full border-b border-soft bg-background backdrop-blur-md">
+			<header className="w-full border-b border-soft bg-background backdrop-blur-md sticky top-0 z-100">
 				<div className="max-w-6xl mx-auto flex flex-nowrap items-center justify-between px-4 py-3 gap-3">
 					{/* Branding (leva para a home) */}
 					<Link
@@ -161,7 +161,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 								{isThemeMenuOpen && (
 									<div
 										role="menu"
-										className="absolute right-0 mt-2 w-56 rounded-xl border border-overlay bg-overlay shadow-lg p-1 z-50"
+										className="absolute right-0 mt-2 w-56 rounded-xl border border-overlay bg-overlay shadow-lg p-1 z-200"
 									>
 										{allowedThemes
 											.filter((t) => t.key === "light" || t.key === "dark")
