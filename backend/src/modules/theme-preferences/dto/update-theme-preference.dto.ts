@@ -1,6 +1,12 @@
 import { IsIn, IsString } from 'class-validator';
 
-export const ALLOWED_THEME_KEYS = ['light', 'dark', 'midnight'] as const;
+export const ALLOWED_THEME_KEYS = [
+  'light',
+  'dark',
+  'midnight',
+  'pomodoro-red',
+] as const;
+
 export type AllowedThemeKey = (typeof ALLOWED_THEME_KEYS)[number];
 
 export class UpdateThemePreferenceDto {

@@ -35,17 +35,19 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 
 	const { isPro, isAuthenticated, loading } = useAuth();
 	const [isStatsOpen, setIsStatsOpen] = useState(false);
-	const { themeKey, isDark, toggleTheme, setThemeKey } = useTheme();
+	const {
+		themeKey,
+		isDark,
+		toggleTheme,
+		setThemeKey,
+		allowedThemes,
+		getThemeByKey,
+	} = useTheme();
+
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 	const themeMenuRef = useRef<HTMLDivElement | null>(null);
-
-	function themeLabel(key: typeof themeKey) {
-		if (key === "light") return "Claro";
-		if (key === "dark") return "Escuro";
-		return "Midnight";
-	}
 
 	useEffect(() => {
 		function onDocMouseDown(e: MouseEvent) {
@@ -152,7 +154,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 									) : (
 										<Sparkles className="h-4 w-4" aria-hidden />
 									)}
-									Tema: {themeLabel(themeKey)}
+									Tema: {getThemeByKey(themeKey).label}
 									<ChevronDown className="h-4 w-4 opacity-70" aria-hidden />
 								</button>
 
@@ -161,91 +163,82 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 										role="menu"
 										className="absolute right-0 mt-2 w-56 rounded-xl border border-overlay bg-overlay shadow-lg p-1 z-50"
 									>
-										<button
-											type="button"
-											role="menuitem"
-											onClick={() => {
-												setThemeKey("light");
-												setIsThemeMenuOpen(false);
-											}}
-											className="w-full text-left px-3 py-2 rounded-lg text-sm text-secondary hover:bg-soft inline-flex items-center gap-2"
-										>
-											<Sun className="h-4 w-4" aria-hidden />
-											Claro
-										</button>
-
-										<button
-											type="button"
-											role="menuitem"
-											onClick={() => {
-												setThemeKey("dark");
-												setIsThemeMenuOpen(false);
-											}}
-											className="w-full text-left px-3 py-2 rounded-lg text-sm text-secondary hover:bg-soft inline-flex items-center gap-2"
-										>
-											<Moon className="h-4 w-4" aria-hidden />
-											Escuro
-										</button>
+										{allowedThemes
+											.filter((t) => t.key === "light" || t.key === "dark")
+											.map((t) => {
+												const Icon = t.icon;
+												return (
+													<button
+														key={t.key}
+														type="button"
+														role="menuitem"
+														onClick={() => {
+															setThemeKey(t.key);
+															setIsThemeMenuOpen(false);
+														}}
+														className="w-full text-left px-3 py-2 rounded-lg text-sm text-secondary hover:bg-soft inline-flex items-center gap-2"
+													>
+														<Icon className="h-4 w-4" aria-hidden />
+														{t.label}
+													</button>
+												);
+											})}
 
 										<div className="my-1 border-t border-soft" />
 
-										<button
-											type="button"
-											role="menuitem"
-											onClick={() => {
-												if (!isPro) {
-													// CTA simples para Free
-													window.location.href = "/pro";
-													return;
-												}
-												setThemeKey("midnight");
-												setIsThemeMenuOpen(false);
-											}}
-											className={[
-												"w-full text-left px-3 py-2 rounded-lg text-sm inline-flex items-center justify-between gap-2",
-												isPro
-													? "text-secondary hover:bg-soft"
-													: "text-muted hover:bg-soft",
-											].join(" ")}
-											title={
-												isPro
-													? "Tema premium ativável"
-													: "Tema premium: disponível apenas no Plano Pro"
-											}
-										>
-											<span className="inline-flex items-center gap-2">
-												<Sparkles className="h-4 w-4" aria-hidden />
-												Midnight
-											</span>
+										{/*
+  Premium themes: sempre aparecer no menu, mas com gate.
+  Como `allowedThemes` já filtra por plano, precisamos listar os premium do registry separadamente.
+*/}
+										{["midnight", "pomodoro-red"].map((key) => {
+											// eslint-disable-next-line @typescript-eslint/no-explicit-any
+											const theme = getThemeByKey(key as any);
+											const Icon = theme.icon;
+											const canUse = !theme.premium || isPro;
 
-											{isPro ? (
-												<span className="text-[10px] px-2 py-0.5 rounded-full border border-soft text-muted">
-													Premium
-												</span>
-											) : (
-												<span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-soft text-muted">
-													<Lock className="h-3 w-3" aria-hidden />
-													Pro
-												</span>
-											)}
-										</button>
+											return (
+												<button
+													key={theme.key}
+													type="button"
+													role="menuitem"
+													onClick={() => {
+														if (!canUse) {
+															window.location.href = "/pro";
+															return;
+														}
+														setThemeKey(theme.key);
+														setIsThemeMenuOpen(false);
+													}}
+													className={[
+														"w-full text-left px-3 py-2 rounded-lg text-sm inline-flex items-center justify-between gap-2",
+														canUse
+															? "text-secondary hover:bg-soft"
+															: "text-muted hover:bg-soft",
+													].join(" ")}
+													title={
+														canUse
+															? "Tema premium ativável"
+															: "Tema premium: disponível apenas no Plano Pro"
+													}
+												>
+													<span className="inline-flex items-center gap-2">
+														<Icon className="h-4 w-4" aria-hidden />
+														{theme.label}
+													</span>
 
-										{/* Extra: atalho para alternar light/dark rápido */}
-										{/* <button
-											type="button"
-											role="menuitem"
-											onClick={() => {
-												toggleTheme();
-												setIsThemeMenuOpen(false);
-											}}
-											className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted hover:bg-soft inline-flex items-center gap-2"
-										>
-											<ChevronDown
-												className="h-4 w-4 rotate-[-90deg] opacity-70"
-												aria-hidden
-											/>
-											Alternar claro/escuro
-										</button> */}
+													{canUse ? (
+														<span className="text-[10px] px-2 py-0.5 rounded-full border border-soft text-muted">
+															Premium
+														</span>
+													) : (
+														<span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-soft text-muted">
+															<Lock className="h-3 w-3" aria-hidden />
+															Pro
+														</span>
+													)}
+												</button>
+											);
+										})}
 									</div>
 								)}
 							</div>

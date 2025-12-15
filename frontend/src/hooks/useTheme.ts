@@ -6,22 +6,19 @@ import {
 	getMyThemePreference,
 	updateMyThemePreference,
 } from "../lib/apiClient";
-
-export type ThemeKey = "light" | "dark" | "midnight";
-
-const STORAGE_KEY = "pomodoro:themeKey";
-
-const FREE_ALLOWED: ThemeKey[] = ["light", "dark"];
-const PRO_ALLOWED: ThemeKey[] = ["light", "dark", "midnight"];
-
-function isThemeKey(v: unknown): v is ThemeKey {
-	return v === "light" || v === "dark" || v === "midnight";
-}
+import {
+	STORAGE_KEY_THEME,
+	type ThemeKey,
+	THEMES,
+	getThemeByKey,
+	isThemeAllowedForUser,
+	isThemeKey,
+} from "../theme/themes";
 
 function getInitialTheme(): ThemeKey {
 	if (typeof window === "undefined") return "dark";
 
-	const stored = window.localStorage.getItem(STORAGE_KEY);
+	const stored = window.localStorage.getItem(STORAGE_KEY_THEME);
 	if (isThemeKey(stored)) return stored;
 
 	const prefersDark = window.matchMedia?.(
@@ -33,7 +30,6 @@ function getInitialTheme(): ThemeKey {
 function applyThemeToRoot(themeKey: ThemeKey) {
 	const root = document.documentElement;
 
-	// remove qualquer classe "theme-*"
 	for (const cls of Array.from(root.classList)) {
 		if (cls.startsWith("theme-")) root.classList.remove(cls);
 	}
@@ -44,24 +40,26 @@ function applyThemeToRoot(themeKey: ThemeKey) {
 export function useTheme() {
 	const { isPro, isAuthenticated } = useAuth();
 
-	const allowed = useMemo(() => (isPro ? PRO_ALLOWED : FREE_ALLOWED), [isPro]);
-
 	const [themeKey, setThemeKeyState] = useState<ThemeKey>(() =>
 		getInitialTheme()
 	);
 
-	const didHydrateRef = useRef(false);
 	const didFetchRemoteRef = useRef(false);
 	const savingRef = useRef(false);
+
+	const isDark = themeKey !== "light";
+
+	const allowedThemes = useMemo(
+		() => THEMES.filter((t) => (isPro ? true : !t.premium)),
+		[isPro]
+	);
 
 	// aplica tema + salva local
 	useEffect(() => {
 		if (typeof window === "undefined") return;
 
 		applyThemeToRoot(themeKey);
-		window.localStorage.setItem(STORAGE_KEY, themeKey);
-
-		didHydrateRef.current = true;
+		window.localStorage.setItem(STORAGE_KEY_THEME, themeKey);
 	}, [themeKey]);
 
 	// ao montar: se Pro, buscar preferências do backend
@@ -77,8 +75,8 @@ export function useTheme() {
 				const res = await getMyThemePreference();
 				if (!res?.themeKey) return;
 
-				// só aplica se for um ThemeKey suportado e permitido
-				if (isThemeKey(res.themeKey) && PRO_ALLOWED.includes(res.themeKey)) {
+				if (isThemeKey(res.themeKey)) {
+					// Pro pode aplicar qualquer tema registrado
 					setThemeKeyState(res.themeKey);
 				}
 			} catch {
@@ -87,21 +85,18 @@ export function useTheme() {
 		})();
 	}, [isAuthenticated, isPro]);
 
-	// setter “seguro” que valida permissão (Free x Pro) e opcionalmente persiste no backend
 	const setThemeKey = (next: ThemeKey) => {
-		if (!allowed.includes(next)) {
-			// bloqueia premium para Free
-			return;
-		}
+		// Bloqueia premium para Free (segurança UX)
+		if (!isThemeAllowedForUser(next, isPro)) return;
 
 		setThemeKeyState(next);
 
-		// se Pro, persistir (sem bloquear UI)
+		// Persistir no backend apenas se Pro (e autenticado)
 		if (isAuthenticated && isPro && !savingRef.current) {
 			savingRef.current = true;
 			updateMyThemePreference({ themeKey: next })
 				.catch(() => {
-					// se falhar, mantém localStorage como fallback
+					// fallback: localStorage já foi atualizado
 				})
 				.finally(() => {
 					savingRef.current = false;
@@ -115,8 +110,10 @@ export function useTheme() {
 
 	return {
 		themeKey,
-		isDark: themeKey !== "light",
+		isDark,
 		toggleTheme,
 		setThemeKey,
+		allowedThemes, // útil para UI (dropdown)
+		getThemeByKey, // útil para UI (label/icon)
 	};
 }
