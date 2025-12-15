@@ -32,6 +32,7 @@ export function TodoListCard() {
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editingTitle, setEditingTitle] = useState("");
 	const { isPro } = useAuth();
+	const isExpiredLike = !isPro && (isServerMode || items.length > maxTasks);
 
 	function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -83,7 +84,7 @@ export function TodoListCard() {
 					<p className="text-xs text-muted mt-1">
 						{isPro
 							? "Organize até 100 tarefas no plano Pro."
-							: isServerMode
+							: isExpiredLike
 							? "Seu Pro expirou: você pode gerenciar suas tarefas salvas, mas só cria novas quando tiver até 10."
 							: "Organize até 10 tarefas no plano Free."}
 					</p>
@@ -91,13 +92,13 @@ export function TodoListCard() {
 
 				<span
 					className={
-						"text-[10px] px-2 py-0.5 rounded-full border font-semibold " +
+						"text-[10px] px-2 py-0.5 rounded-full border font-semibold whitespace-nowrap leading-none " +
 						(isPro
 							? "border-amber-400 bg-amber-400/10 text-amber-400"
 							: "border-emerald-500 bg-emerald-500/10 text-emerald-600")
 					}
 				>
-					{isPro ? "PRO" : isServerMode ? "FREE (EX-PRO)" : "FREE"}
+					{isPro ? "PRO" : isExpiredLike ? "FREE • EX-PRO" : "FREE"}
 				</span>
 			</header>
 
@@ -143,7 +144,7 @@ export function TodoListCard() {
 						? `${remainingSlots} vaga(s) restante(s)`
 						: isPro
 						? "Você atingiu o limite de tarefas do plano Pro."
-						: isServerMode
+						: isExpiredLike
 						? "Seu Pro expirou: reduza para até 10 para criar novas, ou reative o Pro."
 						: "Você atingiu o limite de tarefas do plano Free."}
 				</span>
