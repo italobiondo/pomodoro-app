@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   UseGuards,
-  ForbiddenException,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,29 +21,13 @@ import { SyncTasksDto } from './dto/sync-tasks.dto';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  /**
-   * Verifica se o usuário é Pro.
-   * Baseado diretamente no campo `plan` do AuthenticatedUser.
-   */
-  private assertProUser(user: AuthenticatedUser) {
-    // PlanType: 'free' | 'pro'
-    if (user.plan !== 'pro') {
-      throw new ForbiddenException(
-        'Funcionalidade disponível apenas para usuários Pro.',
-      );
-    }
-  }
-
   @Get()
   async list(@CurrentUser() user: AuthenticatedUser) {
-    this.assertProUser(user);
-
     const items = await this.tasksService.findAllByUser(user.id);
 
     return items.map((item) => ({
       id: item.id,
       title: item.title,
-      // mapeia isCompleted (banco) -> done (API)
       done: item.isCompleted,
       createdAt: item.createdAt.toISOString(),
       updatedAt: item.updatedAt.toISOString(),
@@ -56,8 +39,6 @@ export class TasksController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateTaskDto,
   ) {
-    this.assertProUser(user);
-
     const item = await this.tasksService.createForUser(user.id, body);
 
     return {
@@ -75,8 +56,6 @@ export class TasksController {
     @Param('id') id: string,
     @Body() body: UpdateTaskDto,
   ) {
-    this.assertProUser(user);
-
     const updated = await this.tasksService.updateForUser(user.id, id, body);
 
     return {
@@ -93,38 +72,21 @@ export class TasksController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ) {
-    this.assertProUser(user);
-
     await this.tasksService.removeForUser(user.id, id);
     return { success: true };
   }
 
   @Delete()
   async clear(@CurrentUser() user: AuthenticatedUser) {
-    this.assertProUser(user);
-
     await this.tasksService.clearForUser(user.id);
     return { success: true };
   }
 
-  /**
-   * Endpoint de sincronização de tasks Pro.
-   *
-   * Recebe:
-   * - clientId (opcional)
-   * - lastSyncAt (opcional)
-   * - lista de tasks com updatedAt e deletedAt.
-   *
-   * Aplica create/update/delete no backend com resolução de conflitos baseada em updatedAt.
-   * Retorna o estado consolidado + serverTime.
-   */
   @Post('sync')
   async sync(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: SyncTasksDto,
   ) {
-    this.assertProUser(user);
-
     const consolidated = await this.tasksService.syncTasksForUser(
       user.id,
       body,
@@ -141,7 +103,6 @@ export class TasksController {
         done: item.isCompleted,
         createdAt: item.createdAt.toISOString(),
         updatedAt: item.updatedAt.toISOString(),
-
         deletedAt: item.deletedAt ? item.deletedAt.toISOString() : null,
       })),
     };

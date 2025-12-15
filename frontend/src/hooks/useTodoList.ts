@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { v4 as uuid } from "uuid";
 import { useAuth } from "@/hooks/useAuth";
-import { apiGet, apiPost } from "@/lib/apiClient";
-import {
+import { ApiError, apiGet, apiPost } from "@/lib/apiClient";
+import type {
 	TodoItem,
 	TaskApiModel,
 	PendingTaskForSync,
@@ -44,6 +44,21 @@ function normalizeTaskFromApi(task: TaskApiModel): TodoItem {
 export function useTodoList() {
 	const { isPro, user, logoutSignal } = useAuth();
 
+	/**
+	 * Server mode:
+	 * - Pro ativo => sempre server
+	 * - Ex-Pro (assinatura expirada) => server somente se houver tasks no backend
+	 */
+	const [usesServer, setUsesServer] = useState(false);
+	const isServerMode = isPro || usesServer;
+
+	/**
+	 * Limite de UI:
+	 * - Pro ativo: 100
+	 * - Free e Ex-Pro: 10
+	 *
+	 * Observação: o backend é a fonte de verdade; aqui é só UX.
+	 */
 	const maxTasks = isPro ? MAX_PRO_TASKS : MAX_FREE_TASKS;
 
 	const [items, setItems] = useLocalStorage<TodoItem[]>(STORAGE_KEY, []);
@@ -54,10 +69,13 @@ export function useTodoList() {
 
 	// 🔹 Limpa só quando realmente houver logout (não em todo reload)
 	useEffect(() => {
+		// Mantém seu comportamento original: só limpa quando é Free e houve logoutSignal.
+		// Ex-Pro (serverMode) não deve apagar tasks locais automaticamente aqui.
 		if (!isPro && logoutSignal > 0) {
 			logSync("Logout detectado em Free, limpando tasks locais");
 			setItems([]);
 			setPendingSyncTasks([]);
+			setUsesServer(false);
 		}
 	}, [logoutSignal, isPro, setItems, setPendingSyncTasks]);
 
@@ -66,11 +84,8 @@ export function useTodoList() {
 	 * Só faz isso se não houver pendências de sync, para não pisar nas mudanças locais.
 	 */
 	const reloadFromBackend = useCallback(async () => {
-		if (!isPro || !user) {
-			logSync("reloadFromBackend: abortado (isPro/user)", {
-				isPro,
-				hasUser: !!user,
-			});
+		if (!user) {
+			logSync("reloadFromBackend: abortado (sem user)");
 			return;
 		}
 		if (pendingSyncTasks.length > 0) {
@@ -83,6 +98,12 @@ export function useTodoList() {
 		try {
 			logSync("reloadFromBackend: buscando /tasks do backend");
 			const remoteItems = await apiGet<TaskApiModel[]>("/tasks");
+
+			// Ex-Pro: se existir qualquer task no servidor, assume server mode
+			if (!isPro && remoteItems.length > 0) {
+				setUsesServer(true);
+			}
+
 			setItems(remoteItems.map(normalizeTaskFromApi));
 			logSync("reloadFromBackend: snapshot carregado", {
 				total: remoteItems.length,
@@ -91,7 +112,8 @@ export function useTodoList() {
 			logSync("reloadFromBackend: erro ao carregar /tasks", err);
 			// silencioso por enquanto
 		}
-	}, [isPro, user, pendingSyncTasks.length, setItems]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user, pendingSyncTasks.length, apiGet, isPro, setItems]);
 
 	/**
 	 * POST /tasks/sync com a fila atual.
@@ -100,15 +122,18 @@ export function useTodoList() {
 	const syncPendingWithServer = useCallback(
 		async (tasksOverride?: PendingTaskForSync[]) => {
 			logSync("syncPendingWithServer: chamado", {
-				isPro,
+				isServerMode,
 				hasUser: !!user,
 				online: isOnline(),
 				overrideCount: tasksOverride?.length ?? null,
 				stateCount: pendingSyncTasks.length,
 			});
 
-			if (!isPro || !user) {
-				logSync("syncPendingWithServer: abortado (isPro/user inválidos)");
+			if (!isServerMode || !user) {
+				logSync("syncPendingWithServer: abortado (serverMode/user inválidos)", {
+					isServerMode,
+					hasUser: !!user,
+				});
 				return;
 			}
 			if (!isOnline()) {
@@ -156,12 +181,32 @@ export function useTodoList() {
 				});
 			} catch (err) {
 				logSync("syncPendingWithServer: erro na sync", err);
+
+				if (err instanceof ApiError) {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const body = err.body as any;
+					if (body?.code === "TASKS_LIMIT_REACHED") {
+						const limit = Number(body?.limit ?? MAX_FREE_TASKS);
+						setError(
+							`Seu plano atual permite até ${limit} tarefas ativas. Você pode excluir/concluir tarefas para reduzir, ou reativar o Pro para voltar a ${MAX_PRO_TASKS}.`
+						);
+						return;
+					}
+				}
+
 				setError(
 					"Não foi possível sincronizar suas tarefas. Tentaremos novamente quando a conexão estiver estável."
 				);
 			}
 		},
-		[isPro, user, pendingSyncTasks, setItems, setPendingSyncTasks]
+		[
+			isServerMode,
+			user,
+			pendingSyncTasks,
+			setItems,
+			setPendingSyncTasks,
+			setError,
+		]
 	);
 
 	/**
@@ -171,27 +216,15 @@ export function useTodoList() {
 	useEffect(() => {
 		logSync("useEffect[pendingSyncTasks]: fila alterada", {
 			pendingCount: pendingSyncTasks.length,
-			pendingSyncTasks,
 		});
 
-		if (pendingSyncTasks.length === 0) {
-			logSync("useEffect[pendingSyncTasks]: nada a sincronizar (fila vazia)");
-			return;
-		}
-		if (!isOnline()) {
-			logSync("useEffect[pendingSyncTasks]: offline, adiando sync");
-			return;
-		}
+		if (pendingSyncTasks.length === 0) return;
+		if (!isOnline()) return;
 
-		logSync(
-			"useEffect[pendingSyncTasks]: disparando syncPendingWithServer com fila atual"
-		);
-
-		// eslint-disable-next-line react-hooks/set-state-in-effect
 		void syncPendingWithServer(pendingSyncTasks);
 	}, [pendingSyncTasks, syncPendingWithServer]);
 
-	// Quando usuário Pro loga, se não houver pendências, carrega snapshot do backend
+	// quando usuário autenticado loga e não há pendências, tenta snapshot
 	useEffect(() => {
 		void reloadFromBackend();
 	}, [reloadFromBackend]);
@@ -212,8 +245,8 @@ export function useTodoList() {
 
 			const now = new Date().toISOString();
 
-			// Free: somente localStorage
-			if (!isPro) {
+			// Free puro: somente localStorage
+			if (!isServerMode) {
 				setItems((prev) => [
 					...prev,
 					{
@@ -229,7 +262,7 @@ export function useTodoList() {
 				return;
 			}
 
-			// Pro: cria local + enfileira para sync
+			// Server mode (Pro / ex-Pro): cria local + enfileira para sync
 			const clientId = uuid();
 
 			const newItem: TodoItem = {
@@ -244,26 +277,18 @@ export function useTodoList() {
 
 			setItems((prev) => [...prev, newItem]);
 
-			setPendingSyncTasks((prev) => {
-				const next = [
-					...prev,
-					{
-						clientId,
-						title: trimmed,
-						done: false,
-						updatedAt: now,
-						deletedAt: null,
-					},
-				];
-				logSync("addItem[Pro]: enfileirando nova task", {
-					newItem,
-					queueBefore: prev.length,
-					queueAfter: next.length,
-				});
-				return next;
-			});
+			setPendingSyncTasks((prev) => [
+				...prev,
+				{
+					clientId,
+					title: trimmed,
+					done: false,
+					updatedAt: now,
+					deletedAt: null,
+				},
+			]);
 		},
-		[canAddMore, isPro, setItems, setPendingSyncTasks]
+		[canAddMore, isServerMode, setItems, setPendingSyncTasks, setError]
 	);
 
 	const updateItemTitle = useCallback(
@@ -273,12 +298,8 @@ export function useTodoList() {
 
 			setError(null);
 
-			// Encontrar o item atual antes de atualizar o estado
 			const current = items.find((item) => item.id === id);
-			if (!current) {
-				logSync("updateItemTitle: item não encontrado", { id });
-				return;
-			}
+			if (!current) return;
 
 			const updated: TodoItem = {
 				...current,
@@ -288,65 +309,43 @@ export function useTodoList() {
 
 			setItems((prev) => prev.map((item) => (item.id === id ? updated : item)));
 
-			if (!isPro) return;
+			if (!isServerMode) return;
 
-			setPendingSyncTasks((prev) => {
-				const next = [
-					...prev,
-					{
-						id: updated.id,
-						clientId: updated.clientId ?? undefined,
-						title: updated.title,
-						done: updated.done,
-						updatedAt: updated.updatedAt,
-						deletedAt: updated.deletedAt ?? null,
-					},
-				];
-				logSync("updateItemTitle[Pro]: enfileirando alteração de título", {
-					updated,
-					queueBefore: prev.length,
-					queueAfter: next.length,
-				});
-				return next;
-			});
+			setPendingSyncTasks((prev) => [
+				...prev,
+				{
+					id: updated.id,
+					clientId: updated.clientId ?? undefined,
+					title: updated.title,
+					done: updated.done,
+					updatedAt: updated.updatedAt,
+					deletedAt: updated.deletedAt ?? null,
+				},
+			]);
 		},
-		[isPro, items, setItems, setPendingSyncTasks]
+		[items, isServerMode, setItems, setPendingSyncTasks, setError]
 	);
 
 	const toggleDone = useCallback(
 		async (id: string) => {
 			setError(null);
-
 			const now = new Date().toISOString();
 
-			// Free: apenas localStorage
-			if (!isPro) {
+			if (!isServerMode) {
 				setItems((prev) =>
 					prev.map((item) =>
 						item.id === id || item.clientId === id
-							? {
-									...item,
-									done: !item.done,
-									updatedAt: now,
-							  }
+							? { ...item, done: !item.done, updatedAt: now }
 							: item
 					)
 				);
 				return;
 			}
 
-			// Pro: usa o snapshot atual de items para achar o alvo
 			const current = items.find(
 				(item) => item.id === id || item.clientId === id
 			);
-
-			if (!current) {
-				logSync("toggleDone[Pro]: item não encontrado (id/clientId)", {
-					id,
-					items,
-				});
-				return;
-			}
+			if (!current) return;
 
 			const updated: TodoItem = {
 				...current,
@@ -354,89 +353,61 @@ export function useTodoList() {
 				updatedAt: now,
 			};
 
-			// Atualiza UI
 			setItems((prev) =>
 				prev.map((item) => (item.id === updated.id ? updated : item))
 			);
 
-			// Enfileira para sync
-			setPendingSyncTasks((prev) => {
-				const next = [
-					...prev,
-					{
-						id: updated.id,
-						clientId: updated.clientId ?? undefined,
-						title: updated.title,
-						done: updated.done,
-						updatedAt: updated.updatedAt,
-						deletedAt: updated.deletedAt ?? null,
-					},
-				];
-
-				logSync("toggleDone[Pro]: enfileirando toggle done", {
-					updated,
-					queueBefore: prev.length,
-					queueAfter: next.length,
-				});
-
-				return next;
-			});
+			setPendingSyncTasks((prev) => [
+				...prev,
+				{
+					id: updated.id,
+					clientId: updated.clientId ?? undefined,
+					title: updated.title,
+					done: updated.done,
+					updatedAt: updated.updatedAt,
+					deletedAt: updated.deletedAt ?? null,
+				},
+			]);
 		},
-		[isPro, items, setItems, setPendingSyncTasks]
+		[items, isServerMode, setItems, setPendingSyncTasks, setError]
 	);
 
 	const removeItem = useCallback(
 		async (id: string) => {
 			setError(null);
-
 			const now = new Date().toISOString();
 
 			const current = items.find((item) => item.id === id);
 
-			// Atualiza UI imediatamente
 			setItems((prev) => prev.filter((item) => item.id !== id));
 
-			// Free: só local
-			if (!isPro) return;
+			if (!isServerMode) return;
 
 			if (current) {
-				setPendingSyncTasks((prev) => {
-					const next = [
-						...prev,
-						{
-							id: current.id,
-							clientId: current.clientId ?? undefined,
-							title: current.title,
-							done: current.done,
-							updatedAt: now,
-							deletedAt: now,
-						},
-					];
-					logSync("removeItem[Pro]: enfileirando tombstone", {
-						current,
-						queueBefore: prev.length,
-						queueAfter: next.length,
-					});
-					return next;
-				});
-			} else {
-				logSync("removeItem[Pro]: item não encontrado", { id });
+				setPendingSyncTasks((prev) => [
+					...prev,
+					{
+						id: current.id,
+						clientId: current.clientId ?? undefined,
+						title: current.title,
+						done: current.done,
+						updatedAt: now,
+						deletedAt: now,
+					},
+				]);
 			}
 		},
-		[isPro, items, setItems, setPendingSyncTasks]
+		[items, isServerMode, setItems, setPendingSyncTasks, setError]
 	);
 
 	const clearAll = useCallback(async () => {
 		setError(null);
-
 		const now = new Date().toISOString();
 
 		const currentItems = items;
-
-		// Atualiza UI imediatamente
 		setItems([]);
 
-		if (!isPro) return;
+		if (!isServerMode) return;
 
 		const tombstones: PendingTaskForSync[] = currentItems.map((item) => ({
 			id: item.id,
@@ -447,16 +418,8 @@ export function useTodoList() {
 			deletedAt: now,
 		}));
 
-		setPendingSyncTasks((prev) => {
-			const next = [...prev, ...tombstones];
-			logSync("clearAll[Pro]: enfileirando tombstones", {
-				count: tombstones.length,
-				queueBefore: prev.length,
-				queueAfter: next.length,
-			});
-			return next;
-		});
-	}, [isPro, items, setItems, setPendingSyncTasks]);
+		setPendingSyncTasks((prev) => [...prev, ...tombstones]);
+	}, [items, isServerMode, setItems, setPendingSyncTasks, setError]);
 
 	return {
 		items,
@@ -469,5 +432,6 @@ export function useTodoList() {
 		remainingSlots,
 		canAddMore,
 		error,
+		isServerMode,
 	};
 }

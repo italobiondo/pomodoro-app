@@ -7,16 +7,33 @@ import { PrismaService } from '../../infra/database/prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { SyncTasksDto } from './dto/sync-tasks.dto';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
-const MAX_TASKS_PER_USER = 100;
+const FREE_TASK_LIMIT = 10;
+const PRO_TASK_LIMIT = 100;
+
+type TasksLimitErrorPayload = {
+  code: 'TASKS_LIMIT_REACHED';
+  limit: number;
+  current: number;
+  requires: 'PRO' | 'FREE_LIMIT';
+  message: string;
+};
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly subscriptionsService: SubscriptionsService,
+  ) {}
+
+  private async getActiveLimitForUser(userId: string): Promise<number> {
+    const status = await this.subscriptionsService.getStatusForUser(userId);
+    return status.isPro ? PRO_TASK_LIMIT : FREE_TASK_LIMIT;
+  }
 
   /**
-   * Lista todas as tasks ATIVAS (não deletadas) de um usuário (Pro).
-   * Importante: sempre filtrar por userId e deletedAt: null.
+   * Lista todas as tasks ATIVAS (não deletadas) de um usuário.
    */
   findAllByUser(userId: string) {
     return this.prisma.task.findMany({
@@ -35,36 +52,44 @@ export class TasksService {
   }
 
   /**
-   * Cria uma nova task para o usuário, respeitando o limite de 100 tasks por usuário Pro.
+   * Cria uma nova task para o usuário, respeitando:
+   * - Pro ativo: 100 tasks ativas
+   * - Não-Pro (inclui expirado): 10 tasks ativas
    */
   async createForUser(userId: string, data: CreateTaskDto) {
-    const totalTasks = await this.countActiveTasks(userId);
+    const [totalTasks, limit] = await Promise.all([
+      this.countActiveTasks(userId),
+      this.getActiveLimitForUser(userId),
+    ]);
 
-    if (totalTasks >= MAX_TASKS_PER_USER) {
-      throw new ConflictException(
-        `Limite de ${MAX_TASKS_PER_USER} tarefas atingido para o seu plano Pro.`,
-      );
+    if (totalTasks >= limit) {
+      const payload: TasksLimitErrorPayload = {
+        code: 'TASKS_LIMIT_REACHED',
+        limit,
+        current: totalTasks,
+        requires: limit === PRO_TASK_LIMIT ? 'PRO' : 'FREE_LIMIT',
+        message:
+          limit === FREE_TASK_LIMIT
+            ? `Limite de ${FREE_TASK_LIMIT} tarefas atingido no modo Free. Exclua/Finalize tarefas para criar novas, ou reative o Pro para liberar até ${PRO_TASK_LIMIT}.`
+            : `Limite de ${PRO_TASK_LIMIT} tarefas atingido no plano Pro.`,
+      };
+
+      throw new ConflictException(payload);
     }
 
     const now = new Date();
 
-    const task = await this.prisma.task.create({
+    return this.prisma.task.create({
       data: {
         userId,
-        title: data.title, // já validado no DTO
+        title: data.title,
         isCompleted: false,
         createdAt: now,
         updatedAt: now,
       },
     });
-
-    return task;
   }
 
-  /**
-   * Atualiza uma task pertencente ao usuário.
-   * Se a task não for do usuário ou não existir, lança NotFoundException.
-   */
   async updateForUser(userId: string, taskId: string, updates: UpdateTaskDto) {
     const existing = await this.prisma.task.findFirst({
       where: {
@@ -80,12 +105,11 @@ export class TasksService {
 
     const now = new Date();
 
-    const updated = await this.prisma.task.update({
+    return this.prisma.task.update({
       where: { id: existing.id },
       data: {
         title:
           typeof updates.title !== 'undefined' ? updates.title : existing.title,
-        // mapeia o "done" do DTO para isCompleted do banco
         isCompleted:
           typeof updates.done !== 'undefined'
             ? updates.done
@@ -99,14 +123,8 @@ export class TasksService {
         updatedAt: now,
       },
     });
-
-    return updated;
   }
 
-  /**
-   * Remove (soft delete) uma task específica do usuário.
-   * Não lança erro se não existir (idempotente).
-   */
   async removeForUser(userId: string, taskId: string): Promise<void> {
     const now = new Date();
 
@@ -123,9 +141,6 @@ export class TasksService {
     });
   }
 
-  /**
-   * Remove (soft delete) todas as tasks do usuário.
-   */
   async clearForUser(userId: string): Promise<void> {
     const now = new Date();
 
@@ -142,26 +157,17 @@ export class TasksService {
   }
 
   /**
-   * Aplica a lógica de sincronização de tasks para um usuário Pro.
-   *
-   * Estratégia:
-   * - Carrega todas as tasks do usuário (incluindo deletadas).
-   * - Para cada task enviada pelo client:
-   *   - Tenta casar por id (server) ou clientId.
-   *   - Resolve conflitos usando updatedAt (se client < server, server vence).
-   *   - Se não existe no server e não está deletada -> cria nova.
-   *   - Se está deletada -> marca deletedAt no server.
-   * - Respeita o limite de 100 tasks ativas por usuário.
-   *
-   * Retorna o estado consolidado das tasks (incluindo deletadas) para o client.
+   * Sync:
+   * - Sempre permite update/delete (mesmo para expirado)
+   * - Só bloqueia caso o sync vá CRIAR tasks ativas acima do limite atual do usuário
    */
   async syncTasksForUser(userId: string, payload: SyncTasksDto) {
     const { tasks: incomingTasks } = payload;
 
-    // Carrega todas as tasks do usuário (incluindo deletadas) para ter visão completa.
-    const existingTasks = await this.prisma.task.findMany({
-      where: { userId },
-    });
+    const [existingTasks, limit] = await Promise.all([
+      this.prisma.task.findMany({ where: { userId } }), // inclui deletadas
+      this.getActiveLimitForUser(userId),
+    ]);
 
     const byId = new Map(existingTasks.map((t) => [t.id, t]));
     const byClientId = new Map(
@@ -170,7 +176,6 @@ export class TasksService {
         .map((t) => [t.clientId as string, t]),
     );
 
-    // Primeiro, calcula quantas novas tasks ativas seriam criadas, para respeitar o limite.
     const currentActiveCount = existingTasks.filter((t) => !t.deletedAt).length;
 
     const potentialNewActiveCount = incomingTasks.filter((incoming) => {
@@ -181,17 +186,23 @@ export class TasksService {
       const serverTask = serverTaskById ?? serverTaskByClientId;
 
       const hasDeletedAt = !!incoming.deletedAt;
-
       return !serverTask && !hasDeletedAt;
     }).length;
 
-    if (currentActiveCount + potentialNewActiveCount > MAX_TASKS_PER_USER) {
-      throw new ConflictException(
-        `Sincronização criaria mais de ${MAX_TASKS_PER_USER} tarefas ativas. Apague algumas tarefas antes de continuar.`,
-      );
+    if (currentActiveCount + potentialNewActiveCount > limit) {
+      const payload: TasksLimitErrorPayload = {
+        code: 'TASKS_LIMIT_REACHED',
+        limit,
+        current: currentActiveCount,
+        requires: limit === FREE_TASK_LIMIT ? 'FREE_LIMIT' : 'PRO',
+        message:
+          limit === FREE_TASK_LIMIT
+            ? `Sincronização excede o limite Free (${FREE_TASK_LIMIT}). Você pode excluir/concluir tarefas para reduzir, ou reativar o Pro para liberar até ${PRO_TASK_LIMIT}.`
+            : `Sincronização excede o limite Pro (${PRO_TASK_LIMIT}).`,
+      };
+      throw new ConflictException(payload);
     }
 
-    // Agora, aplica as mudanças.
     const now = new Date();
 
     for (const incoming of incomingTasks) {
@@ -208,12 +219,8 @@ export class TasksService {
         ? new Date(incoming.deletedAt)
         : null;
 
-      // Se não existe no servidor ainda
       if (!serverTask) {
-        // Se chegou como deletada, ignoramos (tombstone só do client).
-        if (incomingDeletedAt) {
-          continue;
-        }
+        if (incomingDeletedAt) continue;
 
         const created = await this.prisma.task.create({
           data: {
@@ -228,25 +235,15 @@ export class TasksService {
           },
         });
 
-        // Atualiza caches locais para próximos itens (se houverem duplicados)
         byId.set(created.id, created);
-        if (created.clientId) {
-          byClientId.set(created.clientId, created);
-        }
-
+        if (created.clientId) byClientId.set(created.clientId, created);
         continue;
       }
 
-      // Já existe no servidor: resolver conflito por updatedAt.
       if (incomingUpdatedAt && serverTask.updatedAt) {
-        const clientIsOlder = incomingUpdatedAt < serverTask.updatedAt;
-        if (clientIsOlder) {
-          // Servidor é mais novo -> ignora mudança do client.
-          continue;
-        }
+        if (incomingUpdatedAt < serverTask.updatedAt) continue;
       }
 
-      // Se incoming indica deleção, marca soft delete.
       if (incomingDeletedAt) {
         const updated = await this.prisma.task.update({
           where: { id: serverTask.id },
@@ -258,13 +255,10 @@ export class TasksService {
         });
 
         byId.set(updated.id, updated);
-        if (updated.clientId) {
-          byClientId.set(updated.clientId, updated);
-        }
+        if (updated.clientId) byClientId.set(updated.clientId, updated);
         continue;
       }
 
-      // Atualização "normal" de conteúdo
       const updated = await this.prisma.task.update({
         where: { id: serverTask.id },
         data: {
@@ -285,17 +279,12 @@ export class TasksService {
       });
 
       byId.set(updated.id, updated);
-      if (updated.clientId) {
-        byClientId.set(updated.clientId, updated);
-      }
+      if (updated.clientId) byClientId.set(updated.clientId, updated);
     }
 
-    // Retorna o estado consolidado após aplicar todas as mudanças.
-    const consolidatedTasks = await this.prisma.task.findMany({
+    return this.prisma.task.findMany({
       where: { userId },
       orderBy: { createdAt: 'asc' },
     });
-
-    return consolidatedTasks;
   }
 }

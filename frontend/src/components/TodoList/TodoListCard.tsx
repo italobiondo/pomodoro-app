@@ -25,6 +25,7 @@ export function TodoListCard() {
 		remainingSlots,
 		canAddMore,
 		error,
+		isServerMode,
 	} = useTodoList();
 
 	const [newTitle, setNewTitle] = useState("");
@@ -82,6 +83,8 @@ export function TodoListCard() {
 					<p className="text-xs text-muted mt-1">
 						{isPro
 							? "Organize até 100 tarefas no plano Pro."
+							: isServerMode
+							? "Seu Pro expirou: você pode gerenciar suas tarefas salvas, mas só cria novas quando tiver até 10."
 							: "Organize até 10 tarefas no plano Free."}
 					</p>
 				</div>
@@ -94,7 +97,7 @@ export function TodoListCard() {
 							: "border-emerald-500 bg-emerald-500/10 text-emerald-600")
 					}
 				>
-					{isPro ? "PRO" : "FREE"}
+					{isPro ? "PRO" : isServerMode ? "FREE (EX-PRO)" : "FREE"}
 				</span>
 			</header>
 
@@ -140,6 +143,8 @@ export function TodoListCard() {
 						? `${remainingSlots} vaga(s) restante(s)`
 						: isPro
 						? "Você atingiu o limite de tarefas do plano Pro."
+						: isServerMode
+						? "Seu Pro expirou: reduza para até 10 para criar novas, ou reative o Pro."
 						: "Você atingiu o limite de tarefas do plano Free."}
 				</span>
 			</div>
