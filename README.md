@@ -20,19 +20,16 @@ https://pastebin.com/skt1QRtv
 Possiveis Sprints
 https://pastebin.com/s6uf6qxQ
 
-Issues abertas:
-https://pastebin.com/Wa3ahGZn
-
 ====================================================================
 📂 ÁRVORE DO PROJETO (referência atual)
 ```
-.
 .editorconfig
 .gitignore
 .vscode
 .vscode/settings.json
 backend
 backend/.env
+backend/.env.example
 backend/.gitignore
 backend/.prettierrc
 backend/eslint.config.mjs
@@ -49,6 +46,8 @@ backend/prisma/migrations/20251204123942_add_focus_session
 backend/prisma/migrations/20251204123942_add_focus_session/migration.sql
 backend/prisma/migrations/20251205190632_add_payment_raw_payload
 backend/prisma/migrations/20251205190632_add_payment_raw_payload/migration.sql
+backend/prisma/migrations/20251212220447_add_timer_state_and_focus_events
+backend/prisma/migrations/20251212220447_add_timer_state_and_focus_events/migration.sql
 backend/prisma/migrations/migration_lock.toml
 backend/prisma/schema.prisma
 backend/prisma.config.ts
@@ -74,11 +73,13 @@ backend/src/generated/prisma/client/internal/prismaNamespace.ts
 backend/src/generated/prisma/client/internal/prismaNamespaceBrowser.ts
 backend/src/generated/prisma/client/models
 backend/src/generated/prisma/client/models/FocusSession.ts
+backend/src/generated/prisma/client/models/FocusSessionEvent.ts
 backend/src/generated/prisma/client/models/Payment.ts
 backend/src/generated/prisma/client/models/StatsSummary.ts
 backend/src/generated/prisma/client/models/Subscription.ts
 backend/src/generated/prisma/client/models/Task.ts
 backend/src/generated/prisma/client/models/ThemePreference.ts
+backend/src/generated/prisma/client/models/TimerState.ts
 backend/src/generated/prisma/client/models/User.ts
 backend/src/generated/prisma/client/models.ts
 backend/src/infra
@@ -115,6 +116,7 @@ backend/src/modules/plans/plans.controller.ts
 backend/src/modules/plans/plans.module.ts
 backend/src/modules/stats
 backend/src/modules/stats/dto
+backend/src/modules/stats/dto/create-focus-session-event.dto.ts
 backend/src/modules/stats/dto/finish-focus-session.dto.ts
 backend/src/modules/stats/dto/focus-session-response.dto.ts
 backend/src/modules/stats/dto/start-focus-session.dto.ts
@@ -137,6 +139,12 @@ backend/src/modules/tasks/dto/update-task.dto.ts
 backend/src/modules/tasks/tasks.controller.ts
 backend/src/modules/tasks/tasks.module.ts
 backend/src/modules/tasks/tasks.service.ts
+backend/src/modules/timer-state
+backend/src/modules/timer-state/dto
+backend/src/modules/timer-state/dto/upsert-timer-state.dto.ts
+backend/src/modules/timer-state/timer-state.controller.ts
+backend/src/modules/timer-state/timer-state.module.ts
+backend/src/modules/timer-state/timer-state.service.ts
 backend/src/modules/todos
 backend/src/modules/todos/todo.entity.ts
 backend/src/modules/todos/todos.controller.ts
@@ -152,7 +160,6 @@ backend/test/jest-e2e.json
 backend/tsconfig.build.json
 backend/tsconfig.json
 frontend
-frontend/.env.local
 frontend/.gitignore
 frontend/eslint.config.mjs
 frontend/next-env.d.ts
@@ -165,7 +172,8 @@ frontend/public/file.svg
 frontend/public/globe.svg
 frontend/public/next.svg
 frontend/public/sounds
-frontend/public/sounds/basic-notification.mp3
+frontend/public/sounds/break-ending.wav
+frontend/public/sounds/pomodoro-end.mp3
 frontend/public/vercel.svg
 frontend/public/window.svg
 frontend/README.md
@@ -273,7 +281,19 @@ Você deve sempre cruzar informações entre:
 ====================================================================
 🎯 OBJETIVO INICIAL NESTE NOVO CHAT
 
-- Verificar o que precisa ser feito seguindo o que foi definido na documentação e ainda está pendente
+```
+2. Política para tasks quando o Pro expira
+
+Hoje você já tem tasks Free (até 10, local) e Pro (até 100, backend) e o backend/subscriptions já estão funcionando com Mercado Pago e status de assinatura real.Pastebin+1
+Endereçar a issue: “o que acontece com as tasks do usuário que era pro mas expirou?” (issue 1).Pastebin
+Definir regra de produto, por exemplo:
+As tasks antigas continuam existindo no banco.
+Usuário Free (após expirar) fica somente leitura acima de 10 tasks (pode concluir/deletar, mas não criar novas até ficar ≤ 10).
+UI deve explicar o motivo e sugerir reativar Pro.
+Implementar essa regra:
+No backend (tasks.service.ts), checar status da assinatura antes de permitir novas criações.
+No frontend (useTodoList.ts + componentes), exibir mensagem amigável quando bater a limitação pós-expiração.
+```
 
 Antes de continuarmos, faça o seguinte:
 
