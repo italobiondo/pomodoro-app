@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SocialLoginButtons } from "@/components/Auth/SocialLoginButtons";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +16,8 @@ import {
 	Sun,
 	Settings,
 	X,
+	ChevronDown,
+	Lock,
 } from "lucide-react";
 
 type MainHeaderProps = {
@@ -33,8 +35,32 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 
 	const { isPro, isAuthenticated, loading } = useAuth();
 	const [isStatsOpen, setIsStatsOpen] = useState(false);
-	const { isDark, toggleTheme } = useTheme();
+	const { themeKey, isDark, toggleTheme, setThemeKey } = useTheme();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+	const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+	const themeMenuRef = useRef<HTMLDivElement | null>(null);
+
+	function themeLabel(key: typeof themeKey) {
+		if (key === "light") return "Claro";
+		if (key === "dark") return "Escuro";
+		return "Midnight";
+	}
+
+	useEffect(() => {
+		function onDocMouseDown(e: MouseEvent) {
+			if (!isThemeMenuOpen) return;
+			const el = themeMenuRef.current;
+			if (!el) return;
+
+			if (e.target instanceof Node && !el.contains(e.target)) {
+				setIsThemeMenuOpen(false);
+			}
+		}
+
+		document.addEventListener("mousedown", onDocMouseDown);
+		return () => document.removeEventListener("mousedown", onDocMouseDown);
+	}, [isThemeMenuOpen]);
 
 	const closeMenu = () => setIsMenuOpen(false);
 
@@ -109,19 +135,119 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 								</button>
 							)}
 
-							{/* Toggle de tema */}
-							<button
-								type="button"
-								onClick={toggleTheme}
-								className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5"
-							>
-								{isDark ? (
-									<Sun className="h-4 w-4" aria-hidden />
-								) : (
-									<Moon className="h-4 w-4" aria-hidden />
+							{/* Seletor de tema (dropdown) */}
+							<div className="relative" ref={themeMenuRef}>
+								<button
+									type="button"
+									onClick={() => setIsThemeMenuOpen((v) => !v)}
+									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5"
+									aria-haspopup="menu"
+									aria-expanded={isThemeMenuOpen}
+								>
+									{themeKey === "light" ? (
+										<Sun className="h-4 w-4" aria-hidden />
+									) : themeKey === "dark" ? (
+										<Moon className="h-4 w-4" aria-hidden />
+									) : (
+										<Sparkles className="h-4 w-4" aria-hidden />
+									)}
+									Tema: {themeLabel(themeKey)}
+									<ChevronDown className="h-4 w-4 opacity-70" aria-hidden />
+								</button>
+
+								{isThemeMenuOpen && (
+									<div
+										role="menu"
+										className="absolute right-0 mt-2 w-56 rounded-xl border border-soft bg-background shadow-lg backdrop-blur-md p-1 z-50"
+									>
+										<button
+											type="button"
+											role="menuitem"
+											onClick={() => {
+												setThemeKey("light");
+												setIsThemeMenuOpen(false);
+											}}
+											className="w-full text-left px-3 py-2 rounded-lg text-sm text-secondary hover:bg-soft inline-flex items-center gap-2"
+										>
+											<Sun className="h-4 w-4" aria-hidden />
+											Claro
+										</button>
+
+										<button
+											type="button"
+											role="menuitem"
+											onClick={() => {
+												setThemeKey("dark");
+												setIsThemeMenuOpen(false);
+											}}
+											className="w-full text-left px-3 py-2 rounded-lg text-sm text-secondary hover:bg-soft inline-flex items-center gap-2"
+										>
+											<Moon className="h-4 w-4" aria-hidden />
+											Escuro
+										</button>
+
+										<div className="my-1 border-t border-soft" />
+
+										<button
+											type="button"
+											role="menuitem"
+											onClick={() => {
+												if (!isPro) {
+													// CTA simples para Free
+													window.location.href = "/pro";
+													return;
+												}
+												setThemeKey("midnight");
+												setIsThemeMenuOpen(false);
+											}}
+											className={[
+												"w-full text-left px-3 py-2 rounded-lg text-sm inline-flex items-center justify-between gap-2",
+												isPro
+													? "text-secondary hover:bg-soft"
+													: "text-muted hover:bg-soft",
+											].join(" ")}
+											title={
+												isPro
+													? "Tema premium ativável"
+													: "Tema premium: disponível apenas no Plano Pro"
+											}
+										>
+											<span className="inline-flex items-center gap-2">
+												<Sparkles className="h-4 w-4" aria-hidden />
+												Midnight
+											</span>
+
+											{isPro ? (
+												<span className="text-[10px] px-2 py-0.5 rounded-full border border-soft text-muted">
+													Premium
+												</span>
+											) : (
+												<span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-soft text-muted">
+													<Lock className="h-3 w-3" aria-hidden />
+													Pro
+												</span>
+											)}
+										</button>
+
+										{/* Extra: atalho para alternar light/dark rápido */}
+										<button
+											type="button"
+											role="menuitem"
+											onClick={() => {
+												toggleTheme();
+												setIsThemeMenuOpen(false);
+											}}
+											className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted hover:bg-soft inline-flex items-center gap-2"
+										>
+											<ChevronDown
+												className="h-4 w-4 rotate-[-90deg] opacity-70"
+												aria-hidden
+											/>
+											Alternar claro/escuro
+										</button>
+									</div>
 								)}
-								{isDark ? "Tema claro" : "Tema escuro"}
-							</button>
+							</div>
 
 							{/* Login / Conta */}
 							<SocialLoginButtons compact />

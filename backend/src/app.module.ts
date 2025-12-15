@@ -12,6 +12,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { TimerStateModule } from './modules/timer-state/timer-state.module';
 import { TimerSettingsModule } from './modules/timer-settings/timer-settings.module';
+import { ThemePreferencesModule } from './modules/theme-preferences/theme-preferences.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { TimerSettingsModule } from './modules/timer-settings/timer-settings.mod
     PlansModule,
     TimerStateModule,
     TimerSettingsModule,
+    ThemePreferencesModule,
   ],
 })
 export class AppModule {}

@@ -140,3 +140,20 @@ export type Plan = {
 export function getPlans(): Promise<Plan[]> {
 	return apiGet<Plan[]>("/plans");
 }
+
+export type ThemePreferenceMeResponse = {
+	themeKey: string | null;
+};
+
+export function getMyThemePreference(): Promise<ThemePreferenceMeResponse> {
+	return apiGet<ThemePreferenceMeResponse>("/theme-preferences/me");
+}
+
+export function updateMyThemePreference(input: {
+	themeKey: string;
+}): Promise<{ themeKey: string; updatedAt?: string }> {
+	return apiPut<{ themeKey: string; updatedAt?: string }>(
+		"/theme-preferences/me",
+		input
+	);
+}
