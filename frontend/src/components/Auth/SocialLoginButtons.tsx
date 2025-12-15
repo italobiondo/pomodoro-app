@@ -23,13 +23,14 @@ export function SocialLoginButtons({ compact }: SocialLoginButtonsProps) {
 
 	if (user) {
 		return (
-			<div className="flex items-center gap-3">
-				<span className="text-sm text-muted">
+			<div className="flex items-center gap-3 min-w-0">
+				<span className="text-sm text-muted whitespace-nowrap truncate max-w-[180px]">
 					Olá, {user.name || user.email}
 				</span>
+
 				<button
 					onClick={logout}
-					className="px-3 py-1 rounded-lg bg-soft border border-soft text-xs text-secondary hover:bg-soft transition-colors inline-flex items-center gap-1.5"
+					className="px-3 py-1 rounded-lg bg-soft border border-soft text-xs text-secondary hover:bg-soft transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
 				>
 					<LogOut className="h-4 w-4" aria-hidden />
 					Sair

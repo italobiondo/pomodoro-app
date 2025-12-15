@@ -67,17 +67,18 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 	return (
 		<>
 			<header className="w-full border-b border-soft bg-background backdrop-blur-md">
-				<div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3 gap-3">
+				<div className="max-w-4xl mx-auto flex flex-nowrap items-center justify-between px-4 py-3 gap-3">
 					{/* Branding (leva para a home) */}
 					<Link
 						href="/"
-						className="flex flex-col hover:opacity-90 transition-opacity"
+						className="flex flex-col min-w-0 hover:opacity-90 transition-opacity"
 						onClick={closeMenu}
 					>
-						<h1 className="text-lg font-semibold tracking-tight text-primary">
+						<h1 className="text-lg font-semibold tracking-tight text-primary truncate whitespace-nowrap">
 							Pomodoro Focus
 						</h1>
-						<p className="text-xs text-muted">
+
+						<p className="text-xs text-muted whitespace-nowrap">
 							• {isPro ? "Plano Pro" : "Plano Free"}
 						</p>
 					</Link>
@@ -91,7 +92,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 								<button
 									type="button"
 									onClick={() => setIsStatsOpen(true)}
-									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5"
+									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
 								>
 									<BarChart3 className="h-4 w-4" aria-hidden />
 									Estatísticas
@@ -104,7 +105,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 									{isAuthenticated && isPro && (
 										<Link
 											href="/pro/manage"
-											className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5"
+											className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
 										>
 											<Crown className="h-4 w-4" aria-hidden />
 											Gerenciar plano
@@ -114,7 +115,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 									{(!isAuthenticated || !isPro) && (
 										<Link
 											href="/pro"
-											className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5"
+											className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
 										>
 											<Sparkles className="h-4 w-4" aria-hidden />
 											Seja Pro
@@ -128,7 +129,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 								<button
 									type="button"
 									onClick={openSettings}
-									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5"
+									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
 								>
 									<Settings className="h-4 w-4" aria-hidden />
 									Configurações
@@ -140,7 +141,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 								<button
 									type="button"
 									onClick={() => setIsThemeMenuOpen((v) => !v)}
-									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5"
+									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
 									aria-haspopup="menu"
 									aria-expanded={isThemeMenuOpen}
 								>
@@ -158,7 +159,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 								{isThemeMenuOpen && (
 									<div
 										role="menu"
-										className="absolute right-0 mt-2 w-56 rounded-xl border border-soft bg-background shadow-lg backdrop-blur-md p-1 z-50"
+										className="absolute right-0 mt-2 w-56 rounded-xl border border-overlay bg-overlay shadow-lg p-1 z-50"
 									>
 										<button
 											type="button"
@@ -230,7 +231,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 										</button>
 
 										{/* Extra: atalho para alternar light/dark rápido */}
-										<button
+										{/* <button
 											type="button"
 											role="menuitem"
 											onClick={() => {
@@ -244,7 +245,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 												aria-hidden
 											/>
 											Alternar claro/escuro
-										</button>
+										</button> */}
 									</div>
 								)}
 							</div>

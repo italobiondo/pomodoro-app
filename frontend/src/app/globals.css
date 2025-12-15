@@ -45,6 +45,9 @@ body {
 	--surface-soft: rgba(15, 23, 42, 0.65);
 	--border-soft: rgba(51, 65, 85, 0.8);
 	--bg-soft: rgba(15, 23, 42, 0.85);
+
+	--overlay-bg: #0b1220; /* opaco, consistente com dark */
+	--overlay-border: rgba(51, 65, 85, 0.9);
 }
 
 :root.theme-light {
@@ -70,7 +73,10 @@ body {
 
 	--surface-soft: #f9fafb;
 	--border-soft: #e5e7eb;
-	--bg-soft: #f9fafb;
+	--bg-soft: rgb(249, 250, 251, 0.85);
+
+	--overlay-bg: #ffffff; /* opaco */
+	--overlay-border: #e5e7eb;
 }
 
 :root.theme-midnight {
@@ -97,6 +103,9 @@ body {
 	--surface-soft: rgba(2, 6, 23, 0.65);
 	--border-soft: rgba(99, 102, 241, 0.22);
 	--bg-soft: rgba(2, 6, 23, 0.85);
+
+	--overlay-bg: #020617; /* opaco, mais “midnight” */
+	--overlay-border: rgba(99, 102, 241, 0.28);
 }
 
 /* ============================
@@ -164,6 +173,14 @@ body {
 
 .bg-soft {
 	background-color: var(--bg-soft);
+}
+
+.bg-overlay {
+	background-color: var(--overlay-bg);
+}
+
+.border-overlay {
+	border-color: var(--overlay-border);
 }
 
 /* ============================
