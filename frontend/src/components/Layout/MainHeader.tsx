@@ -67,14 +67,14 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 	return (
 		<>
 			<header className="w-full border-b border-soft bg-background backdrop-blur-md">
-				<div className="max-w-4xl mx-auto flex flex-nowrap items-center justify-between px-4 py-3 gap-3">
+				<div className="max-w-6xl mx-auto flex flex-nowrap items-center justify-between px-4 py-3 gap-3">
 					{/* Branding (leva para a home) */}
 					<Link
 						href="/"
 						className="flex flex-col min-w-0 hover:opacity-90 transition-opacity"
 						onClick={closeMenu}
 					>
-						<h1 className="text-lg font-semibold tracking-tight text-primary truncate whitespace-nowrap">
+						<h1 className="text-lg font-semibold tracking-tight text-primary whitespace-nowrap">
 							Pomodoro Focus
 						</h1>
 
@@ -292,7 +292,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 				{/* Menu mobile */}
 				{isMenuOpen && (
 					<div className="sm:hidden border-t border-soft bg-background">
-						<div className="max-w-4xl mx-auto px-4 py-3 space-y-3">
+						<div className="max-w-6xl mx-auto px-4 py-3 space-y-3">
 							<Link
 								href="/"
 								onClick={closeMenu}
