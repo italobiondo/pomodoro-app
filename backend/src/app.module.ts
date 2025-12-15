@@ -11,6 +11,7 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { TimerStateModule } from './modules/timer-state/timer-state.module';
+import { TimerSettingsModule } from './modules/timer-settings/timer-settings.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TimerStateModule } from './modules/timer-state/timer-state.module';
     PaymentsModule,
     PlansModule,
     TimerStateModule,
+    TimerSettingsModule,
   ],
 })
 export class AppModule {}

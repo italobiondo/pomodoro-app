@@ -17,6 +17,7 @@ interface TimerSettingsModalProps {
 	onChangeSettings: (patch: Partial<TimerSettings>) => void;
 	soundEnabled: boolean;
 	onChangeSoundEnabled: (value: boolean) => void;
+	onResetSettings: () => void;
 }
 
 export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
@@ -26,6 +27,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 	onChangeSettings,
 	soundEnabled,
 	onChangeSoundEnabled,
+	onResetSettings,
 }) => {
 	if (!open) return null;
 
@@ -141,7 +143,15 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 					</section>
 				</div>
 
-				<div className="mt-5 flex justify-end">
+				<div className="mt-5 flex items-center justify-between">
+					<button
+						type="button"
+						onClick={onResetSettings}
+						className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5"
+					>
+						Resetar padrão
+					</button>
+
 					<button
 						type="button"
 						onClick={onClose}

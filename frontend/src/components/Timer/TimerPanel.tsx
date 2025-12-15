@@ -39,6 +39,7 @@ export const TimerPanel: React.FC = () => {
 		resetCurrent,
 		switchMode,
 		skipToNext,
+		resetSettingsToDefault,
 	} = useTimer();
 
 	const [soundEnabled, setSoundEnabled] = useState(true);
@@ -298,6 +299,7 @@ export const TimerPanel: React.FC = () => {
 				onChangeSettings={updateSettings}
 				soundEnabled={soundEnabled}
 				onChangeSoundEnabled={setSoundEnabled}
+				onResetSettings={resetSettingsToDefault}
 			/>
 		</section>
 	);

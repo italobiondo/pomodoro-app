@@ -42,6 +42,13 @@ type RemoteTimerState = {
 	clientUpdatedAt: string | null;
 };
 
+type RemoteTimerSettings = {
+	pomodoroMinutes: number;
+	shortBreakMinutes: number;
+	longBreakMinutes: number;
+	autoStartNext: boolean;
+};
+
 const TIMER_STATE_STORAGE_KEY = "pomodoro_timer_state_v1";
 const TIMER_SETTINGS_STORAGE_KEY = "pomodoro_timer_settings_v1";
 
@@ -51,6 +58,34 @@ const DEFAULT_SETTINGS: TimerSettings = {
 	longBreakMinutes: 15,
 	autoStartNext: false,
 };
+
+function normalizeSettings(
+	input: Partial<TimerSettings> | null | undefined
+): TimerSettings {
+	const pomodoroMinutes =
+		typeof input?.pomodoroMinutes === "number"
+			? input.pomodoroMinutes
+			: DEFAULT_SETTINGS.pomodoroMinutes;
+	const shortBreakMinutes =
+		typeof input?.shortBreakMinutes === "number"
+			? input.shortBreakMinutes
+			: DEFAULT_SETTINGS.shortBreakMinutes;
+	const longBreakMinutes =
+		typeof input?.longBreakMinutes === "number"
+			? input.longBreakMinutes
+			: DEFAULT_SETTINGS.longBreakMinutes;
+	const autoStartNext =
+		typeof input?.autoStartNext === "boolean"
+			? input.autoStartNext
+			: DEFAULT_SETTINGS.autoStartNext;
+
+	return {
+		pomodoroMinutes: Math.min(120, Math.max(1, Math.trunc(pomodoroMinutes))),
+		shortBreakMinutes: Math.min(60, Math.max(1, Math.trunc(shortBreakMinutes))),
+		longBreakMinutes: Math.min(60, Math.max(1, Math.trunc(longBreakMinutes))),
+		autoStartNext,
+	};
+}
 
 function getDurationForMode(mode: TimerMode, settings: TimerSettings): number {
 	switch (mode) {
@@ -177,6 +212,16 @@ export function useTimer() {
 		DEFAULT_SETTINGS
 	);
 
+	const settingsHydratedFromRemoteRef = useRef(false);
+	const skipNextSettingsSyncRef = useRef(false);
+	const settingsSyncTimeoutRef = useRef<number | null>(null);
+
+	const lastSettingsRef = useRef<TimerSettings>(normalizeSettings(settings));
+
+	useEffect(() => {
+		lastSettingsRef.current = normalizeSettings(settings);
+	}, [settings]);
+
 	const [state, setState] = useState<TimerState>(() => {
 		// SSR / build
 		if (typeof window === "undefined") {
@@ -243,6 +288,69 @@ export function useTimer() {
 			cancelled = true;
 		};
 	}, [isPro]);
+
+	useEffect(() => {
+		if (!isPro) return;
+		if (typeof window === "undefined") return;
+
+		let cancelled = false;
+
+		(async () => {
+			try {
+				const remote = await apiGet<RemoteTimerSettings>("/timer-settings/me");
+				if (cancelled) return;
+
+				const normalized = normalizeSettings(remote);
+
+				// Evita disparar sync imediato após aplicar remoto
+				skipNextSettingsSyncRef.current = true;
+				settingsHydratedFromRemoteRef.current = true;
+
+				setSettings(() => normalized);
+				lastSettingsRef.current = normalized;
+
+				// Se timer estiver parado, ajusta remainingSeconds sem “surpresas”:
+				// - Se estava no início do ciclo (full duration antigo), então atualiza para full duration novo.
+				// - Se estava pausado no meio, preserva (apenas clampa se exceder o novo máximo).
+				setState((current) => {
+					if (current.isRunning) return current;
+
+					const prevSettings = lastSettingsRef.current;
+					const prevExpected = getDurationForMode(current.mode, prevSettings);
+					const nextExpected = getDurationForMode(current.mode, normalized);
+
+					const wasAtStart =
+						Math.abs(current.remainingSeconds - prevExpected) <= 1 &&
+						(current.lastUpdatedAt === null ||
+							current.lastUpdatedAt === undefined);
+
+					if (wasAtStart) {
+						return {
+							...current,
+							remainingSeconds: nextExpected,
+						};
+					}
+
+					// Se por algum motivo o remaining está acima do novo máximo, clampa.
+					if (current.remainingSeconds > nextExpected) {
+						return {
+							...current,
+							remainingSeconds: nextExpected,
+						};
+					}
+
+					return current;
+				});
+			} catch {
+				// Sem rede: fica com localStorage
+				settingsHydratedFromRemoteRef.current = true;
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [isPro, setSettings]);
 
 	// 🔹 ID da sessão de foco atual (apenas Pro e pomodoro)
 	const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -323,6 +431,40 @@ export function useTimer() {
 			}
 		};
 	}, [isPro, state]);
+
+	useEffect(() => {
+		if (!isPro) return;
+		if (typeof window === "undefined") return;
+
+		// Só começa a syncar depois que tentamos hidratar remoto (evita PUT antes do GET)
+		if (!settingsHydratedFromRemoteRef.current) return;
+
+		// Se acabamos de aplicar remoto, não faz PUT imediatamente
+		if (skipNextSettingsSyncRef.current) {
+			skipNextSettingsSyncRef.current = false;
+			return;
+		}
+
+		if (settingsSyncTimeoutRef.current) {
+			window.clearTimeout(settingsSyncTimeoutRef.current);
+		}
+
+		const payload = normalizeSettings(settings);
+
+		settingsSyncTimeoutRef.current = window.setTimeout(async () => {
+			try {
+				await apiPut("/timer-settings/me", payload);
+			} catch {
+				// Ignora erro de sync
+			}
+		}, 1500);
+
+		return () => {
+			if (settingsSyncTimeoutRef.current) {
+				window.clearTimeout(settingsSyncTimeoutRef.current);
+			}
+		};
+	}, [isPro, settings]);
 
 	// Loop de contagem
 	useEffect(() => {
@@ -613,6 +755,20 @@ export function useTimer() {
 		});
 	};
 
+	const resetSettingsToDefault = () => {
+		const next = DEFAULT_SETTINGS;
+
+		setSettings(() => next);
+
+		setState((current) => {
+			if (current.isRunning) return current;
+			return {
+				...current,
+				remainingSeconds: getDurationForMode(current.mode, next),
+			};
+		});
+	};
+
 	return {
 		// estado
 		mode: state.mode,
@@ -632,5 +788,6 @@ export function useTimer() {
 		resetCurrent,
 		switchMode,
 		skipToNext,
+		resetSettingsToDefault,
 	};
 }

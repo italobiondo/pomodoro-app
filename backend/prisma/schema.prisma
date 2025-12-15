@@ -65,11 +65,11 @@ model User {
   tasks           Task[]
   statsSummary    StatsSummary?
   themePreference ThemePreference?
-
   timerState TimerState?
-
   focusSessions      FocusSession[]
   focusSessionEvents FocusSessionEvent[]
+  timerSettings TimerSettings?
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -199,6 +199,22 @@ model TimerState {
   lastFinishedAt     DateTime?
 
   clientUpdatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model TimerSettings {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  pomodoroMinutes   Int     @default(25)
+  shortBreakMinutes Int     @default(5)
+  longBreakMinutes  Int     @default(15)
+  autoStartNext     Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
