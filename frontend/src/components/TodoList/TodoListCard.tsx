@@ -114,7 +114,7 @@ export function TodoListCard() {
 				<input
 					type="text"
 					maxLength={255}
-					className="flex-1 rounded-lg bg-soft border border-soft px-3 py-2 text-xs text-secondary placeholder:text-muted outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500"
+					className="flex-1 ui-input"
 					placeholder={
 						canAddMore
 							? "Digite uma tarefa e pressione Enter"
@@ -127,7 +127,7 @@ export function TodoListCard() {
 				<button
 					type="submit"
 					disabled={!canAddMore || !newTitle.trim()}
-					className="text-xs px-3 py-2 rounded-lg btn-primary inline-flex items-center gap-1.5"
+					className="text-xs px-3 py-2 rounded-lg btn-primary inline-flex items-center gap-1.5 ui-clickable"
 				>
 					<Plus className="h-4 w-4" aria-hidden />
 					Add
@@ -169,10 +169,10 @@ export function TodoListCard() {
 									<button
 										type="button"
 										onClick={() => handleToggleDone(item.id, item.done)}
-										className={`mt-0.5 h-4 w-4 rounded-full border flex items-center justify-center text-[10px] ${
+										className={`mt-0.5 h-4 w-4 rounded-full border flex items-center justify-center text-[10px] ui-clickable transition-colors ${
 											item.done
 												? "bg-emerald-500 border-emerald-500 text-secondary"
-												: "border-soft bg-background text-transparent bg-gray-200"
+												: "border-soft bg-soft text-transparent hover:border-emerald-500/60"
 										}`}
 										aria-label={
 											item.done
@@ -188,7 +188,7 @@ export function TodoListCard() {
 											<input
 												type="text"
 												maxLength={255}
-												className="w-full bg-soft border border-soft rounded px-2 py-1 text-xs text-secondary outline-none focus:ring-2 focus:ring-emerald-500/60"
+												className="w-full ui-input-compact"
 												value={editingTitle}
 												onChange={(e) => setEditingTitle(e.target.value)}
 												onBlur={() => saveEditing(item.id)}
@@ -230,7 +230,7 @@ export function TodoListCard() {
 											<button
 												type="button"
 												onClick={() => startEditing(item.id, item.title)}
-												className="text-[10px] px-2 py-1 rounded bg-soft text-secondary hover:bg-soft inline-flex items-center gap-1"
+												className="text-[10px] inline-flex items-center gap-1 ui-btn-soft"
 											>
 												<Pencil className="h-3 w-3" aria-hidden />
 												Editar
@@ -239,7 +239,7 @@ export function TodoListCard() {
 										<button
 											type="button"
 											onClick={() => removeItem(item.id)}
-											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 inline-flex items-center gap-1"
+											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 inline-flex items-center gap-1 ui-clickable"
 										>
 											<Trash2 className="h-3 w-3" aria-hidden />
 											Excluir

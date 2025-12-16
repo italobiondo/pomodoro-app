@@ -69,7 +69,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 
 	return (
 		<>
-			<header className="w-full border-b border-soft bg-background backdrop-blur-md sticky top-0 z-100">
+			<header className="w-full border-b border-soft bg-background backdrop-blur-md sticky top-0 z-50">
 				<div className="max-w-6xl mx-auto flex flex-nowrap items-center justify-between px-4 py-3 gap-3">
 					{/* Branding (leva para a home) */}
 					<Link
@@ -173,7 +173,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 								{isThemeMenuOpen && (
 									<div
 										role="menu"
-										className="absolute right-0 mt-2 w-56 rounded-xl border border-overlay bg-overlay shadow-lg p-1 z-200"
+										className="absolute right-0 mt-2 w-56 rounded-xl border border-overlay bg-overlay shadow-lg p-1 z-60"
 									>
 										{allowedThemes
 											.filter((t) => t.key === "light" || t.key === "dark")
@@ -265,7 +265,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 							<button
 								type="button"
 								onClick={toggleTheme}
-								className="p-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center justify-center"
+								className="p-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center justify-center ui-clickable"
 							>
 								{isDark ? (
 									<Sun className="h-4 w-4" aria-hidden />
@@ -281,7 +281,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 							<button
 								type="button"
 								onClick={() => setIsMenuOpen((prev) => !prev)}
-								className="p-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center justify-center"
+								className="p-1.5 rounded-full border border-soft text-secondary hover:bg-soft transition-colors inline-flex items-center justify-center ui-clickable"
 								aria-label="Abrir menu"
 							>
 								{isMenuOpen ? (

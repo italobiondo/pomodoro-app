@@ -255,3 +255,91 @@ body {
 	transform-origin: center;
 	will-change: transform, opacity;
 }
+
+/* ============================
+   UI Consistency (inputs, buttons, z-index)
+   ============================ */
+
+/* Inputs padrão (mesma linguagem dos cards) */
+.ui-input {
+	border-radius: 0.75rem; /* ~rounded-lg */
+	border: 1px solid var(--border-soft);
+	background-color: var(--bg-soft);
+	color: var(--text-secondary);
+	padding: 0.5rem 0.75rem; /* py-2 px-3 */
+	font-size: 0.75rem; /* text-xs */
+	outline: none;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease,
+		background-color 0.15s ease;
+}
+
+.ui-input::placeholder {
+	color: var(--text-muted);
+}
+
+.ui-input:focus-visible {
+	border-color: rgba(16, 185, 129, 0.75);
+	box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35);
+}
+
+/* Em tema claro, a percepção de “borda forte” costuma vir do contraste.
+   Esse ajuste suaviza visualmente sem perder contraste. */
+:root.theme-light .ui-input {
+	border-color: rgba(229, 231, 235, 0.85);
+}
+
+/* Botão “soft” para ações secundárias */
+.ui-btn-soft {
+	border-radius: 0.75rem;
+	border: 1px solid var(--border-soft);
+	background-color: var(--bg-soft);
+	color: var(--text-secondary);
+	font-size: 0.75rem;
+	padding: 0.5rem 0.75rem;
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease,
+		transform 0.08s ease;
+}
+
+.ui-btn-soft:hover {
+	background-color: var(--surface-soft);
+}
+
+.ui-btn-soft:active {
+	transform: translateY(0.5px);
+}
+
+/* Elementos clicáveis sempre com cursor consistente */
+.ui-clickable {
+	cursor: pointer;
+}
+
+/* Z-index scale (padroniza overlays e reduz “z mágico” espalhado) */
+.z-header {
+	z-index: 50;
+}
+.z-dropdown {
+	z-index: 60;
+}
+.z-modal {
+	z-index: 70;
+}
+
+/* Scrollbar (caso use custom-scroll; mantém visual consistente) */
+.custom-scroll {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-soft) transparent;
+}
+
+.custom-scroll::-webkit-scrollbar {
+	width: 10px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+	background: var(--border-soft);
+	border-radius: 999px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+.custom-scroll::-webkit-scrollbar-track {
+	background: transparent;
+}
