@@ -220,7 +220,7 @@ export const TimerPanel: React.FC = () => {
 				<div
 					key={mode}
 					className={[
-						"relative w-48 h-48 flex items-center justify-center text-emerald-500",
+						"relative w-48 h-48 flex items-center justify-center timer-ring",
 						"timer-mode-transition",
 						isBreakEnding ? "timer-soft-pulse" : "",
 					].join(" ")}
@@ -230,10 +230,11 @@ export const TimerPanel: React.FC = () => {
 							cx="50"
 							cy="50"
 							r="45"
-							stroke="rgba(148, 163, 184, 0.35)"
+							className="timer-ring-track"
 							strokeWidth="6"
 							fill="none"
 						/>
+
 						<circle
 							cx="50"
 							cy="50"

@@ -48,6 +48,9 @@ body {
 
 	--overlay-bg: #0b1220; /* opaco, consistente com dark */
 	--overlay-border: rgba(51, 65, 85, 0.9);
+
+	--timer-progress: rgb(52 211 153); /* emerald-400 */
+	--timer-track: rgba(148, 163, 184, 0.25);
 }
 
 :root.theme-light {
@@ -77,6 +80,9 @@ body {
 
 	--overlay-bg: #ffffff; /* opaco */
 	--overlay-border: #e5e7eb;
+
+	--timer-progress: rgb(16 185 129); /* emerald-500 default */
+	--timer-track: rgba(148, 163, 184, 0.35); /* slate-400 soft */
 }
 
 :root.theme-midnight {
@@ -106,6 +112,9 @@ body {
 
 	--overlay-bg: #020617; /* opaco, mais “midnight” */
 	--overlay-border: rgba(99, 102, 241, 0.28);
+
+	--timer-progress: rgb(56 189 248);
+	--timer-track: rgba(203, 213, 225, 0.18);
 }
 
 :root.theme-pomodoro-red {
@@ -135,6 +144,9 @@ body {
 
 	--overlay-bg: #100707;
 	--overlay-border: rgba(239, 68, 68, 0.3);
+
+	--timer-progress: rgb(239 68 68);
+	--timer-track: rgba(203, 213, 225, 0.18);
 }
 
 /* ============================
@@ -387,4 +399,12 @@ body {
 
 .ui-clickable {
 	cursor: pointer;
+}
+
+.timer-ring {
+	color: var(--timer-progress);
+}
+
+.timer-ring-track {
+	stroke: var(--timer-track);
 }
