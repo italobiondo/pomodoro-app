@@ -19,6 +19,11 @@ infra/redis-data
 **/.env.*
 !**/.env.example
 !**/.env.*.example
+# Production envs
+infra/env/.env.prod
+infra/env/.env.*
+!infra/env/.env.example
+!infra/env/.env.*.example
 
 # Node modules (garantia caso alguém erre)
 node_modules/

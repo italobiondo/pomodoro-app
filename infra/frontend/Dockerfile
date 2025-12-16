@@ -1,9 +1,15 @@
-# infra/frontend/Dockerfile
-
 # 1) Etapa de build
 FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+# Args para variáveis públicas do Next (injetadas no build)
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_APP_ENV
+
+# Expõe essas vars como ENV durante o build (Next lê no build)
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+ENV NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
 
 # Copia apenas arquivos de dependência primeiro (cache melhor)
 COPY frontend/package.json frontend/package-lock.json* ./

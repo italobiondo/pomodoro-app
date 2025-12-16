@@ -1,0 +1,14 @@
+{$PUBLIC_DOMAIN} {
+
+  encode gzip
+
+  # API
+  handle_path /api/* {
+    reverse_proxy backend:4000
+  }
+
+  # Frontend
+  handle {
+    reverse_proxy frontend:3000
+  }
+}
