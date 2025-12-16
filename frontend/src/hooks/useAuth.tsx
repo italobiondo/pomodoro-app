@@ -20,6 +20,7 @@ type AuthContextValue = {
 	refetch: () => Promise<void>;
 	logout: () => Promise<void>;
 	loginWithGoogle: () => void;
+	isProActive: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -121,6 +122,12 @@ function useProvideAuth(): AuthContextValue {
 		refetch: fetchAuthAndSubscription,
 		logout,
 		loginWithGoogle,
+		isProActive:
+			!!user?.isPro &&
+			(user?.planStatus ? user.planStatus === "ACTIVE" : true) &&
+			(user?.planExpiresAt
+				? new Date(user.planExpiresAt).getTime() > Date.now()
+				: true),
 	};
 }
 
