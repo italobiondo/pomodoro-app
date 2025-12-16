@@ -5,29 +5,37 @@ import { AuthProvider } from "../hooks/useAuth";
 
 export const metadata: Metadata = {
 	title: {
-		default: "Pomodoro Focus – Timer, tarefas e foco profundo",
-		template: "%s | Pomodoro Focus",
+		default: "PomodoroPlus – Timer, tarefas e foco profundo",
+		template: "%s | PomodoroPlus",
 	},
 	description:
-		"Pomodoro Focus é um timer Pomodoro com lista de tarefas, player de YouTube e estatísticas de foco para melhorar sua produtividade.",
+		"PomodoroPlus é um timer Pomodoro com lista de tarefas, player de YouTube e estatísticas de foco para melhorar sua produtividade.",
 	metadataBase: process.env.NEXT_PUBLIC_SITE_URL
 		? new URL(process.env.NEXT_PUBLIC_SITE_URL)
 		: undefined,
 	alternates: {
 		canonical: "/",
 	},
+	icons: {
+		icon: [
+			{ url: "/favicon.ico" },
+			{ url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+			{ url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+		],
+		apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+	},
 	openGraph: {
-		title: "Pomodoro Focus – Timer, tarefas e foco profundo",
+		title: "PomodoroPlus – Timer, tarefas e foco profundo",
 		description:
 			"Aumente sua produtividade com um timer Pomodoro integrado a tarefas, player de YouTube e estatísticas de foco.",
 		url: "/",
-		siteName: "Pomodoro Focus",
+		siteName: "PomodoroPlus",
 		locale: "pt_BR",
 		type: "website",
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Pomodoro Focus – Timer, tarefas e foco profundo",
+		title: "PomodoroPlus – Timer, tarefas e foco profundo",
 		description:
 			"Aumente sua produtividade com um timer Pomodoro integrado a tarefas, player de YouTube e estatísticas de foco.",
 	},

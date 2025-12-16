@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { SocialLoginButtons } from "@/components/Auth/SocialLoginButtons";
 import { useAuth } from "@/hooks/useAuth";
 import { StatsOverviewModal } from "@/components/Stats/StatsOverviewModal";
@@ -73,16 +74,27 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 					{/* Branding (leva para a home) */}
 					<Link
 						href="/"
-						className="flex flex-col min-w-0 hover:opacity-90 transition-opacity"
+						className="flex items-center gap-2 min-w-0 hover:opacity-90 transition-opacity"
 						onClick={closeMenu}
 					>
-						<h1 className="text-lg font-semibold tracking-tight text-primary whitespace-nowrap">
-							Pomodoro Focus
-						</h1>
+						<Image
+							src="/icon-192.png"
+							alt="PomodoroPlus"
+							width={28}
+							height={28}
+							priority
+							className="rounded-md"
+						/>
 
-						<p className="text-xs text-muted whitespace-nowrap">
-							• {isPro ? "Plano Pro" : "Plano Free"}
-						</p>
+						<div className="flex flex-col min-w-0">
+							<h1 className="text-lg font-semibold tracking-tight text-primary whitespace-nowrap">
+								PomodoroPlus
+							</h1>
+
+							<p className="text-xs text-muted whitespace-nowrap">
+								• {isPro ? "Plano Pro" : "Plano Free"}
+							</p>
+						</div>
 					</Link>
 
 					{/* Ações */}
