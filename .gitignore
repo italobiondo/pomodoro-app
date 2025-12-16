@@ -14,9 +14,11 @@ infra/postgres-data
 infra/redis-data
 *.pid
 
-# Environment files
+# Environment files (não versionar segredos)
 **/.env
 **/.env.*
+!**/.env.example
+!**/.env.*.example
 
 # Node modules (garantia caso alguém erre)
 node_modules/

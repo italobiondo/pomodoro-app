@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -15,7 +16,10 @@ export class AuthController {
   /**
    * Inicia login com Google (redireciona para o provider)
    * Rota: GET /api/auth/google
+   *
+   * Segurança: evita abuso de redirects.
    */
+  @Throttle({ default: { limit: 20, ttl: 60 } })
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleAuth(): void {
@@ -25,7 +29,10 @@ export class AuthController {
   /**
    * Callback do Google
    * Rota: GET /api/auth/google/callback
+   *
+   * Segurança: evita spam de callback.
    */
+  @Throttle({ default: { limit: 30, ttl: 60 } })
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   googleCallback(
@@ -42,7 +49,10 @@ export class AuthController {
   /**
    * Logout: limpa cookie
    * Rota: POST /api/auth/logout
+   *
+   * Segurança: evita spam de logout.
    */
+  @Throttle({ default: { limit: 30, ttl: 60 } })
   @Post('logout')
   logout(@Res() res: Response): void {
     this.authService.clearAuthCookie(res);
@@ -52,7 +62,10 @@ export class AuthController {
   /**
    * Retorna dados básicos do usuário logado
    * Rota: GET /api/auth/me
+   *
+   * Pode ser chamado com frequência pelo frontend.
    */
+  @Throttle({ default: { limit: 120, ttl: 60 } })
   @Get('/me')
   @UseGuards(JwtAuthGuard)
   me(@CurrentUser() user: AuthenticatedUser): AuthenticatedUser {

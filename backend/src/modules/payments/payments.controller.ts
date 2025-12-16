@@ -1,4 +1,5 @@
 import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { PaymentsService } from './payments.service';
 import { MercadoPagoWebhookDto } from './dto/mercado-pago-webhook.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -12,15 +13,14 @@ export class PaymentsController {
   /**
    * Cria uma preferência de pagamento no Mercado Pago para o usuário autenticado.
    *
-   * Retorna o init_point que deve ser usado no frontend para redirecionar
-   * o usuário para o checkout.
+   * Segurança: endpoint sensível (evitar abuso/geração massiva).
    */
   @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 10, ttl: 60 } })
   @Post('mercado-pago/create-preference')
   async createMercadoPagoPreference(
     @CurrentUser() user: any,
   ): Promise<CreateMercadoPagoPreferenceResponseDto> {
-    // Assumimos que CurrentUser possui pelo menos a propriedade "id"
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     return this.paymentsService.createMercadoPagoPreference(user.id);
   }
@@ -28,10 +28,11 @@ export class PaymentsController {
   /**
    * Endpoint para receber webhooks do Mercado Pago.
    *
-   * MVP: aceita o DTO simplificado. Em produção:
-   * - Validar assinatura/checksum
-   * - Garantir que userId vem de metadata do provedor (não do client)
+   * Importante: provedores podem mandar bursts e retries.
+   * - Mantemos o throttler desabilitado aqui para não perder eventos.
+   * - A segurança real fica na validação HMAC + idempotência (já existe no service).
    */
+  @SkipThrottle()
   @Post('mercado-pago/webhook')
   async handleMercadoPagoWebhook(
     @Body() body: MercadoPagoWebhookDto,
