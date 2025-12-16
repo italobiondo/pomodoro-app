@@ -62,6 +62,24 @@ export function useTheme() {
 		window.localStorage.setItem(STORAGE_KEY_THEME, themeKey);
 	}, [themeKey]);
 
+	// quando muda auth/plano:
+	// - se deslogar (ou deixar de ser Pro) e estiver em tema premium, volta para um tema permitido (dark)
+	// - se voltar a logar como Pro, permite refetch do tema remoto
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+
+		// sempre que perder auth/pro, liberamos o refetch futuro
+		if (!isAuthenticated || !isPro) {
+			didFetchRemoteRef.current = false;
+
+			// se o tema atual não é permitido para Free, faz fallback
+			if (!isThemeAllowedForUser(themeKey, false)) {
+				// eslint-disable-next-line react-hooks/set-state-in-effect
+				setThemeKeyState("dark");
+			}
+		}
+	}, [isAuthenticated, isPro, themeKey]);
+
 	// ao montar: se Pro, buscar preferências do backend
 	useEffect(() => {
 		if (!isAuthenticated || !isPro) return;
