@@ -38,7 +38,7 @@ export function StatsOverviewModal({ open, onClose }: StatsOverviewModalProps) {
 					<button
 						type="button"
 						onClick={onClose}
-						className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5"
+						className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable"
 					>
 						<X className="h-4 w-4" aria-hidden />
 						Fechar

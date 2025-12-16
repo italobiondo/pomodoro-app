@@ -32,7 +32,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 	if (!open) return null;
 
 	return (
-		<div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
+		<div className="fixed inset-0 z-70 flex items-center justify-center bg-black/60">
 			<div className="w-full max-w-md card-main px-5 py-5">
 				<header className="flex items-center justify-between mb-4">
 					<div className="flex items-center gap-2 text-primary">
@@ -69,7 +69,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 											pomodoroMinutes: Number(e.target.value) || 1,
 										})
 									}
-									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500"
+									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
 								/>
 							</div>
 
@@ -85,7 +85,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 											shortBreakMinutes: Number(e.target.value) || 1,
 										})
 									}
-									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500"
+									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
 								/>
 							</div>
 
@@ -101,7 +101,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 											longBreakMinutes: Number(e.target.value) || 1,
 										})
 									}
-									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:border-emerald-500"
+									className="rounded-md bg-background border border-soft px-2 py-1 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
 								/>
 							</div>
 						</div>
@@ -147,7 +147,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 					<button
 						type="button"
 						onClick={onResetSettings}
-						className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5"
+						className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable"
 					>
 						Resetar padrão
 					</button>
@@ -155,7 +155,7 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 					<button
 						type="button"
 						onClick={onClose}
-						className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5"
+						className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable"
 					>
 						<X className="h-4 w-4" aria-hidden />
 						Fechar

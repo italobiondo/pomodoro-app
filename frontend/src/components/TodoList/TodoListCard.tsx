@@ -114,7 +114,7 @@ export function TodoListCard() {
 				<input
 					type="text"
 					maxLength={255}
-					className="flex-1 ui-input"
+					className="flex-1 rounded-lg bg-soft border border-soft px-3 py-1.5 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
 					placeholder={
 						canAddMore
 							? "Digite uma tarefa e pressione Enter"
