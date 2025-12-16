@@ -32,12 +32,21 @@ export const metadata: Metadata = {
 		siteName: "PomodoroPlus",
 		locale: "pt_BR",
 		type: "website",
+		images: [
+			{
+				url: "/og-image.png",
+				width: 1200,
+				height: 630,
+				alt: "PomodoroPlus",
+			},
+		],
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "PomodoroPlus – Timer, tarefas e foco profundo",
 		description:
 			"Aumente sua produtividade com um timer Pomodoro integrado a tarefas, player de YouTube e estatísticas de foco.",
+		images: ["/og-image.png"],
 	},
 };
 
