@@ -477,21 +477,28 @@ export function useTimer() {
 
 				const now = Date.now();
 				const last = prev.lastUpdatedAt ?? now;
-				const elapsed = Math.floor((now - last) / 1000);
 
-				if (elapsed <= 0) {
-					return { ...prev, lastUpdatedAt: now };
+				const elapsedMs = now - last;
+				const elapsedSec = Math.floor(elapsedMs / 1000);
+
+				// Tick veio “cedo”: não atualiza lastUpdatedAt, para não perder o remainder.
+				if (elapsedSec <= 0) {
+					return prev;
 				}
 
-				const remaining = prev.remainingSeconds - elapsed;
+				const remaining = prev.remainingSeconds - elapsedSec;
 
+				// Ainda não acabou: preserva o remainder avançando lastUpdatedAt somente em múltiplos de 1s.
 				if (remaining > 0) {
 					return {
 						...prev,
 						remainingSeconds: remaining,
-						lastUpdatedAt: now,
+						lastUpdatedAt: last + elapsedSec * 1000,
 					};
 				}
+
+				// Acabou (ou passou do zero). Calcula o instante real de término do ciclo.
+				const finishedAt = last + prev.remainingSeconds * 1000;
 
 				// Ciclo finalizado
 				const completedPomodoros =
@@ -503,11 +510,14 @@ export function useTimer() {
 					...prev,
 					remainingSeconds: 0,
 					isRunning: false,
-					lastUpdatedAt: now,
+					lastUpdatedAt: finishedAt,
 					completedPomodoros,
-					lastFinishedAt: now,
-					lastFinishKind:
-						prev.mode === "pomodoro" ? "pomodoro_natural" : "break",
+					lastFinishedAt: finishedAt,
+					lastFinishKind: prev.isRunning
+						? prev.mode === "pomodoro"
+							? "pomodoro_natural"
+							: "break"
+						: prev.lastFinishKind,
 				};
 
 				const nextMode = getNextMode(prev.mode, completedPomodoros);
@@ -527,7 +537,7 @@ export function useTimer() {
 					mode: nextMode,
 					remainingSeconds: nextDuration,
 					isRunning: true,
-					lastUpdatedAt: now,
+					lastUpdatedAt: finishedAt, // começa o próximo ciclo a partir do mesmo carimbo coerente
 				};
 			});
 		}, 1000);

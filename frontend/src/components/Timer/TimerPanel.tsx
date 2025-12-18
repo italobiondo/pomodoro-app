@@ -121,7 +121,11 @@ export const TimerPanel: React.FC = () => {
 		}
 
 		// Quando chegar exatamente em 5 segundos e ainda não tocamos o alerta, tocamos
-		if (remainingSeconds === 4 && !breakWarningPlayedRef.current) {
+		if (
+			remainingSeconds <= 4 &&
+			remainingSeconds > 0 &&
+			!breakWarningPlayedRef.current
+		) {
 			breakWarningPlayedRef.current = true;
 
 			// Arquivo sugerido: frontend/public/sounds/break-ending.mp3
