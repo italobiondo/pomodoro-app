@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useTodoList } from "../../hooks/useTodoList";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,6 +34,14 @@ export function TodoListCard() {
 	const { isPro } = useAuth();
 	const isExpiredLike = !isPro && (isServerMode || items.length > maxTasks);
 
+	const newTaskInputRef = useRef<HTMLInputElement | null>(null);
+
+	// Guarda refs do botão "toggle done" por item, para restaurar foco após ações (delete, etc.)
+	const toggleBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+	// Para devolver foco após salvar/cancelar edição
+	const editReturnFocusRef = useRef<HTMLElement | null>(null);
+
 	function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		if (!newTitle.trim()) return;
@@ -57,20 +65,37 @@ export function TodoListCard() {
 	}
 
 	function startEditing(id: string, currentTitle: string) {
+		// guarda o elemento que estava com foco (normalmente o botão "Editar")
+		const active = document.activeElement;
+		editReturnFocusRef.current = active instanceof HTMLElement ? active : null;
+
 		setEditingId(id);
 		setEditingTitle(currentTitle);
 	}
 
 	function saveEditing(id: string) {
 		if (!editingId) return;
+
 		void updateItemTitle(id, editingTitle);
+
 		setEditingId(null);
 		setEditingTitle("");
+
+		// devolve foco para o botão que iniciou a edição (ou fallback)
+		setTimeout(() => {
+			editReturnFocusRef.current?.focus();
+			editReturnFocusRef.current = null;
+		}, 0);
 	}
 
 	function cancelEditing() {
 		setEditingId(null);
 		setEditingTitle("");
+
+		setTimeout(() => {
+			editReturnFocusRef.current?.focus();
+			editReturnFocusRef.current = null;
+		}, 0);
 	}
 
 	return (
@@ -112,6 +137,7 @@ export function TodoListCard() {
 			{/* Formulário de nova tarefa */}
 			<form onSubmit={handleSubmit} className="flex gap-2">
 				<input
+					ref={newTaskInputRef}
 					type="text"
 					maxLength={255}
 					className="flex-1 rounded-lg bg-soft border border-soft px-3 py-1.5 text-xs text-secondary placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
@@ -120,6 +146,7 @@ export function TodoListCard() {
 							? "Digite uma tarefa e pressione Enter"
 							: "Limite de tarefas atingido"
 					}
+					aria-label="Nova tarefa"
 					value={newTitle}
 					onChange={(e) => setNewTitle(e.target.value)}
 					disabled={!canAddMore}
@@ -167,6 +194,9 @@ export function TodoListCard() {
 									className="group flex items-start gap-2 rounded-lg border border-soft bg-soft px-3 py-2"
 								>
 									<button
+										ref={(el) => {
+											toggleBtnRefs.current[item.id] = el;
+										}}
 										type="button"
 										onClick={() => handleToggleDone(item.id, item.done)}
 										className={`mt-0.5 h-4 w-4 rounded-full border flex items-center justify-center text-[10px] ui-clickable transition-colors ${
@@ -225,7 +255,7 @@ export function TodoListCard() {
 										</p>
 									</div>
 
-									<div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+									<div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
 										{!isEditing && (
 											<button
 												type="button"
@@ -238,7 +268,7 @@ export function TodoListCard() {
 										)}
 										<button
 											type="button"
-											onClick={() => removeItem(item.id)}
+											onClick={() => removeItemAndPreserveFocus(item.id)}
 											className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 inline-flex items-center gap-1 ui-clickable"
 										>
 											<Trash2 className="h-3 w-3" aria-hidden />
@@ -257,7 +287,7 @@ export function TodoListCard() {
 				<footer className="flex justify-end">
 					<button
 						type="button"
-						onClick={clearAll}
+						onClick={clearAllAndPreserveFocus}
 						className="text-[11px] text-muted hover:text-red-500 hover:underline inline-flex items-center gap-1"
 					>
 						<Eraser className="h-4 w-4" aria-hidden />
@@ -267,4 +297,37 @@ export function TodoListCard() {
 			)}
 		</section>
 	);
+	function removeItemAndPreserveFocus(id: string) {
+		// Decide para onde o foco vai após a remoção:
+		// - próximo item da lista (mesmo índice)
+		// - senão, item anterior
+		// - senão, input de nova tarefa
+		const ids = items.map((i) => i.id);
+		const idx = ids.indexOf(id);
+
+		const nextId =
+			idx >= 0 && idx < ids.length - 1
+				? ids[idx + 1]
+				: idx > 0
+				? ids[idx - 1]
+				: null;
+
+		void removeItem(id);
+
+		setTimeout(() => {
+			if (nextId && toggleBtnRefs.current[nextId]) {
+				toggleBtnRefs.current[nextId]?.focus();
+				return;
+			}
+			newTaskInputRef.current?.focus();
+		}, 0);
+	}
+
+	function clearAllAndPreserveFocus() {
+		void clearAll();
+
+		setTimeout(() => {
+			newTaskInputRef.current?.focus();
+		}, 0);
+	}
 }
