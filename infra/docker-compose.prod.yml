@@ -8,8 +8,6 @@ services:
       - "443:443"
     env_file:
       - ./env/.env.prod
-    environment:
-      - PUBLIC_DOMAIN=${PUBLIC_DOMAIN}
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

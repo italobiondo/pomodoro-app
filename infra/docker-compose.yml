@@ -1,49 +1,15 @@
 services:
-  frontend:
-    build:
-      context: .. # contexto é a pasta infra
-      dockerfile: infra/frontend/Dockerfile
-    container_name: pomodoro-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://backend:4000/api
-    depends_on:
-      - backend
-    networks:
-      - pomodoro-net
-
-  backend:
-    build:
-      context: .. # contexto é a pasta infra
-      dockerfile: infra/backend/Dockerfile
-    container_name: pomodoro-backend
-    env_file:
-      - ../backend/.env
-    ports:
-      - "4000:4000" # em produção pode tirar; aqui é ótimo pra testar
-    environment:
-      # - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - pomodoro-net
-
   postgres:
     image: postgres:16
     container_name: pomodoro-postgres
     restart: unless-stopped
-    environment:
-      - POSTGRES_USER=pomodoro
-      - POSTGRES_PASSWORD=pomodoro
-      - POSTGRES_DB=pomodoro_db
+    env_file:
+      - ./env/.env.dev
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
-      - "5432:5432" # em produção pode tirar; aqui é ótimo pra testar
+      - "5432:5432"
     networks:
       - pomodoro-net
 
