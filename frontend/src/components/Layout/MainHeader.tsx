@@ -49,7 +49,21 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 
 	const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 	const themeMenuRef = useRef<HTMLDivElement | null>(null);
+	const themeMenuButtonRef = useRef<HTMLButtonElement | null>(null);
+	const themeMenuListRef = useRef<HTMLDivElement | null>(null);
+
 	const statsButtonRef = useRef<HTMLButtonElement | null>(null);
+
+	const closeMenu = () => setIsMenuOpen(false);
+
+	const closeThemeMenuAndRestoreFocus = () => {
+		setIsThemeMenuOpen(false);
+
+		// garante que o DOM do menu já desmontou antes de focar o botão
+		setTimeout(() => {
+			themeMenuButtonRef.current?.focus();
+		}, 0);
+	};
 
 	useEffect(() => {
 		function onDocMouseDown(e: MouseEvent) {
@@ -58,7 +72,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 			if (!el) return;
 
 			if (e.target instanceof Node && !el.contains(e.target)) {
-				setIsThemeMenuOpen(false);
+				closeThemeMenuAndRestoreFocus();
 			}
 		}
 
@@ -66,7 +80,34 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 		return () => document.removeEventListener("mousedown", onDocMouseDown);
 	}, [isThemeMenuOpen]);
 
-	const closeMenu = () => setIsMenuOpen(false);
+	useEffect(() => {
+		if (!isThemeMenuOpen) return;
+
+		function onKeyDown(e: KeyboardEvent) {
+			if (e.key === "Escape") {
+				e.preventDefault();
+				closeThemeMenuAndRestoreFocus();
+			}
+		}
+
+		document.addEventListener("keydown", onKeyDown);
+		return () => document.removeEventListener("keydown", onKeyDown);
+	}, [isThemeMenuOpen]);
+
+	useEffect(() => {
+		if (!isThemeMenuOpen) return;
+
+		// Foca o primeiro item do menu ao abrir
+		setTimeout(() => {
+			const root = themeMenuListRef.current;
+			if (!root) return;
+
+			const firstItem = root.querySelector<HTMLButtonElement>(
+				'button[role="menuitem"]:not([disabled])'
+			);
+			firstItem?.focus();
+		}, 0);
+	}, [isThemeMenuOpen]);
 
 	return (
 		<>
@@ -155,8 +196,11 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 							{/* Seletor de tema (dropdown) */}
 							<div className="relative" ref={themeMenuRef}>
 								<button
+									ref={themeMenuButtonRef}
 									type="button"
-									onClick={() => setIsThemeMenuOpen((v) => !v)}
+									onClick={() => {
+										setIsThemeMenuOpen((v) => !v);
+									}}
 									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
 									aria-haspopup="menu"
 									aria-expanded={isThemeMenuOpen}
@@ -174,6 +218,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 
 								{isThemeMenuOpen && (
 									<div
+										ref={themeMenuListRef}
 										role="menu"
 										className="absolute right-0 mt-2 w-56 rounded-xl border border-overlay bg-overlay shadow-lg p-1 z-60"
 									>
@@ -188,7 +233,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 														role="menuitem"
 														onClick={() => {
 															setThemeKey(t.key);
-															setIsThemeMenuOpen(false);
+															closeThemeMenuAndRestoreFocus();
 														}}
 														className="w-full text-left px-3 py-2 rounded-lg text-sm text-secondary hover:bg-soft inline-flex items-center gap-2"
 													>
@@ -221,7 +266,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 															return;
 														}
 														setThemeKey(theme.key);
-														setIsThemeMenuOpen(false);
+														closeThemeMenuAndRestoreFocus();
 													}}
 													className={[
 														"w-full text-left px-3 py-2 rounded-lg text-sm inline-flex items-center justify-between gap-2",
