@@ -12,7 +12,7 @@ export function StatsOverviewModal({ open, onClose }: StatsOverviewModalProps) {
 	if (!open) return null;
 
 	return (
-		<div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
+		<div className="fixed inset-0 z-80 flex items-center justify-center bg-black/60">
 			<div className="w-full max-w-2xl card-main rounded-2xl px-6 py-5">
 				{/* Header */}
 				<header className="flex items-center justify-between mb-4">

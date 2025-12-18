@@ -49,6 +49,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 
 	const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 	const themeMenuRef = useRef<HTMLDivElement | null>(null);
+	const statsButtonRef = useRef<HTMLButtonElement | null>(null);
 
 	useEffect(() => {
 		function onDocMouseDown(e: MouseEvent) {
@@ -104,6 +105,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 							{/* Estatísticas – somente Pro */}
 							{isPro && (
 								<button
+									ref={statsButtonRef}
 									type="button"
 									onClick={() => setIsStatsOpen(true)}
 									className="text-xs px-3 py-1.5 rounded-full border border-soft text-secondary hover:border-emerald-500 hover:text-secondary hover:bg-soft transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
@@ -372,7 +374,14 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 			{/* Modal de estatísticas */}
 			<StatsOverviewModal
 				open={isStatsOpen}
-				onClose={() => setIsStatsOpen(false)}
+				onClose={() => {
+					setIsStatsOpen(false);
+
+					// Devolve o foco para o botão que abriu o modal
+					setTimeout(() => {
+						statsButtonRef.current?.focus();
+					}, 0);
+				}}
 			/>
 		</>
 	);

@@ -53,10 +53,19 @@ export const TimerPanel: React.FC = () => {
 
 	const [settingsOpen, setSettingsOpen] = useState(false);
 
+	const settingsReturnFocusRef = useRef<HTMLElement | null>(null);
+
 	useEffect(() => {
 		if (typeof window === "undefined") return;
 
-		const handler = () => setSettingsOpen(true);
+		const handler = () => {
+			// Guarda o elemento que estava com foco
+			const active = document.activeElement;
+			settingsReturnFocusRef.current =
+				active instanceof HTMLElement ? active : null;
+
+			setSettingsOpen(true);
+		};
 
 		window.addEventListener("pomodoro:openSettings", handler);
 		return () => {
@@ -299,7 +308,14 @@ export const TimerPanel: React.FC = () => {
 
 			<TimerSettingsModal
 				open={settingsOpen}
-				onClose={() => setSettingsOpen(false)}
+				onClose={() => {
+					setSettingsOpen(false);
+
+					// Devolve o foco para o elemento que abriu o modal
+					setTimeout(() => {
+						settingsReturnFocusRef.current?.focus();
+					}, 0);
+				}}
 				settings={settings}
 				onChangeSettings={updateSettings}
 				soundEnabled={soundEnabled}
