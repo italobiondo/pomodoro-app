@@ -1,0 +1,37 @@
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: infra/frontend/Dockerfile
+    container_name: pomodoro-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # seu frontend lê NEXT_PUBLIC_API_BASE_URL
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:4000/api
+      - NEXT_PUBLIC_APP_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - pomodoro-net
+
+  backend:
+    build:
+      context: ..
+      dockerfile: infra/backend/Dockerfile
+    container_name: pomodoro-backend
+    restart: unless-stopped
+    env_file:
+      - ./env/.env.dev
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - pomodoro-net
+
+networks:
+  pomodoro-net:
+    external: true
