@@ -3,11 +3,11 @@ import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { requestIdMiddleware } from './infra/logging/request-id.middleware';
+import { JsonLogger } from './infra/logging/json-logger.service';
+import { HttpLoggingInterceptor } from './infra/logging/http-logging.interceptor';
 
 function parseCorsOrigins(): (string | RegExp)[] {
-  // Permite múltiplas origens via:
-  // FRONTEND_URL="http://localhost:3000,https://pomodoroplus.com.br"
-  // FRONTEND_URL="*" (apenas dev; não recomendado em produção)
   const raw = (process.env.FRONTEND_URL || 'http://localhost:3000').trim();
 
   if (raw === '*') return ['*'];
@@ -19,17 +19,19 @@ function parseCorsOrigins(): (string | RegExp)[] {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Usa logger estruturado desde o bootstrap
+  const app = await NestFactory.create(AppModule, {
+    logger: new JsonLogger(),
+  });
+
+  // requestId + AsyncLocalStorage context (precisa vir bem cedo)
+  app.use(requestIdMiddleware);
 
   app.use(cookieParser());
 
-  // Headers de segurança
   app.use(
     helmet({
-      // APIs normalmente não precisam de CSP; manter desabilitado evita bloqueios inesperados.
       contentSecurityPolicy: false,
-      // Se você servir a API atrás de proxy com HTTPS, isso ajuda.
-      // Ajuste conforme seu reverse proxy.
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
@@ -47,11 +49,8 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      // origin undefined acontece em chamadas server-to-server / curl / healthchecks
       if (!origin) return callback(null, true);
-
       if (origins.includes('*')) return callback(null, true);
-
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const allowed = origins.includes(origin);
       return allowed
@@ -60,6 +59,9 @@ async function bootstrap() {
     },
     credentials: true,
   });
+
+  // logs por request (latência/status)
+  app.useGlobalInterceptors(new HttpLoggingInterceptor());
 
   app.setGlobalPrefix('api');
 
