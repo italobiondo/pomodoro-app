@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useId, useRef } from "react";
 import { Bell, Clock4, Repeat, X } from "lucide-react";
 
 type TimerSettings = {
@@ -20,6 +20,21 @@ interface TimerSettingsModalProps {
 	onResetSettings: () => void;
 }
 
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+	const selector = [
+		'a[href]:not([tabindex="-1"])',
+		'button:not([disabled]):not([tabindex="-1"])',
+		'input:not([disabled]):not([tabindex="-1"])',
+		'select:not([disabled]):not([tabindex="-1"])',
+		'textarea:not([disabled]):not([tabindex="-1"])',
+		'[tabindex]:not([tabindex="-1"])',
+	].join(",");
+
+	return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(
+		(el) => !el.hasAttribute("disabled") && el.tabIndex !== -1
+	);
+}
+
 export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 	open,
 	onClose,
@@ -29,20 +44,92 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 	onChangeSoundEnabled,
 	onResetSettings,
 }) => {
+	const titleId = useId();
+	const contentRef = useRef<HTMLDivElement | null>(null);
+	const firstInputRef = useRef<HTMLInputElement | null>(null);
+
+	useEffect(() => {
+		if (!open) return;
+
+		const prevOverflow = document.body.style.overflow;
+		document.body.style.overflow = "hidden";
+
+		// Foco inicial: primeiro input de tempo
+		setTimeout(() => {
+			firstInputRef.current?.focus();
+		}, 0);
+
+		function onKeyDown(e: KeyboardEvent) {
+			if (e.key === "Escape") {
+				e.preventDefault();
+				onClose();
+				return;
+			}
+
+			if (e.key !== "Tab") return;
+
+			const root = contentRef.current;
+			if (!root) return;
+
+			const focusables = getFocusableElements(root);
+			if (focusables.length === 0) return;
+
+			const first = focusables[0];
+			const last = focusables[focusables.length - 1];
+			const active = document.activeElement;
+
+			if (e.shiftKey) {
+				if (active === first || active === root) {
+					e.preventDefault();
+					last.focus();
+				}
+			} else {
+				if (active === last) {
+					e.preventDefault();
+					first.focus();
+				}
+			}
+		}
+
+		document.addEventListener("keydown", onKeyDown);
+		return () => {
+			document.removeEventListener("keydown", onKeyDown);
+			document.body.style.overflow = prevOverflow;
+		};
+	}, [open, onClose]);
+
 	if (!open) return null;
 
+	const pomodoroId = "timer-settings-pomodoro";
+	const shortBreakId = "timer-settings-short-break";
+	const longBreakId = "timer-settings-long-break";
+
 	return (
-		<div className="fixed inset-0 z-70 flex items-center justify-center bg-black/60">
-			<div className="w-full max-w-md card-main px-5 py-5">
+		<div
+			className="fixed inset-0 z-70 flex items-center justify-center bg-black/60"
+			onMouseDown={(e) => {
+				if (e.target === e.currentTarget) onClose();
+			}}
+		>
+			<div
+				ref={contentRef}
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby={titleId}
+				className="w-full max-w-md card-main px-5 py-5 outline-none"
+				tabIndex={-1}
+			>
 				<header className="flex items-center justify-between mb-4">
 					<div className="flex items-center gap-2 text-primary">
 						<Clock4 className="h-4 w-4" aria-hidden />
-						<h2 className="text-sm font-semibold">Configurações</h2>
+						<h2 id={titleId} className="text-sm font-semibold">
+							Configurações
+						</h2>
 					</div>
 					<button
 						type="button"
 						onClick={onClose}
-						className="text-muted hover:text-secondary text-sm inline-flex"
+						className="text-muted hover:text-secondary text-sm inline-flex ui-clickable"
 						aria-label="Fechar configurações"
 					>
 						<X className="h-4 w-4" aria-hidden />
@@ -58,8 +145,12 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 						</div>
 						<div className="grid grid-cols-3 gap-3">
 							<div className="flex flex-col gap-1">
-								<label className="text-[11px] text-muted">Pomodoro</label>
+								<label htmlFor={pomodoroId} className="text-[11px] text-muted">
+									Pomodoro
+								</label>
 								<input
+									ref={firstInputRef}
+									id={pomodoroId}
 									type="number"
 									min={1}
 									max={120}
@@ -74,8 +165,14 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 							</div>
 
 							<div className="flex flex-col gap-1">
-								<label className="text-[11px] text-muted">Pausa curta</label>
+								<label
+									htmlFor={shortBreakId}
+									className="text-[11px] text-muted"
+								>
+									Pausa curta
+								</label>
 								<input
+									id={shortBreakId}
 									type="number"
 									min={1}
 									max={60}
@@ -90,8 +187,11 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 							</div>
 
 							<div className="flex flex-col gap-1">
-								<label className="text-[11px] text-muted">Pausa longa</label>
+								<label htmlFor={longBreakId} className="text-[11px] text-muted">
+									Pausa longa
+								</label>
 								<input
+									id={longBreakId}
 									type="number"
 									min={1}
 									max={60}
