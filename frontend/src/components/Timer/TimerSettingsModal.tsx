@@ -18,6 +18,12 @@ interface TimerSettingsModalProps {
 	soundEnabled: boolean;
 	onChangeSoundEnabled: (value: boolean) => void;
 	onResetSettings: () => void;
+	settingsRemoteLoading?: boolean;
+	settingsRemoteError?: string | null;
+	settingsSaving?: boolean;
+	settingsSaveError?: string | null;
+	onRetryLoad?: () => void;
+	onRetrySave?: () => void;
 }
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
@@ -43,6 +49,12 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 	soundEnabled,
 	onChangeSoundEnabled,
 	onResetSettings,
+	settingsRemoteLoading = false,
+	settingsRemoteError = null,
+	settingsSaving = false,
+	settingsSaveError = null,
+	onRetryLoad,
+	onRetrySave,
 }) => {
 	const titleId = useId();
 	const contentRef = useRef<HTMLDivElement | null>(null);
@@ -135,6 +147,55 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 						<X className="h-4 w-4" aria-hidden />
 					</button>
 				</header>
+
+				{/* Estados de rede: /timer-settings/me */}
+				{settingsRemoteLoading && (
+					<div className="mb-3 card-secondary rounded-lg px-3 py-2">
+						<p className="text-xs text-muted">Carregando configurações…</p>
+					</div>
+				)}
+
+				{settingsRemoteError && (
+					<div className="mb-3 rounded-lg border border-red-500/40 bg-red-500/5 px-3 py-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+						<p className="text-xs text-red-400 flex-1 min-w-0">
+							{settingsRemoteError}
+						</p>
+
+						{onRetryLoad && (
+							<button
+								type="button"
+								onClick={onRetryLoad}
+								className="text-xs px-3 py-1.5 rounded-lg border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable whitespace-nowrap self-start sm:self-auto"
+							>
+								Tentar novamente
+							</button>
+						)}
+					</div>
+				)}
+
+				{settingsSaving && (
+					<div className="mb-3 card-secondary rounded-lg px-3 py-2">
+						<p className="text-xs text-muted">Salvando alterações…</p>
+					</div>
+				)}
+
+				{settingsSaveError && (
+					<div className="mb-3 rounded-lg border border-red-500/40 bg-red-500/5 px-3 py-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+						<p className="text-xs text-red-400 flex-1 min-w-0">
+							{settingsSaveError}
+						</p>
+
+						{onRetrySave && (
+							<button
+								type="button"
+								onClick={onRetrySave}
+								className="text-xs px-3 py-1.5 rounded-lg border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable whitespace-nowrap self-start sm:self-auto"
+							>
+								Salvar agora
+							</button>
+						)}
+					</div>
+				)}
 
 				<div className="space-y-4 text-xs text-secondary">
 					{/* Tempo (minutos) */}

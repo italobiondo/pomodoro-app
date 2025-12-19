@@ -218,6 +218,19 @@ export function useTimer() {
 
 	const lastSettingsRef = useRef<TimerSettings>(normalizeSettings(settings));
 
+	// Estados de UX para /timer-settings/me
+	const [settingsRemoteLoading, setSettingsRemoteLoading] = useState(false);
+	const [settingsRemoteError, setSettingsRemoteError] = useState<string | null>(
+		null
+	);
+
+	const [settingsSaving, setSettingsSaving] = useState(false);
+	const [settingsSaveError, setSettingsSaveError] = useState<string | null>(
+		null
+	);
+
+	const saveRequestIdRef = useRef(0);
+
 	useEffect(() => {
 		lastSettingsRef.current = normalizeSettings(settings);
 	}, [settings]);
@@ -296,6 +309,9 @@ export function useTimer() {
 		let cancelled = false;
 
 		(async () => {
+			setSettingsRemoteLoading(true);
+			setSettingsRemoteError(null);
+
 			try {
 				const remote = await apiGet<RemoteTimerSettings>("/timer-settings/me");
 				if (cancelled) return;
@@ -342,8 +358,13 @@ export function useTimer() {
 					return current;
 				});
 			} catch {
-				// Sem rede: fica com localStorage
+				// Sem rede: fica com localStorage, mas sinaliza erro para UX
+				setSettingsRemoteError(
+					"Não foi possível carregar suas configurações agora."
+				);
 				settingsHydratedFromRemoteRef.current = true;
+			} finally {
+				setSettingsRemoteLoading(false);
 			}
 		})();
 
@@ -451,11 +472,27 @@ export function useTimer() {
 
 		const payload = normalizeSettings(settings);
 
+		setSettingsSaving(true);
+		setSettingsSaveError(null);
+
+		const requestId = ++saveRequestIdRef.current;
+
 		settingsSyncTimeoutRef.current = window.setTimeout(async () => {
 			try {
 				await apiPut("/timer-settings/me", payload);
+
+				// Só limpa se for a request mais recente (evita flicker com alterações rápidas)
+				if (saveRequestIdRef.current === requestId) {
+					setSettingsSaving(false);
+					setSettingsSaveError(null);
+				}
 			} catch {
-				// Ignora erro de sync
+				if (saveRequestIdRef.current === requestId) {
+					setSettingsSaving(false);
+					setSettingsSaveError(
+						"Não foi possível salvar suas configurações. Verifique sua conexão e tente novamente."
+					);
+				}
 			}
 		}, 1500);
 
@@ -779,6 +816,62 @@ export function useTimer() {
 		});
 	};
 
+	const refetchRemoteSettings = useCallback(async () => {
+		if (!isPro) return;
+
+		setSettingsRemoteLoading(true);
+		setSettingsRemoteError(null);
+
+		try {
+			const remote = await apiGet<RemoteTimerSettings>("/timer-settings/me");
+			const normalized = normalizeSettings(remote);
+
+			skipNextSettingsSyncRef.current = true;
+			settingsHydratedFromRemoteRef.current = true;
+
+			setSettings(() => normalized);
+			lastSettingsRef.current = normalized;
+		} catch {
+			setSettingsRemoteError(
+				"Não foi possível carregar suas configurações agora."
+			);
+		} finally {
+			setSettingsRemoteLoading(false);
+		}
+	}, [isPro, setSettings]);
+
+	const retrySaveSettingsNow = useCallback(async () => {
+		if (!isPro) return;
+
+		// cancela debounce pendente e força PUT imediato com o payload atual
+		if (typeof window !== "undefined" && settingsSyncTimeoutRef.current) {
+			window.clearTimeout(settingsSyncTimeoutRef.current);
+			settingsSyncTimeoutRef.current = null;
+		}
+
+		const payload = normalizeSettings(settings);
+
+		setSettingsSaving(true);
+		setSettingsSaveError(null);
+
+		const requestId = ++saveRequestIdRef.current;
+
+		try {
+			await apiPut("/timer-settings/me", payload);
+			if (saveRequestIdRef.current === requestId) {
+				setSettingsSaving(false);
+				setSettingsSaveError(null);
+			}
+		} catch {
+			if (saveRequestIdRef.current === requestId) {
+				setSettingsSaving(false);
+				setSettingsSaveError(
+					"Não foi possível salvar suas configurações. Verifique sua conexão e tente novamente."
+				);
+			}
+		}
+	}, [isPro, settings]);
+
 	return {
 		// estado
 		mode: state.mode,
@@ -799,5 +892,13 @@ export function useTimer() {
 		switchMode,
 		skipToNext,
 		resetSettingsToDefault,
+
+		// UX: /timer-settings/me
+		settingsRemoteLoading,
+		settingsRemoteError,
+		settingsSaving,
+		settingsSaveError,
+		refetchRemoteSettings,
+		retrySaveSettingsNow,
 	};
 }

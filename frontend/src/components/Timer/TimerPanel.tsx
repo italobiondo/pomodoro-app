@@ -40,6 +40,12 @@ export const TimerPanel: React.FC = () => {
 		switchMode,
 		skipToNext,
 		resetSettingsToDefault,
+		settingsRemoteLoading,
+		settingsRemoteError,
+		settingsSaving,
+		settingsSaveError,
+		refetchRemoteSettings,
+		retrySaveSettingsNow,
 	} = useTimer();
 
 	const [soundEnabled, setSoundEnabled] = useState(true);
@@ -321,6 +327,12 @@ export const TimerPanel: React.FC = () => {
 				soundEnabled={soundEnabled}
 				onChangeSoundEnabled={setSoundEnabled}
 				onResetSettings={resetSettingsToDefault}
+				settingsRemoteLoading={settingsRemoteLoading}
+				settingsRemoteError={settingsRemoteError}
+				settingsSaving={settingsSaving}
+				settingsSaveError={settingsSaveError}
+				onRetryLoad={() => void refetchRemoteSettings()}
+				onRetrySave={() => void retrySaveSettingsNow()}
 			/>
 		</section>
 	);

@@ -3,7 +3,7 @@
 import { useStatsOverview } from "@/hooks/useStatsOverview";
 
 export function StatsOverviewCard() {
-	const { data, loading, error } = useStatsOverview();
+	const { data, loading, error, refetch } = useStatsOverview();
 
 	if (loading) {
 		return (
@@ -15,10 +15,18 @@ export function StatsOverviewCard() {
 
 	if (error || !data) {
 		return (
-			<div className="rounded-xl border border-red-500/40 bg-red-500/5 p-4">
-				<p className="text-sm text-red-400">
-					{error ?? "Erro ao carregar stats."}
+			<div className="rounded-xl border border-red-500/40 bg-red-500/5 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<p className="text-sm text-red-400 flex-1 min-w-0">
+					{error ?? "Não foi possível carregar estatísticas."}
 				</p>
+
+				<button
+					type="button"
+					onClick={() => void refetch()}
+					className="text-xs px-3 py-1.5 rounded-lg border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable whitespace-nowrap self-start sm:self-auto"
+				>
+					Tentar novamente
+				</button>
 			</div>
 		);
 	}
