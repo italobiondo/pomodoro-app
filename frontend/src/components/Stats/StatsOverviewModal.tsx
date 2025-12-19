@@ -84,7 +84,7 @@ export function StatsOverviewModal({ open, onClose }: StatsOverviewModalProps) {
 
 	return (
 		<div
-			className="fixed inset-0 z-80 flex items-center justify-center bg-black/60"
+			className="fixed inset-0 z-80 flex items-center justify-center bg-black/55 backdrop-blur-md"
 			onMouseDown={(e) => {
 				// fecha ao clicar no backdrop (fora do conteúdo)
 				if (e.target === e.currentTarget) onClose();

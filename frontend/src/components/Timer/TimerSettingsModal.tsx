@@ -118,11 +118,12 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
 
 	return (
 		<div
-			className="fixed inset-0 z-70 flex items-center justify-center bg-black/60"
+			className="fixed inset-0 z-70 flex items-center justify-center bg-black/55 backdrop-blur-md"
 			onMouseDown={(e) => {
 				if (e.target === e.currentTarget) onClose();
 			}}
 		>
+			{/* Modal */}
 			<div
 				ref={contentRef}
 				role="dialog"
