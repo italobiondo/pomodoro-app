@@ -43,6 +43,12 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 		setThemeKey,
 		allowedThemes,
 		getThemeByKey,
+		themeRemoteLoading,
+		themeRemoteError,
+		themeSaving,
+		themeSaveError,
+		refetchThemePreference,
+		retrySaveThemeNow,
 	} = useTheme();
 
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -222,6 +228,65 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 										role="menu"
 										className="absolute right-0 mt-2 w-56 rounded-xl border border-overlay bg-overlay shadow-lg p-1 z-60"
 									>
+										{/* Estado de rede do tema */}
+										{(themeRemoteLoading ||
+											themeRemoteError ||
+											themeSaving ||
+											themeSaveError) && (
+											<div className="px-2 pt-2 pb-1">
+												{themeRemoteLoading && (
+													<div className="card-secondary rounded-lg px-3 py-2">
+														<p className="text-xs text-muted">
+															Carregando tema…
+														</p>
+													</div>
+												)}
+
+												{themeRemoteError && (
+													<div className="rounded-lg border border-red-500/40 bg-red-500/5 px-3 py-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+														<p className="text-xs text-red-400 flex-1 min-w-0">
+															{themeRemoteError}
+														</p>
+														<button
+															type="button"
+															onClick={() => void refetchThemePreference()}
+															className="text-xs px-3 py-1.5 rounded-lg border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable whitespace-nowrap self-start sm:self-auto"
+														>
+															Tentar novamente
+														</button>
+													</div>
+												)}
+
+												{themeSaving && (
+													<div className="card-secondary rounded-lg px-3 py-2">
+														<p className="text-xs text-muted">Salvando tema…</p>
+													</div>
+												)}
+
+												{themeSaveError && (
+													<div className="rounded-lg border border-red-500/40 bg-red-500/5 px-3 py-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+														<p className="text-xs text-red-400 flex-1 min-w-0">
+															{themeSaveError}
+														</p>
+														<button
+															type="button"
+															onClick={() => void retrySaveThemeNow()}
+															className="text-xs px-3 py-1.5 rounded-lg border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable whitespace-nowrap self-start sm:self-auto"
+														>
+															Salvar agora
+														</button>
+													</div>
+												)}
+											</div>
+										)}
+
+										{(themeRemoteLoading ||
+											themeRemoteError ||
+											themeSaving ||
+											themeSaveError) && (
+											<div className="my-1 border-t border-soft" />
+										)}
+
 										{allowedThemes
 											.filter((t) => t.key === "light" || t.key === "dark")
 											.map((t) => {

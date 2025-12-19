@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "./useAuth";
 import {
 	getMyThemePreference,
@@ -47,6 +47,15 @@ export function useTheme() {
 	const didFetchRemoteRef = useRef(false);
 	const savingRef = useRef(false);
 
+	const [themeRemoteLoading, setThemeRemoteLoading] = useState(false);
+	const [themeRemoteError, setThemeRemoteError] = useState<string | null>(null);
+
+	const [themeSaving, setThemeSaving] = useState(false);
+	const [themeSaveError, setThemeSaveError] = useState<string | null>(null);
+
+	const saveRequestIdRef = useRef(0);
+	const lastAttemptedThemeRef = useRef<ThemeKey | null>(null);
+
 	const isDark = themeKey !== "light";
 
 	const allowedThemes = useMemo(
@@ -71,14 +80,73 @@ export function useTheme() {
 		// sempre que perder auth/pro, liberamos o refetch futuro
 		if (!isAuthenticated || !isPro) {
 			didFetchRemoteRef.current = false;
+			setThemeRemoteError(null);
+			setThemeSaveError(null);
+			setThemeSaving(false);
 
 			// se o tema atual não é permitido para Free, faz fallback
 			if (!isThemeAllowedForUser(themeKey, false)) {
-				// eslint-disable-next-line react-hooks/set-state-in-effect
 				setThemeKeyState("dark");
 			}
 		}
 	}, [isAuthenticated, isPro, themeKey]);
+
+	const refetchThemePreference = useCallback(async () => {
+		if (!isAuthenticated || !isPro) return;
+
+		setThemeRemoteLoading(true);
+		setThemeRemoteError(null);
+
+		try {
+			const res = await getMyThemePreference();
+			if (!res?.themeKey) return;
+
+			if (isThemeKey(res.themeKey)) {
+				setThemeKeyState(res.themeKey);
+			}
+		} catch {
+			setThemeRemoteError("Não foi possível carregar sua preferência de tema.");
+		} finally {
+			setThemeRemoteLoading(false);
+		}
+	}, [isAuthenticated, isPro]);
+
+	const persistThemePreference = useCallback(
+		async (next: ThemeKey) => {
+			if (!isAuthenticated || !isPro) return;
+
+			// evita concorrência e mantém "última tentativa" para retry
+			lastAttemptedThemeRef.current = next;
+
+			const requestId = ++saveRequestIdRef.current;
+
+			setThemeSaving(true);
+			setThemeSaveError(null);
+
+			try {
+				await updateMyThemePreference({ themeKey: next });
+
+				// só limpa se for a request mais recente
+				if (saveRequestIdRef.current === requestId) {
+					setThemeSaving(false);
+					setThemeSaveError(null);
+				}
+			} catch {
+				if (saveRequestIdRef.current === requestId) {
+					setThemeSaving(false);
+					setThemeSaveError(
+						"Não foi possível salvar seu tema. Verifique sua conexão e tente novamente."
+					);
+				}
+			}
+		},
+		[isAuthenticated, isPro]
+	);
+
+	const retrySaveThemeNow = useCallback(async () => {
+		const key = lastAttemptedThemeRef.current ?? themeKey;
+		await persistThemePreference(key);
+	}, [persistThemePreference, themeKey]);
 
 	// ao montar: se Pro, buscar preferências do backend
 	useEffect(() => {
@@ -87,21 +155,8 @@ export function useTheme() {
 		if (typeof window === "undefined") return;
 
 		didFetchRemoteRef.current = true;
-
-		(async () => {
-			try {
-				const res = await getMyThemePreference();
-				if (!res?.themeKey) return;
-
-				if (isThemeKey(res.themeKey)) {
-					// Pro pode aplicar qualquer tema registrado
-					setThemeKeyState(res.themeKey);
-				}
-			} catch {
-				// silêncio: fallback para localStorage
-			}
-		})();
-	}, [isAuthenticated, isPro]);
+		void refetchThemePreference();
+	}, [isAuthenticated, isPro, refetchThemePreference]);
 
 	const setThemeKey = (next: ThemeKey) => {
 		// Bloqueia premium para Free (segurança UX)
@@ -112,13 +167,10 @@ export function useTheme() {
 		// Persistir no backend apenas se Pro (e autenticado)
 		if (isAuthenticated && isPro && !savingRef.current) {
 			savingRef.current = true;
-			updateMyThemePreference({ themeKey: next })
-				.catch(() => {
-					// fallback: localStorage já foi atualizado
-				})
-				.finally(() => {
-					savingRef.current = false;
-				});
+
+			void persistThemePreference(next).finally(() => {
+				savingRef.current = false;
+			});
 		}
 	};
 
@@ -133,5 +185,11 @@ export function useTheme() {
 		setThemeKey,
 		allowedThemes, // útil para UI (dropdown)
 		getThemeByKey, // útil para UI (label/icon)
+		themeRemoteLoading,
+		themeRemoteError,
+		themeSaving,
+		themeSaveError,
+		refetchThemePreference,
+		retrySaveThemeNow,
 	};
 }
