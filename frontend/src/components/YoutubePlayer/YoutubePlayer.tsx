@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const YOUTUBE_STORAGE_KEY = "pomodoro:lastYoutubeUrl";
 
@@ -46,6 +46,10 @@ export const YoutubePlayer: React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [loop, setLoop] = useState(false);
 	const [autoPlayTrigger, setAutoPlayTrigger] = useState(0);
+	const [playerLoading, setPlayerLoading] = useState(false);
+	const [playerError, setPlayerError] = useState<string | null>(null);
+	const loadRequestIdRef = useRef(0);
+	const loadTimeoutRef = useRef<number | null>(null);
 
 	// Carrega do localStorage apenas no client (evita hydration mismatch)
 	useEffect(() => {
@@ -114,6 +118,45 @@ export const YoutubePlayer: React.FC = () => {
 		return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
 	}, [videoId, loop, autoPlayTrigger]);
 
+	useEffect(() => {
+		// limpa timeout anterior, se existir
+		if (loadTimeoutRef.current) {
+			window.clearTimeout(loadTimeoutRef.current);
+			loadTimeoutRef.current = null;
+		}
+
+		if (!embedUrl) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			setPlayerLoading(false);
+			setPlayerError(null);
+			return;
+		}
+
+		// marca nova "request" de carregamento
+		const reqId = ++loadRequestIdRef.current;
+
+		setPlayerLoading(true);
+		setPlayerError(null);
+
+		// fallback: se não carregar em tempo razoável, sinaliza erro
+		loadTimeoutRef.current = window.setTimeout(() => {
+			// só aplica se ainda for a request atual
+			if (loadRequestIdRef.current !== reqId) return;
+
+			setPlayerLoading(false);
+			setPlayerError(
+				"Não foi possível carregar o player agora. Verifique sua conexão e tente novamente."
+			);
+		}, 7000);
+
+		return () => {
+			if (loadTimeoutRef.current) {
+				window.clearTimeout(loadTimeoutRef.current);
+				loadTimeoutRef.current = null;
+			}
+		};
+	}, [embedUrl]);
+
 	function handleLoad(e?: React.FormEvent) {
 		if (e) e.preventDefault();
 
@@ -126,6 +169,8 @@ export const YoutubePlayer: React.FC = () => {
 		}
 
 		setError(null);
+		setPlayerError(null);
+
 		setCurrentUrl(trimmed);
 	}
 
@@ -167,6 +212,32 @@ export const YoutubePlayer: React.FC = () => {
 
 				{error && <p className="text-[11px] text-red-500">{error}</p>}
 
+				{playerLoading && (
+					<div className="card-secondary rounded-lg px-3 py-2" role="status">
+						<p className="text-xs text-muted">Carregando player…</p>
+					</div>
+				)}
+
+				{playerError && (
+					<div
+						className="rounded-lg border border-red-500/40 bg-red-500/5 px-3 py-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+						role="alert"
+					>
+						<p className="text-xs text-red-400 flex-1 min-w-0">{playerError}</p>
+						<button
+							type="button"
+							onClick={() => {
+								setPlayerError(null);
+								setPlayerLoading(true);
+								setAutoPlayTrigger((prev) => prev + 1);
+							}}
+							className="text-xs px-3 py-1.5 rounded-lg border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable whitespace-nowrap self-start sm:self-auto"
+						>
+							Tentar novamente
+						</button>
+					</div>
+				)}
+
 				<div className="flex items-center gap-3">
 					<label className="flex items-center gap-1 text-xs cursor-pointer select-none">
 						<input
@@ -192,6 +263,18 @@ export const YoutubePlayer: React.FC = () => {
 							aria-label="Player de foco do YouTube"
 							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 							allowFullScreen
+							onLoad={() => {
+								// invalida qualquer timeout pendente deste carregamento
+								loadRequestIdRef.current += 1;
+
+								if (loadTimeoutRef.current) {
+									window.clearTimeout(loadTimeoutRef.current);
+									loadTimeoutRef.current = null;
+								}
+
+								setPlayerLoading(false);
+								setPlayerError(null);
+							}}
 						/>
 					) : (
 						<span className="text-[11px] text-muted px-4 text-center">
