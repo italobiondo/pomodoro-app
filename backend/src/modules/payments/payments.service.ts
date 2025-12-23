@@ -468,7 +468,7 @@ export class PaymentsService {
 
     // 5) Idempotência + transação: Payment + Subscription + User coerentes
     await this.prisma.$transaction(async (tx) => {
-      const existing = await tx.payment.findFirst({
+      const existing = await tx.payment.findUnique({
         where: { providerPaymentId: resourceId },
       });
 
@@ -486,40 +486,35 @@ export class PaymentsService {
 
       const wasPaidBefore = existing?.status === PaymentStatus.PAID;
 
-      // Upsert “manual” (porque não sabemos se existe unique no schema)
-      const payment = existing
-        ? await tx.payment.update({
-            where: { id: existing.id },
-            data: {
-              amount: resolvedAmountInCents,
-              currency: resolvedCurrency,
-              providerEventType: dto.type ?? dto.eventType ?? null,
-              status: paymentStatus,
-              // rawPayload: apenas em dev; em prod evitar payload completo (pode conter dados sensíveis)
-              rawPayload:
-                (process.env.APP_ENV ??
-                  process.env.NODE_ENV ??
-                  'development') === 'production'
-                  ? undefined
-                  : (dto.rawPayload ?? dto),
-            },
-          })
-        : await tx.payment.create({
-            data: {
-              userId: resolvedUserId,
-              providerPaymentId: resourceId,
-              amount: resolvedAmountInCents,
-              currency: resolvedCurrency,
-              status: paymentStatus,
-              providerEventType: dto.type ?? dto.eventType ?? null,
-              rawPayload:
-                (process.env.APP_ENV ??
-                  process.env.NODE_ENV ??
-                  'development') === 'production'
-                  ? undefined
-                  : (dto.rawPayload ?? dto),
-            },
-          });
+      // Upsert via providerPaymentId (idempotência forte com UNIQUE)
+      const payment = await tx.payment.upsert({
+        where: { providerPaymentId: resourceId },
+        update: {
+          amount: resolvedAmountInCents,
+          currency: resolvedCurrency,
+          providerEventType: dto.type ?? dto.eventType ?? null,
+          status: paymentStatus,
+          // rawPayload: apenas em dev; em prod evitar payload completo (pode conter dados sensíveis)
+          rawPayload:
+            (process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development') ===
+            'production'
+              ? undefined
+              : (dto.rawPayload ?? dto),
+        },
+        create: {
+          userId: resolvedUserId,
+          providerPaymentId: resourceId,
+          amount: resolvedAmountInCents,
+          currency: resolvedCurrency,
+          status: paymentStatus,
+          providerEventType: dto.type ?? dto.eventType ?? null,
+          rawPayload:
+            (process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development') ===
+            'production'
+              ? undefined
+              : (dto.rawPayload ?? dto),
+        },
+      });
 
       // Se não está pago, não ativa PRO
       if (paymentStatus !== PaymentStatus.PAID) {
@@ -528,6 +523,28 @@ export class PaymentsService {
 
       // Se já foi pago no passado, idempotência: não duplicar efeitos de assinatura
       if (wasPaidBefore) {
+        return;
+      }
+
+      // Se já existe uma assinatura ACTIVE para este usuário, não duplicar (idempotência extra)
+      const existingActiveSub = await tx.subscription.findFirst({
+        where: { userId: resolvedUserId, status: 'ACTIVE' },
+        select: { id: true, currentPeriodEnd: true },
+      });
+
+      if (existingActiveSub) {
+        this.logger.warn(
+          `Assinatura ACTIVE já existe. Ignorando criação duplicada. userId=${resolvedUserId} subscriptionId=${existingActiveSub.id}`,
+        );
+        // Ainda assim, garante que o usuário esteja como PRO até o fim do período corrente
+        await tx.user.update({
+          where: { id: resolvedUserId },
+          data: {
+            plan: 'PRO',
+            planStatus: 'ACTIVE',
+            planExpiresAt: existingActiveSub.currentPeriodEnd,
+          },
+        });
         return;
       }
 

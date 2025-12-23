@@ -102,7 +102,7 @@ model Payment {
   subscriptionId String?
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
 
-  providerPaymentId String
+  providerPaymentId String @unique
   amount            Int // em centavos
   currency          String
   status            PaymentStatus
