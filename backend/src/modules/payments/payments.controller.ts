@@ -1,4 +1,13 @@
-import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import {
+  Body,
+  Controller,
+  Headers,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { PaymentsService } from './payments.service';
 import { MercadoPagoWebhookDto } from './dto/mercado-pago-webhook.dto';
@@ -21,7 +30,6 @@ export class PaymentsController {
   async createMercadoPagoPreference(
     @CurrentUser() user: any,
   ): Promise<CreateMercadoPagoPreferenceResponseDto> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     return this.paymentsService.createMercadoPagoPreference(user.id);
   }
 
@@ -35,10 +43,14 @@ export class PaymentsController {
   @SkipThrottle()
   @Post('mercado-pago/webhook')
   async handleMercadoPagoWebhook(
+    @Req() req: any,
     @Body() body: MercadoPagoWebhookDto,
     @Headers() headers: Record<string, string | string[]>,
   ) {
-    await this.paymentsService.handleMercadoPagoWebhook(body, headers);
+    // Captura payload bruto para auditoria/debug (sem logar em produção)
+    const rawBody: Buffer | undefined = req?.rawBody;
+
+    await this.paymentsService.handleMercadoPagoWebhook(body, headers, rawBody);
     return { received: true };
   }
 }

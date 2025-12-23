@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+/* eslint-disable @typescript-eslint/no-base-to-string */
 import {
   DEFAULT_PUBLIC_PRO_PLAN_ID,
   getPlanById,
@@ -126,13 +130,30 @@ export class PaymentsService {
       );
     }
 
-    const resourceId = dto.paymentId ? String(dto.paymentId) : undefined;
+    const tsNum = Number(ts);
+    if (!Number.isFinite(tsNum)) {
+      throw new UnauthorizedException(
+        'Header x-signature inválido (ts não numérico).',
+      );
+    }
+
+    // Janela anti-replay: 10 minutos
+    const now = Date.now();
+    const maxSkewMs = 10 * 60 * 1000;
+    if (Math.abs(now - tsNum) > maxSkewMs) {
+      this.logger.warn(
+        `Webhook Mercado Pago fora da janela anti-replay (ts=${tsNum}, now=${now}, requestId=${requestId}).`,
+      );
+      throw new UnauthorizedException('Webhook expirado (anti-replay).');
+    }
+
+    const resourceId = this.extractResourceId(dto);
 
     if (!resourceId) {
       this.logger.warn(
-        'Webhook Mercado Pago recebido sem paymentId no DTO. Requisição rejeitada.',
+        'Webhook Mercado Pago recebido sem resourceId (data.id/paymentId). Requisição rejeitada.',
       );
-      throw new UnauthorizedException('Webhook inválido (sem paymentId).');
+      throw new UnauthorizedException('Webhook inválido (sem resourceId).');
     }
 
     const manifest = `id:${resourceId};request-id:${requestId};ts:${ts};`;
@@ -181,10 +202,8 @@ export class PaymentsService {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const fetchFn = (globalThis as any).fetch as
       | ((
           input: string,
@@ -309,6 +328,72 @@ export class PaymentsService {
     return { init_point: initPoint };
   }
 
+  private extractResourceId(dto: MercadoPagoWebhookDto): string | undefined {
+    const fromData = dto?.data?.id;
+    if (fromData !== undefined && fromData !== null) return String(fromData);
+
+    if (dto?.paymentId) return String(dto.paymentId);
+
+    return undefined;
+  }
+
+  private isPaymentTopic(dto: MercadoPagoWebhookDto): boolean {
+    // Aceita legado do MVP e formato real
+    if (!dto) return false;
+    if (dto.type) return dto.type === 'payment';
+    if (dto.eventType) return dto.eventType.startsWith('payment');
+    // Se não vier nenhum, não bloqueia (pode ser MVP)
+    return true;
+  }
+
+  private parseUserIdFromExternalReference(
+    externalReference: unknown,
+  ): string | null {
+    if (!externalReference) return null;
+    const s = String(externalReference);
+
+    // Seu formato atual: "user_<userId>_<timestamp>"
+    // Mantemos compatibilidade.
+    const m = /^user_(.+)_\d+$/.exec(s);
+    if (m?.[1]) return m[1];
+
+    // Alternativas simples (caso você mude no futuro)
+    // "pomodoro_user:<id>"
+    const m2 = /^pomodoro_user:(.+)$/.exec(s);
+    if (m2?.[1]) return m2[1];
+
+    return null;
+  }
+
+  private async fetchMercadoPagoPayment(
+    paymentId: string,
+  ): Promise<any | null> {
+    const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+    if (!accessToken) return null;
+
+    // Endpoint usual do MP para Payment
+    const url = `https://api.mercadopago.com/v1/payments/${encodeURIComponent(paymentId)}`;
+
+    const fetchFn = (globalThis as any).fetch as
+      | ((
+          input: string,
+          init?: { method?: string; headers?: Record<string, string> },
+        ) => Promise<Response>)
+      | undefined;
+
+    if (!fetchFn) return null;
+
+    const res = await fetchFn(url, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    return json;
+  }
+
   /**
    * Trata o webhook do Mercado Pago (MVP).
    *
@@ -319,82 +404,159 @@ export class PaymentsService {
   async handleMercadoPagoWebhook(
     dto: MercadoPagoWebhookDto,
     headers?: Record<string, string | string[]>,
+    rawBody?: Buffer,
   ): Promise<void> {
-    // 1 — Validação HMAC (apenas em produção, controlado por env)
+    // 0) Validar tópico esperado (não processar lixo)
+    if (!this.isPaymentTopic(dto)) {
+      this.logger.warn(
+        `Webhook Mercado Pago ignorado (topic/type não suportado). type=${String(dto.type)} eventType=${String(dto.eventType)}`,
+      );
+      return;
+    }
+
+    // 1) Validar assinatura (produção) — usando resourceId real
     this.validateMercadoPagoSignature(dto, headers);
 
-    const paymentStatus = this.mapMercadoPagoStatus(dto.status);
+    const resourceId = this.extractResourceId(dto);
+    if (!resourceId) {
+      this.logger.warn(
+        'Webhook Mercado Pago sem resourceId após parse. Ignorando.',
+      );
+      return;
+    }
 
-    this.logger.log(
-      `Recebido webhook Mercado Pago para userId=${dto.userId} paymentId=${dto.paymentId} status=${dto.status} -> mapped=${paymentStatus}`,
+    // 2) Fonte de verdade: buscar detalhes do payment no MP (se possível)
+    const mpPayment = await this.fetchMercadoPagoPayment(resourceId);
+
+    // 3) Resolver userId e status/amount/currency
+    // Preferir dados do MP; fallback para MVP dto.* em dev
+    const resolvedStatus: string | undefined =
+      (mpPayment?.status as string | undefined) ?? dto.status;
+
+    const paymentStatus = this.mapMercadoPagoStatus(
+      resolvedStatus ?? 'unknown',
     );
 
-    // Idempotência — verifica se já existe pagamento com este providerPaymentId
-    const existing = await this.prisma.payment.findFirst({
-      where: { providerPaymentId: dto.paymentId },
-    });
+    const resolvedAmountInCents: number =
+      mpPayment?.transaction_amount !== undefined &&
+      mpPayment?.transaction_amount !== null
+        ? Math.round(Number(mpPayment.transaction_amount) * 100)
+        : (dto.amountInCents ?? 0);
 
-    let payment;
-    let wasPaidBefore = false;
+    const resolvedCurrency: string =
+      (mpPayment?.currency_id as string | undefined) ?? dto.currency ?? 'BRL';
 
-    if (existing) {
-      wasPaidBefore = existing.status === PaymentStatus.PAID;
+    const resolvedUserId: string | null =
+      this.parseUserIdFromExternalReference(mpPayment?.external_reference) ??
+      dto.userId ??
+      null;
 
-      this.logger.log(
-        `Pagamento já existente. Atualizando estado anterior=${existing.status} → novo=${paymentStatus}`,
-      );
-
-      payment = await this.prisma.payment.update({
-        where: { id: existing.id },
-        data: {
-          amount: dto.amountInCents,
-          currency: dto.currency,
-          providerEventType: dto.eventType ?? null,
-          status: paymentStatus,
-          rawPayload: dto.rawPayload ?? dto,
-        },
-      });
-    } else {
-      payment = await this.prisma.payment.create({
-        data: {
-          userId: dto.userId,
-          providerPaymentId: dto.paymentId,
-          amount: dto.amountInCents,
-          currency: dto.currency,
-          status: paymentStatus,
-          providerEventType: dto.eventType ?? null,
-          rawPayload: dto.rawPayload ?? dto,
-        },
-      });
-    }
-
-    if (paymentStatus !== PaymentStatus.PAID) {
-      this.logger.log(
-        'Pagamento não está completo, nenhuma assinatura ativada.',
+    // Segurança: não processar pagamento sem conseguir amarrar em um usuário
+    if (!resolvedUserId) {
+      this.logger.warn(
+        `Webhook Mercado Pago sem userId resolvido (paymentId=${resourceId}). Ignorando para evitar ativação indevida.`,
       );
       return;
     }
 
-    // Se já estava PAID antes → ignoramos
-    if (wasPaidBefore) {
-      this.logger.log('Webhook repetido. Assinatura já ativada anteriormente.');
-      return;
-    }
+    // 4) Auditoria mínima: log estruturado sem payload
+    this.logger.log(
+      `Webhook Mercado Pago recebido. paymentId=${resourceId} userId=${resolvedUserId} statusRaw=${String(
+        resolvedStatus,
+      )} mapped=${paymentStatus}`,
+    );
 
-    // Para MVP: assume plano mensal a partir de agora.
-    const now = new Date();
-    const currentPeriodStart = now;
-    const currentPeriodEnd = addMonths(now, 1);
+    // 5) Idempotência + transação: Payment + Subscription + User coerentes
+    await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.payment.findFirst({
+        where: { providerPaymentId: resourceId },
+      });
 
-    // Criamos uma assinatura genérica vinculada ao usuário.
-    // Futuro: usar providerCustomerId/providerSubscriptionId reais do MP.
-    await this.subscriptionsService.activateSubscriptionForUser(dto.userId, {
-      provider: 'mercado_pago',
-      providerCustomerId: dto.userId, // MVP: amarrado ao nosso userId
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      providerSubscriptionId: `mp_sub_${payment.id}`,
-      currentPeriodStart,
-      currentPeriodEnd,
+      const userExists = await tx.user.findUnique({
+        where: { id: resolvedUserId },
+        select: { id: true },
+      });
+
+      if (!userExists) {
+        this.logger.warn(
+          `Webhook Mercado Pago com userId inexistente no banco. Ignorando. paymentId=${resourceId} userId=${resolvedUserId}`,
+        );
+        return;
+      }
+
+      const wasPaidBefore = existing?.status === PaymentStatus.PAID;
+
+      // Upsert “manual” (porque não sabemos se existe unique no schema)
+      const payment = existing
+        ? await tx.payment.update({
+            where: { id: existing.id },
+            data: {
+              amount: resolvedAmountInCents,
+              currency: resolvedCurrency,
+              providerEventType: dto.type ?? dto.eventType ?? null,
+              status: paymentStatus,
+              // rawPayload: apenas em dev; em prod evitar payload completo (pode conter dados sensíveis)
+              rawPayload:
+                (process.env.APP_ENV ??
+                  process.env.NODE_ENV ??
+                  'development') === 'production'
+                  ? undefined
+                  : (dto.rawPayload ?? dto),
+            },
+          })
+        : await tx.payment.create({
+            data: {
+              userId: resolvedUserId,
+              providerPaymentId: resourceId,
+              amount: resolvedAmountInCents,
+              currency: resolvedCurrency,
+              status: paymentStatus,
+              providerEventType: dto.type ?? dto.eventType ?? null,
+              rawPayload:
+                (process.env.APP_ENV ??
+                  process.env.NODE_ENV ??
+                  'development') === 'production'
+                  ? undefined
+                  : (dto.rawPayload ?? dto),
+            },
+          });
+
+      // Se não está pago, não ativa PRO
+      if (paymentStatus !== PaymentStatus.PAID) {
+        return;
+      }
+
+      // Se já foi pago no passado, idempotência: não duplicar efeitos de assinatura
+      if (wasPaidBefore) {
+        return;
+      }
+
+      // Regra MVP: 1 mês a partir de agora
+      const now = new Date();
+      const currentPeriodStart = now;
+      const currentPeriodEnd = addMonths(now, 1);
+
+      // Criar assinatura e ativar PRO de forma transacional
+      await tx.subscription.create({
+        data: {
+          userId: resolvedUserId,
+          provider: 'mercado_pago',
+          providerCustomerId: resolvedUserId, // MVP
+          providerSubscriptionId: `mp_sub_${payment.id}`, // MVP
+          status: 'ACTIVE',
+          currentPeriodStart,
+          currentPeriodEnd,
+        },
+      });
+
+      await tx.user.update({
+        where: { id: resolvedUserId },
+        data: {
+          plan: 'PRO',
+          planStatus: 'ACTIVE',
+          planExpiresAt: currentPeriodEnd,
+        },
+      });
     });
   }
 

@@ -1,36 +1,73 @@
 // backend/src/modules/payments/dto/mercado-pago-webhook.dto.ts
 
+import { Type } from 'class-transformer';
+import {
+  IsIn,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+
+class MercadoPagoWebhookDataDto {
+  @IsOptional()
+  @IsString()
+  id?: string;
+}
+
 /**
- * DTO simplificado para MVP de webhook do Mercado Pago.
+ * Webhook do Mercado Pago:
+ * - formato comum: { type: "payment", action: "...", data: { id: "123" } }
  *
- * Quando integrar com o webhook real do MP, podemos:
- * - Usar os campos reais do webhook (type, action, data.id, etc.)
- * - Buscar detalhes via API do MP para chegar em amount, currency, status, metadata.user_id, etc.
+ * Mantemos campos "legados" (MVP) para testes locais e fallback.
+ * Como o app usa ValidationPipe com whitelist+forbidNonWhitelisted,
+ * todos os campos permitidos precisam de decorators.
  */
 export class MercadoPagoWebhookDto {
-  // MVP: ID do usuário no nosso sistema (depois virá de metadata do MP)
-  userId: string;
+  // Formato real (comum)
+  @IsOptional()
+  @IsString()
+  @IsIn(['payment', 'merchant_order', 'preapproval'], {
+    message: 'type inválido (esperado payment/merchant_order/preapproval)',
+  })
+  type?: string;
 
-  // ID do pagamento no Mercado Pago
-  paymentId: string;
+  @IsOptional()
+  @IsString()
+  action?: string;
 
-  // Valor em centavos
-  amountInCents: number;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MercadoPagoWebhookDataDto)
+  data?: MercadoPagoWebhookDataDto;
 
-  // Ex: "BRL"
-  currency: string;
+  // MVP legado (fallback)
+  @IsOptional()
+  @IsString()
+  userId?: string;
 
-  /**
-   * Status no formato Mercado Pago (MVP):
-   * - "approved"  -> pago
-   * - "pending"   -> pendente
-   * - "rejected"  -> falhou
-   */
-  status: string;
+  @IsOptional()
+  @IsString()
+  paymentId?: string;
 
-  // Tipo de evento (ex: "payment", "payment.updated")
+  @IsOptional()
+  @IsNumber()
+  amountInCents?: number;
+
+  @IsOptional()
+  @IsString()
+  currency?: string;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsString()
   eventType?: string;
 
-  // Payload bruto opcional
+  @IsOptional()
+  @IsObject()
   rawPayload?: unknown;
 }

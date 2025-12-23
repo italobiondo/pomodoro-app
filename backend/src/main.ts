@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { json, urlencoded } from 'express'; // <-- ADICIONAR
 import { AppModule } from './app.module';
 import { requestIdMiddleware } from './infra/logging/request-id.middleware';
 import { JsonLogger } from './infra/logging/json-logger.service';
@@ -26,6 +28,27 @@ async function bootstrap() {
 
   // requestId + AsyncLocalStorage context (precisa vir bem cedo)
   app.use(requestIdMiddleware);
+
+  // Captura rawBody (útil para auditoria/validação de webhooks)
+  // Mantém JSON padrão para o resto da API.
+  app.use(
+    json({
+      limit: '1mb',
+      verify: (req: any, _res, buf: Buffer) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
+
+  app.use(
+    urlencoded({
+      extended: true,
+      limit: '1mb',
+      verify: (req: any, _res, buf: Buffer) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
 
   app.use(cookieParser());
 
