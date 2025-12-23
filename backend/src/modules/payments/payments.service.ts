@@ -468,7 +468,8 @@ export class PaymentsService {
 
     // 5) Idempotência + transação: Payment + Subscription + User coerentes
     await this.prisma.$transaction(async (tx) => {
-      const existing = await tx.payment.findUnique({
+      // Payment agora é idempotente forte via providerPaymentId UNIQUE
+      const existingPayment = await tx.payment.findUnique({
         where: { providerPaymentId: resourceId },
       });
 
@@ -484,9 +485,9 @@ export class PaymentsService {
         return;
       }
 
-      const wasPaidBefore = existing?.status === PaymentStatus.PAID;
+      const previousStatus = existingPayment?.status ?? null;
 
-      // Upsert via providerPaymentId (idempotência forte com UNIQUE)
+      // Upsert atômico (idempotência forte)
       const payment = await tx.payment.upsert({
         where: { providerPaymentId: resourceId },
         update: {
@@ -494,7 +495,6 @@ export class PaymentsService {
           currency: resolvedCurrency,
           providerEventType: dto.type ?? dto.eventType ?? null,
           status: paymentStatus,
-          // rawPayload: apenas em dev; em prod evitar payload completo (pode conter dados sensíveis)
           rawPayload:
             (process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development') ===
             'production'
@@ -516,56 +516,119 @@ export class PaymentsService {
         },
       });
 
-      // Se não está pago, não ativa PRO
-      if (paymentStatus !== PaymentStatus.PAID) {
+      // PENDING: não ativa nem desativa (apenas registra)
+      if (paymentStatus === PaymentStatus.PENDING) {
         return;
       }
 
-      // Se já foi pago no passado, idempotência: não duplicar efeitos de assinatura
-      if (wasPaidBefore) {
-        return;
-      }
+      // FAILED: transição negativa -> revoga PRO idempotentemente
+      if (paymentStatus === PaymentStatus.FAILED) {
+        const negativePlanStatus =
+          this.classifyNegativePlanStatus(resolvedStatus);
 
-      // Se já existe uma assinatura ACTIVE para este usuário, não duplicar (idempotência extra)
-      const existingActiveSub = await tx.subscription.findFirst({
-        where: { userId: resolvedUserId, status: 'ACTIVE' },
-        select: { id: true, currentPeriodEnd: true },
-      });
+        const provider = 'mercado_pago';
+        const providerSubscriptionId = `mp_sub_user_${resolvedUserId}`;
 
-      if (existingActiveSub) {
-        this.logger.warn(
-          `Assinatura ACTIVE já existe. Ignorando criação duplicada. userId=${resolvedUserId} subscriptionId=${existingActiveSub.id}`,
-        );
-        // Ainda assim, garante que o usuário esteja como PRO até o fim do período corrente
+        const existingSub = await tx.subscription.findUnique({
+          where: {
+            provider_providerSubscriptionId: {
+              provider,
+              providerSubscriptionId,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (existingSub) {
+          await tx.subscription.update({
+            where: { id: existingSub.id },
+            data: { status: 'CANCELED' },
+          });
+
+          // vincula o pagamento à subscription, se fizer sentido
+          await tx.payment.update({
+            where: { providerPaymentId: resourceId },
+            data: { subscriptionId: existingSub.id },
+          });
+        }
+
         await tx.user.update({
           where: { id: resolvedUserId },
           data: {
-            plan: 'PRO',
-            planStatus: 'ACTIVE',
-            planExpiresAt: existingActiveSub.currentPeriodEnd,
+            plan: 'FREE',
+            planStatus: negativePlanStatus,
+            planExpiresAt: new Date(),
           },
         });
+
         return;
       }
 
-      // Regra MVP: 1 mês a partir de agora
-      const now = new Date();
-      const currentPeriodStart = now;
-      const currentPeriodEnd = addMonths(now, 1);
+      // A partir daqui é PAID
+      // Se já era PAID antes para este mesmo providerPaymentId, não repetir efeitos
+      if (previousStatus === PaymentStatus.PAID) {
+        return;
+      }
 
-      // Criar assinatura e ativar PRO de forma transacional
-      await tx.subscription.create({
-        data: {
+      // Subscription idempotente por (provider, providerSubscriptionId)
+      // MVP: 1 assinatura por usuário no provedor
+      const provider = 'mercado_pago';
+      const providerSubscriptionId = `mp_sub_user_${resolvedUserId}`;
+      const providerCustomerId = `mp_customer_${resolvedUserId}`;
+
+      const now = new Date();
+
+      // Para renovação correta: se já existe e está vigente, estende a partir do fim atual
+      const existingSub = await tx.subscription.findUnique({
+        where: {
+          provider_providerSubscriptionId: {
+            provider,
+            providerSubscriptionId,
+          },
+        },
+        select: { id: true, currentPeriodEnd: true },
+      });
+
+      const baseDate =
+        existingSub?.currentPeriodEnd && existingSub.currentPeriodEnd > now
+          ? existingSub.currentPeriodEnd
+          : now;
+
+      const currentPeriodStart = now;
+      const currentPeriodEnd = addMonths(baseDate, 1);
+
+      const subscription = await tx.subscription.upsert({
+        where: {
+          provider_providerSubscriptionId: {
+            provider,
+            providerSubscriptionId,
+          },
+        },
+        update: {
           userId: resolvedUserId,
-          provider: 'mercado_pago',
-          providerCustomerId: resolvedUserId, // MVP
-          providerSubscriptionId: `mp_sub_${payment.id}`, // MVP
+          providerCustomerId,
+          status: 'ACTIVE',
+          currentPeriodStart,
+          currentPeriodEnd,
+        },
+        create: {
+          userId: resolvedUserId,
+          provider,
+          providerCustomerId,
+          providerSubscriptionId,
           status: 'ACTIVE',
           currentPeriodStart,
           currentPeriodEnd,
         },
       });
 
+      // Vincula o payment na subscription (auditoria/consistência)
+      await tx.payment.update({
+        where: { providerPaymentId: resourceId },
+        data: { subscriptionId: subscription.id },
+      });
+
+      // Ativa PRO
       await tx.user.update({
         where: { id: resolvedUserId },
         data: {
@@ -575,6 +638,14 @@ export class PaymentsService {
         },
       });
     });
+  }
+
+  private classifyNegativePlanStatus(
+    statusRaw?: string | null,
+  ): 'CANCELED' | 'EXPIRED' {
+    const s = (statusRaw ?? '').toLowerCase();
+    if (s.includes('expired')) return 'EXPIRED';
+    return 'CANCELED';
   }
 
   /**
