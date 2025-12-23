@@ -22,12 +22,6 @@ export class SubscriptionsService {
   ): Promise<SubscriptionStatusResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        subscriptions: {
-          orderBy: { currentPeriodEnd: 'desc' },
-          take: 1,
-        },
-      },
     });
 
     if (!user) {
@@ -35,27 +29,56 @@ export class SubscriptionsService {
     }
 
     const now = new Date();
-    const lastSubscription = user.subscriptions[0] ?? null;
 
-    const isPlanActive =
-      user.plan === PlanType.PRO &&
-      user.planStatus === PlanStatus.ACTIVE &&
-      (!user.planExpiresAt || user.planExpiresAt > now);
+    // Assinatura canônica (Mercado Pago): 1 por usuário
+    const canonicalProvider = 'mercado_pago';
+    const canonicalProviderSubscriptionId = `mp_sub_user_${userId}`;
+
+    const canonicalSubscription = await this.prisma.subscription.findUnique({
+      where: {
+        provider_providerSubscriptionId: {
+          provider: canonicalProvider,
+          providerSubscriptionId: canonicalProviderSubscriptionId,
+        },
+      },
+    });
+
+    // Fallback: última assinatura (qualquer provider), por segurança
+    const lastSubscription = await this.prisma.subscription.findFirst({
+      where: { userId },
+      orderBy: { currentPeriodEnd: 'desc' },
+    });
+
+    const subscription = canonicalSubscription ?? lastSubscription;
+
+    const isProFromSubscription =
+      !!subscription &&
+      subscription.status === SubscriptionStatus.ACTIVE &&
+      subscription.currentPeriodEnd > now;
+
+    // Fonte de verdade:
+    // - se existe subscription (canônica ou fallback), ela manda
+    // - se não existe, cai no estado do User (permite “PRO manual” no futuro)
+    const isProEffective =
+      subscription !== null && subscription !== undefined
+        ? isProFromSubscription
+        : user.plan === PlanType.PRO &&
+          user.planStatus === PlanStatus.ACTIVE &&
+          (!user.planExpiresAt || user.planExpiresAt > now);
 
     return {
-      isPro: isPlanActive,
+      isPro: isProEffective,
       plan: user.plan,
       planStatus: user.planStatus,
       planExpiresAt: user.planExpiresAt
         ? user.planExpiresAt.toISOString()
         : null,
-      subscription: lastSubscription
+      subscription: subscription
         ? {
-            provider: lastSubscription.provider,
-            status: lastSubscription.status,
-            currentPeriodStart:
-              lastSubscription.currentPeriodStart.toISOString(),
-            currentPeriodEnd: lastSubscription.currentPeriodEnd.toISOString(),
+            provider: subscription.provider,
+            status: subscription.status,
+            currentPeriodStart: subscription.currentPeriodStart.toISOString(),
+            currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
           }
         : null,
     };
@@ -79,8 +102,21 @@ export class SubscriptionsService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.subscription.create({
-        data: {
+      await tx.subscription.upsert({
+        where: {
+          provider_providerSubscriptionId: {
+            provider: input.provider,
+            providerSubscriptionId: input.providerSubscriptionId,
+          },
+        },
+        update: {
+          userId: user.id,
+          providerCustomerId: input.providerCustomerId,
+          status: SubscriptionStatus.ACTIVE,
+          currentPeriodStart: input.currentPeriodStart,
+          currentPeriodEnd: input.currentPeriodEnd,
+        },
+        create: {
           userId: user.id,
           provider: input.provider,
           providerCustomerId: input.providerCustomerId,
