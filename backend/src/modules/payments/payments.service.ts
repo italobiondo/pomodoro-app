@@ -238,34 +238,66 @@ export class PaymentsService {
       );
     }
 
-    const body = {
+    const backendUrl = process.env.BACKEND_URL; // recomendado em prod (HTTPS público)
+
+    const frontendIsHttps = frontendUrl.startsWith('https://');
+    const backendIsHttps = !!backendUrl && backendUrl.startsWith('https://');
+
+    // Em dev/local (HTTP), o Mercado Pago pode bloquear back_urls HTTP.
+    // Então só configuramos back_urls/auto_return quando o FRONTEND_URL for HTTPS.
+    const backUrls = frontendIsHttps
+      ? {
+          success: `${frontendUrl}/pro/success`,
+          pending: `${frontendUrl}/pro/success`,
+          failure: `${frontendUrl}/pro`,
+        }
+      : undefined;
+
+    // Webhook só funciona de verdade se BACKEND_URL for público/HTTPS.
+    // Mantemos condicional para não “enganar” em dev/local.
+    const notificationUrl = backendIsHttps
+      ? `${backendUrl}/api/payments/mercado-pago/webhook`
+      : undefined;
+
+    const body: Record<string, any> = {
       items: [
         {
+          id: plan.id, // 'PRO_MONTHLY'
           title: plan.name,
+          description: plan.description,
           quantity: 1,
-          unit_price: plan.price,
-          currency_id: plan.currency,
+          // Evita ruído de float: 5.9 -> 5.90
+          unit_price: Number(plan.price.toFixed(2)),
+          currency_id: plan.currency, // 'BRL'
         },
       ],
-      // Metadata é fundamental para o webhook saber de qual usuário
-      // e de qual plano é o pagamento.
       metadata: {
         userId,
         planId: plan.id,
         planType: plan.type,
       },
-      // IMPORTANTE:
-      // Não enviamos back_urls/auto_return em ambiente de desenvolvimento/local
-      // porque o Mercado Pago passou a bloquear URLs HTTP na Preference API.
-      // Em produção, com domínio HTTPS, podemos reativar:
-      // back_urls: {
-      //   success: `${frontendUrl}/pro/success`,
-      //   failure: `${frontendUrl}/pro/error`,
-      //   pending: `${frontendUrl}/pro/error`,
-      // },
-      // auto_return: 'approved',
-      external_reference: `user_${userId}_${Date.now()}`,
+
+      // Referência estável para reconciliar no webhook (melhor que Date.now()).
+      // (Não precisa ser única; o providerPaymentId já garante idempotência.)
+      external_reference: `user:${userId}:plan:${plan.id}`,
     };
+
+    if (backUrls) {
+      body.back_urls = backUrls;
+      body.auto_return = 'approved';
+    } else {
+      this.logger.warn(
+        'FRONTEND_URL não é HTTPS. Mercado Pago pode bloquear back_urls em HTTP; retornos automáticos podem não funcionar em dev/local.',
+      );
+    }
+
+    if (notificationUrl) {
+      body.notification_url = notificationUrl;
+    } else {
+      this.logger.warn(
+        'BACKEND_URL não é HTTPS/público. notification_url não será configurado; webhook só funcionará em ambiente com URL pública.',
+      );
+    }
 
     let response: Response;
 
