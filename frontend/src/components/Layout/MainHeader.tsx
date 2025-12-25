@@ -18,8 +18,10 @@ import {
 	Settings,
 	X,
 	ChevronDown,
-	Lock,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { THEMES } from "@/theme/themes";
+import { ProLockPill } from "@/components/Pro/ProLockPill";
 
 type MainHeaderProps = {
 	showSettings?: boolean;
@@ -70,6 +72,8 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 			themeMenuButtonRef.current?.focus();
 		}, 0);
 	};
+
+	const router = useRouter();
 
 	useEffect(() => {
 		function onDocMouseDown(e: MouseEvent) {
@@ -314,11 +318,10 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
   Premium themes: sempre aparecer no menu, mas com gate.
   Como `allowedThemes` já filtra por plano, precisamos listar os premium do registry separadamente.
 */}
-										{["midnight", "pomodoro-red"].map((key) => {
-											// eslint-disable-next-line @typescript-eslint/no-explicit-any
-											const theme = getThemeByKey(key as any);
+										{THEMES.filter((t) => t.premium).map((t) => {
+											const theme = getThemeByKey(t.key);
 											const Icon = theme.icon;
-											const canUse = !theme.premium || isPro;
+											const canUse = isPro;
 
 											return (
 												<button
@@ -327,9 +330,12 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 													role="menuitem"
 													onClick={() => {
 														if (!canUse) {
-															window.location.href = "/pro";
+															// Upsell discreto: fecha o menu e direciona com contexto
+															closeThemeMenuAndRestoreFocus();
+															router.push("/pro?src=theme");
 															return;
 														}
+
 														setThemeKey(theme.key);
 														closeThemeMenuAndRestoreFocus();
 													}}
@@ -342,7 +348,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 													title={
 														canUse
 															? "Tema premium ativável"
-															: "Tema premium: disponível apenas no Plano Pro"
+															: "Disponível no Plano Pro — clique para ver benefícios"
 													}
 												>
 													<span className="inline-flex items-center gap-2">
@@ -350,16 +356,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 														{theme.label}
 													</span>
 
-													{canUse ? (
-														<span className="text-[10px] px-2 py-0.5 rounded-full border border-soft text-muted">
-															Premium
-														</span>
-													) : (
-														<span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-soft text-muted">
-															<Lock className="h-3 w-3" aria-hidden />
-															Pro
-														</span>
-													)}
+													<ProLockPill locked={!canUse} />
 												</button>
 											);
 										})}

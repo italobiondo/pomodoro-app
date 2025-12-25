@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import cookieParser from 'cookie-parser'; // <-- add
 
 import { AppModule } from './app.module';
 import { requestIdMiddleware } from './infra/logging/request-id.middleware';
@@ -11,10 +12,8 @@ async function bootstrap(): Promise<void> {
 
   const config = app.get(ConfigService);
 
-  // Prefixo de API
   app.setGlobalPrefix('api');
 
-  // CORS
   const frontendUrl =
     config.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
 
@@ -23,13 +22,11 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
 
-  // Middleware request-id (correlação)
-  app.use(requestIdMiddleware);
+  app.use(cookieParser()); // <-- add (antes de guards/rotas é suficiente)
 
-  // Interceptor de logging HTTP (sem dados sensíveis)
+  app.use(requestIdMiddleware);
   app.useGlobalInterceptors(new HttpLoggingInterceptor());
 
-  // ValidationPipe global (hardening)
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -44,10 +41,7 @@ async function bootstrap(): Promise<void> {
   await app.listen(port);
 }
 
-// Evita no-floating-promises
 void bootstrap().catch((err: unknown) => {
-  // log mínimo e explícito
-
   console.error('Fatal bootstrap error:', err);
   process.exit(1);
 });
