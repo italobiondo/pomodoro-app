@@ -3,31 +3,27 @@ import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
+
 import { ThemePreferencesService } from './theme-preferences.service';
 import { UpdateThemePreferenceDto } from './dto/update-theme-preference.dto';
 
-@Controller('theme-preferences')
 @UseGuards(JwtAuthGuard)
+@Controller('theme-preferences')
 export class ThemePreferencesController {
-  constructor(
-    private readonly themePreferencesService: ThemePreferencesService,
-  ) {}
+  constructor(private readonly service: ThemePreferencesService) {}
 
   @Throttle({ default: { limit: 60, ttl: 60 } })
   @Get('me')
-  async getMyThemePreference(@CurrentUser() user: AuthenticatedUser) {
-    return await this.themePreferencesService.getMyThemePreference(user.id);
+  async getMe(@CurrentUser() user: AuthenticatedUser) {
+    return await this.service.getMyPreference(user.id);
   }
 
   @Throttle({ default: { limit: 30, ttl: 60 } })
   @Put('me')
-  async updateMyThemePreference(
+  async putMe(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateThemePreferenceDto,
   ) {
-    return await this.themePreferencesService.updateMyThemePreference(
-      user.id,
-      dto,
-    );
+    return await this.service.upsertMyPreference(user.id, dto);
   }
 }
