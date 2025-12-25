@@ -1,12 +1,11 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
-import { StatsOverviewResponse } from './dto/stats-response.dto';
 import { StatsService } from './stats.service';
 import { StartFocusSessionDto } from './dto/start-focus-session.dto';
 import { FinishFocusSessionDto } from './dto/finish-focus-session.dto';
-import { FocusSessionResponseDto } from './dto/focus-session-response.dto';
 import { CreateFocusSessionEventDto } from './dto/create-focus-session-event.dto';
 
 @Controller('stats')
@@ -14,58 +13,38 @@ import { CreateFocusSessionEventDto } from './dto/create-focus-session-event.dto
 export class StatsController {
   constructor(private readonly statsService: StatsService) {}
 
-  @Get('overview')
-  async getOverview(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<StatsOverviewResponse> {
-    return this.statsService.getOverview(user.id);
+  @Get()
+  async getStats(@CurrentUser() user: AuthenticatedUser) {
+    return await this.statsService.getStats(user.id);
   }
 
+  // Fluxo de sessão: chamadas frequentes
+  @Throttle({ default: { limit: 60, ttl: 60 } })
   @Post('focus-sessions/start')
   async startFocusSession(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: StartFocusSessionDto,
-  ): Promise<FocusSessionResponseDto> {
-    const session = await this.statsService.startFocusSession(user.id, body);
-
-    return {
-      id: session.id,
-      startedAt: session.startedAt,
-      endedAt: session.endedAt ?? null,
-      focusMinutes: session.focusMinutes,
-      breakMinutes: session.breakMinutes,
-    };
+    @Body() dto: StartFocusSessionDto,
+  ) {
+    return await this.statsService.startFocusSession(user.id, dto);
   }
 
+  @Throttle({ default: { limit: 60, ttl: 60 } })
   @Post('focus-sessions/:id/finish')
   async finishFocusSession(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') sessionId: string,
-    @Body() body: FinishFocusSessionDto,
-  ): Promise<FocusSessionResponseDto> {
-    const session = await this.statsService.finishFocusSession(
-      user.id,
-      sessionId,
-      body,
-    );
-
-    return {
-      id: session.id,
-      startedAt: session.startedAt,
-      endedAt: session.endedAt ?? null,
-      focusMinutes: session.focusMinutes,
-      breakMinutes: session.breakMinutes,
-    };
+    @Param('id') id: string,
+    @Body() dto: FinishFocusSessionDto,
+  ) {
+    return await this.statsService.finishFocusSession(user.id, id, dto);
   }
 
-  // ✅ NOVO: eventos finos (skips/resets/finalização etc.)
+  @Throttle({ default: { limit: 120, ttl: 60 } })
   @Post('focus-sessions/:id/events')
-  async addFocusSessionEvent(
+  async createFocusSessionEvent(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') sessionId: string,
-    @Body() body: CreateFocusSessionEventDto,
-  ): Promise<{ ok: true }> {
-    await this.statsService.addFocusSessionEvent(user.id, sessionId, body);
-    return { ok: true };
+    @Param('id') id: string,
+    @Body() dto: CreateFocusSessionEventDto,
+  ) {
+    return await this.statsService.createFocusSessionEvent(user.id, id, dto);
   }
 }

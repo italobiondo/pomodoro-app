@@ -354,7 +354,7 @@ export class PaymentsService {
     }
 
     this.logger.log(
-      `Preference criada no Mercado Pago para userId=${userId} preferenceId=${data.id} initPoint=${initPoint} plan=${plan.id}`,
+      `Preference criada no Mercado Pago para userId=${userId} preferenceId=${data.id} plan=${plan.id}`,
     );
 
     return { init_point: initPoint };

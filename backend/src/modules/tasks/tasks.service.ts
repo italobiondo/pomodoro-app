@@ -51,6 +51,13 @@ export class TasksService {
     });
   }
 
+  async listForUser(userId: string) {
+    return this.prisma.task.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
   /**
    * Cria uma nova task para o usuário, respeitando:
    * - Pro ativo: 100 tasks ativas

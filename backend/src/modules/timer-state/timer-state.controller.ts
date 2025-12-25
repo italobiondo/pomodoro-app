@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
@@ -10,16 +11,19 @@ import { UpsertTimerStateDto } from './dto/upsert-timer-state.dto';
 export class TimerStateController {
   constructor(private readonly timerStateService: TimerStateService) {}
 
+  // Chamado com frequência pelo frontend
+  @Throttle({ default: { limit: 120, ttl: 60 } })
   @Get()
   async get(@CurrentUser() user: AuthenticatedUser) {
-    return this.timerStateService.getTimerState(user.id);
+    return await this.timerStateService.get(user.id);
   }
 
+  @Throttle({ default: { limit: 120, ttl: 60 } })
   @Put()
   async upsert(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: UpsertTimerStateDto,
+    @Body() dto: UpsertTimerStateDto,
   ) {
-    return this.timerStateService.upsertTimerState(user.id, body);
+    return await this.timerStateService.upsert(user.id, dto);
   }
 }
