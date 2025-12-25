@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -32,7 +40,7 @@ export class StatsController {
   @Post('focus-sessions/:id/finish')
   async finishFocusSession(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') sessionId: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) sessionId: string,
     @Body() dto: FinishFocusSessionDto,
   ) {
     return await this.statsService.finishFocusSession(user.id, sessionId, dto);
@@ -42,7 +50,7 @@ export class StatsController {
   @Post('focus-sessions/:id/events')
   async addFocusSessionEvent(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id') sessionId: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) sessionId: string,
     @Body() dto: CreateFocusSessionEventDto,
   ): Promise<{ ok: true }> {
     await this.statsService.addFocusSessionEvent(user.id, sessionId, dto);

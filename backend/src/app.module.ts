@@ -32,7 +32,15 @@ import { UsersModule } from './modules/users/users.module';
         const limit = Number(process.env.THROTTLE_LIMIT ?? 120); // req por ttl
         const redisUrl = process.env.REDIS_URL ?? 'redis://redis:6379';
 
-        const redis = new Redis(redisUrl);
+        const redis = new Redis(redisUrl, {
+          maxRetriesPerRequest: 3,
+          enableReadyCheck: true,
+        });
+
+        redis.on('error', (err) => {
+          // Log estruturado, sem derrubar a aplicação
+          console.error('[Redis]', err.message);
+        });
 
         return {
           throttlers: [

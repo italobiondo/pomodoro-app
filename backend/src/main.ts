@@ -1,94 +1,53 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import cookieParser from 'cookie-parser';
-import helmet from 'helmet';
-import { json, urlencoded } from 'express'; // <-- ADICIONAR
+import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
 import { AppModule } from './app.module';
 import { requestIdMiddleware } from './infra/logging/request-id.middleware';
-import { JsonLogger } from './infra/logging/json-logger.service';
 import { HttpLoggingInterceptor } from './infra/logging/http-logging.interceptor';
 
-function parseCorsOrigins(): (string | RegExp)[] {
-  const raw = (process.env.FRONTEND_URL || 'http://localhost:3000').trim();
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule);
 
-  if (raw === '*') return ['*'];
+  const config = app.get(ConfigService);
 
-  return raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
+  // Prefixo de API
+  app.setGlobalPrefix('api');
 
-async function bootstrap() {
-  // Usa logger estruturado desde o bootstrap
-  const app = await NestFactory.create(AppModule, {
-    logger: new JsonLogger(),
+  // CORS
+  const frontendUrl =
+    config.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+
+  app.enableCors({
+    origin: frontendUrl,
+    credentials: true,
   });
 
-  // requestId + AsyncLocalStorage context (precisa vir bem cedo)
+  // Middleware request-id (correlação)
   app.use(requestIdMiddleware);
 
-  // Captura rawBody (útil para auditoria/validação de webhooks)
-  // Mantém JSON padrão para o resto da API.
-  app.use(
-    json({
-      limit: '1mb',
-      verify: (req: any, _res, buf: Buffer) => {
-        req.rawBody = buf;
-      },
-    }),
-  );
+  // Interceptor de logging HTTP (sem dados sensíveis)
+  app.useGlobalInterceptors(new HttpLoggingInterceptor());
 
-  app.use(
-    urlencoded({
-      extended: true,
-      limit: '1mb',
-      verify: (req: any, _res, buf: Buffer) => {
-        req.rawBody = buf;
-      },
-    }),
-  );
-
-  app.use(cookieParser());
-
-  app.use(
-    helmet({
-      contentSecurityPolicy: false,
-      crossOriginResourcePolicy: { policy: 'cross-origin' },
-    }),
-  );
-
+  // ValidationPipe global (hardening)
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
       validationError: { target: false, value: false },
+      stopAtFirstError: false,
     }),
   );
 
-  const origins = parseCorsOrigins();
-
-  app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (origins.includes('*')) return callback(null, true);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const allowed = origins.includes(origin);
-      return allowed
-        ? callback(null, true)
-        : callback(new Error(`CORS blocked for origin: ${origin}`), false);
-    },
-    credentials: true,
-  });
-
-  // logs por request (latência/status)
-  app.useGlobalInterceptors(new HttpLoggingInterceptor());
-
-  app.setGlobalPrefix('api');
-
-  await app.listen(process.env.PORT ? Number(process.env.PORT) : 4000);
+  const port = Number(config.get<string>('PORT') ?? 4000);
+  await app.listen(port);
 }
 
-void bootstrap();
+// Evita no-floating-promises
+void bootstrap().catch((err: unknown) => {
+  // log mínimo e explícito
+
+  console.error('Fatal bootstrap error:', err);
+  process.exit(1);
+});
