@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "@/lib/apiClient";
 import type { StatsOverview } from "@/types/stats";
 
+type UseStatsOverviewOptions = {
+	enabled?: boolean;
+};
+
 type UseStatsOverviewResult = {
 	data: StatsOverview | null;
 	loading: boolean;
@@ -11,12 +15,18 @@ type UseStatsOverviewResult = {
 	refetch: () => Promise<void>;
 };
 
-export function useStatsOverview(): UseStatsOverviewResult {
+export function useStatsOverview(
+	options: UseStatsOverviewOptions = {}
+): UseStatsOverviewResult {
+	const enabled = options.enabled ?? true;
+
 	const [data, setData] = useState<StatsOverview | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState<boolean>(enabled);
 	const [error, setError] = useState<string | null>(null);
 
 	const fetchStats = useCallback(async () => {
+		if (!enabled) return;
+
 		setLoading(true);
 		setError(null);
 
@@ -30,10 +40,20 @@ export function useStatsOverview(): UseStatsOverviewResult {
 		} finally {
 			setLoading(false);
 		}
-	}, []);
+	}, [enabled]);
 
 	useEffect(() => {
 		let cancelled = false;
+
+		// Quando desabilitado (Free), estado "idle" e limpa dados
+		if (!enabled) {
+			setData(null);
+			setError(null);
+			setLoading(false);
+			return () => {
+				cancelled = true;
+			};
+		}
 
 		(async () => {
 			try {
@@ -56,13 +76,12 @@ export function useStatsOverview(): UseStatsOverviewResult {
 		return () => {
 			cancelled = true;
 		};
-	}, [fetchStats]);
+	}, [enabled]);
 
-	// Nota: mantemos a lógica existente de efeito/cancelamento,
-	// e expomos um refetch simples para UI.
 	const refetch = useCallback(async () => {
+		if (!enabled) return;
 		await fetchStats();
-	}, [fetchStats]);
+	}, [enabled, fetchStats]);
 
 	return { data, loading, error, refetch };
 }

@@ -3,6 +3,9 @@
 import { useEffect, useId, useRef } from "react";
 import { StatsOverviewCard } from "@/components/dashboard/StatsOverviewCard";
 import { BarChart3, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { ProLockPill } from "@/components/Pro/ProLockPill";
 
 interface StatsOverviewModalProps {
 	open: boolean;
@@ -28,6 +31,8 @@ export function StatsOverviewModal({ open, onClose }: StatsOverviewModalProps) {
 	const titleId = useId();
 	const contentRef = useRef<HTMLDivElement | null>(null);
 	const closeBtnRef = useRef<HTMLButtonElement | null>(null);
+	const router = useRouter();
+	const { isPro } = useAuth();
 
 	useEffect(() => {
 		if (!open) return;
@@ -118,7 +123,52 @@ export function StatsOverviewModal({ open, onClose }: StatsOverviewModalProps) {
 				</header>
 
 				{/* Conteúdo */}
-				<StatsOverviewCard />
+				{isPro ? (
+					<StatsOverviewCard />
+				) : (
+					<div className="card-secondary rounded-2xl p-5 flex flex-col gap-4">
+						<div className="flex items-start justify-between gap-3">
+							<div className="min-w-0">
+								<p className="text-sm font-semibold text-primary">
+									Estatísticas completas no Pro
+								</p>
+								<p className="text-xs text-muted mt-1">
+									Acompanhe evolução, totais e métricas do dia sem anúncios e
+									com recursos premium.
+								</p>
+							</div>
+
+							<ProLockPill locked />
+						</div>
+
+						<ul className="text-xs text-muted list-disc pl-4 space-y-1">
+							<li>Pomodoros, foco e pausas (dia e total)</li>
+							<li>Tasks concluídas e consistência</li>
+							<li>Base para insights e histórico (futuro)</li>
+						</ul>
+
+						<div className="flex items-center justify-end gap-2">
+							<button
+								type="button"
+								onClick={onClose}
+								className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable"
+							>
+								Agora não
+							</button>
+
+							<button
+								type="button"
+								onClick={() => {
+									onClose();
+									router.push("/pro?src=stats_modal");
+								}}
+								className="px-3 py-1.5 rounded-lg text-xs border border-soft text-secondary hover:bg-soft inline-flex items-center gap-1.5 ui-clickable"
+							>
+								Ver Pro
+							</button>
+						</div>
+					</div>
+				)}
 
 				{/* Footer */}
 				<div className="mt-5 flex justify-end">
