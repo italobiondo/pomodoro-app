@@ -53,7 +53,7 @@ export class TasksService {
 
   async listForUser(userId: string) {
     return this.prisma.task.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       orderBy: { createdAt: 'asc' },
     });
   }

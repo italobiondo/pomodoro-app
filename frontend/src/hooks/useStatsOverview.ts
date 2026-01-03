@@ -31,7 +31,7 @@ export function useStatsOverview(
 		setError(null);
 
 		try {
-			const response = await apiGet<StatsOverview>("/stats/overview");
+			const response = await apiGet<StatsOverview>("/stats");
 			setData(response);
 		} catch (err) {
 			console.error("Erro ao carregar stats overview:", err);
@@ -60,7 +60,7 @@ export function useStatsOverview(
 				setLoading(true);
 				setError(null);
 
-				const response = await apiGet<StatsOverview>("/stats/overview");
+				const response = await apiGet<StatsOverview>("/stats");
 				if (!cancelled) setData(response);
 			} catch (err) {
 				if (!cancelled) {

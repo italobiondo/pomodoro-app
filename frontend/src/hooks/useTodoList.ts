@@ -104,7 +104,9 @@ export function useTodoList() {
 				setUsesServer(true);
 			}
 
-			setItems(remoteItems.map(normalizeTaskFromApi));
+			setItems(
+				remoteItems.filter((t) => !t.deletedAt).map(normalizeTaskFromApi)
+			);
 			logSync("reloadFromBackend: snapshot carregado", {
 				total: remoteItems.length,
 			});

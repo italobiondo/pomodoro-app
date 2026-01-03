@@ -29,7 +29,7 @@ export function useStats(options: UseStatsOptions = {}): UseStatsResult {
 		setError(null);
 
 		try {
-			const res = await apiGet<StatsOverview>("/stats/overview");
+			const res = await apiGet<StatsOverview>("/stats");
 			setStats(res);
 		} catch (err) {
 			console.error("Erro ao carregar stats:", err);
